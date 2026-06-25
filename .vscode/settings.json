@@ -1,0 +1,17 @@
+{
+  "files.associations": {
+    "*.yml": "ansible",
+    "**/inventories/**/*.yml": "yaml",
+    "requirements.yml": "yaml",
+    ".ansible-lint": "yaml",
+    ".yamllint.yml": "yaml"
+  },
+  "yaml.customTags": ["!vault scalar"],
+  "[ansible]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "ansible.validation.lint.enabled": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}

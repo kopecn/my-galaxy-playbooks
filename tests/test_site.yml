@@ -1,0 +1,23 @@
+---
+# Lightweight smoke test against localhost. Run with:
+#   ansible-playbook -i localhost, -c local tests/test_site.yml
+- name: Smoke test — example role converges on localhost
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    example_marker_path: /tmp/ansible-example.marker
+  roles:
+    - example
+  post_tasks:
+    - name: Verify marker file exists
+      ansible.builtin.stat:
+        path: "{{ example_marker_path }}"
+      register: marker
+
+    - name: Assert marker was created
+      ansible.builtin.assert:
+        that:
+          - marker.stat.exists
+        success_msg: "Marker present — role converged."
+        fail_msg: "Marker missing — role did not converge."

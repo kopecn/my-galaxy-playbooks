@@ -1,0 +1,3 @@
+---
+# Variables applied to every host in staging.
+env: staging

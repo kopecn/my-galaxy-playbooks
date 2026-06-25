@@ -1,0 +1,4 @@
+---
+# Variables applied to every host in production.
+# Keep secrets in an Ansible Vault file, not here.
+env: production

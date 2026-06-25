@@ -1,0 +1,33 @@
+---
+# Shared Molecule base config, merged into every scenario.
+# Activated by exporting MOLECULE_GLOBAL_CONFIG (see the Makefile).
+# Per-scenario molecule.yml only needs to declare its platforms + playbooks.
+
+# Collections are installed up front by `make bootstrap` (and in CI), so the
+# galaxy dependency step is omitted from test_sequence below.
+
+driver:
+  name: docker
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callbacks_enabled: ansible.posix.profile_tasks
+  log: true
+
+verifier:
+  name: ansible
+
+scenario:
+  # Run twice during `converge` checks to prove idempotency.
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy

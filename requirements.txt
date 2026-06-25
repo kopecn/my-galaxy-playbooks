@@ -1,0 +1,18 @@
+# Python tooling for this control node.
+# Canonical installer is `make bootstrap`; this file mirrors its pins so
+# `pip install -r requirements.txt` installs the same set. Keep them in sync.
+
+# Ansible + linting
+ansible>=9.6
+ansible-lint>=24.5
+yamllint
+passlib>=1.7
+
+# Test tools
+pytest>=8.0
+jinja2>=3.1
+pyyaml>=6.0
+
+# Molecule role-testing framework (docker driver)
+molecule>=24.2
+molecule-plugins[docker]>=23.5

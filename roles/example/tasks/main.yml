@@ -1,0 +1,11 @@
+---
+# Tasks for the example role. Every task is named and idempotent.
+- name: Ensure example marker file is present
+  ansible.builtin.copy:
+    content: "Managed by Ansible — env: {{ env | default('unknown') }}\n"
+    dest: "{{ example_marker_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Reload example service

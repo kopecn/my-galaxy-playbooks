@@ -1,0 +1,11 @@
+---
+# Runs once before converge to put the instance into a known starting state.
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure no stale marker from a previous run
+      ansible.builtin.file:
+        path: /etc/ansible-example.marker
+        state: absent
+      become: true

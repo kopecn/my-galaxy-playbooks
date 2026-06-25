@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: example
+  author: nbergantz
+  description: Starter role — replace with real automation.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - example
+dependencies: []

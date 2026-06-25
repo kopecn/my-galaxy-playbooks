@@ -1,0 +1,17 @@
+---
+# Galaxy dependencies. Installed by `make bootstrap` (or: ansible-galaxy collection install -r requirements.yml)
+# Installed into galaxy_roles/ (see ansible.cfg roles_path / collections_path).
+
+roles: []
+  # - name: geerlingguy.docker
+  #   version: "7.4.1"
+
+collections:
+  - name: community.general
+    version: ">=8.0.0"
+  - name: awx.awx
+    version: ">=24.0.0"
+  - name: ansible.posix
+    version: ">=1.5.0"
+  - name: kubernetes.core
+    version: ">=3.0.0"

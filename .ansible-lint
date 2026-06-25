@@ -1,0 +1,24 @@
+---
+# https://ansible.readthedocs.io/projects/lint/configuring/
+profile: production
+
+exclude_paths:
+  - .cache/
+  - .github/
+  - galaxy_roles/
+  - tests/output/
+
+# Roles pulled from Galaxy are third-party; don't lint them.
+skip_list: []
+
+warn_list:
+  - experimental
+
+use_default_rules: true
+
+kinds:
+  - playbook: "playbooks/*.yml"
+  - playbook: "**/molecule/*/{converge,prepare,verify,side_effect,cleanup}.yml"
+  - yaml: "**/molecule/*/molecule.yml"
+  - tasks: "roles/**/tasks/*.yml"
+  - vars: "inventories/**/group_vars/*.yml"

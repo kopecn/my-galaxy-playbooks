@@ -1,0 +1,7 @@
+---
+# Top-level playbook. Keep it thin — delegate work to roles.
+- name: Converge all hosts
+  hosts: all
+  gather_facts: true
+  roles:
+    - example

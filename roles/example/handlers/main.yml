@@ -1,0 +1,4 @@
+---
+- name: Reload example service
+  ansible.builtin.debug:
+    msg: "Handler fired — wire this to a real service reload."

@@ -1,0 +1,35 @@
+---
+# Assertions describing the behavior the role must produce.
+# One concept per assert block; pure Ansible facts, no external mocks.
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    example_marker_path: /etc/ansible-example.marker
+  tasks:
+    - name: Stat the marker file
+      ansible.builtin.stat:
+        path: "{{ example_marker_path }}"
+      register: example_marker
+
+    - name: Marker file is created with correct ownership and mode
+      ansible.builtin.assert:
+        that:
+          - example_marker.stat.exists
+          - example_marker.stat.isreg
+          - example_marker.stat.pw_name == 'root'
+          - example_marker.stat.mode == '0644'
+        fail_msg: "Marker file missing or has wrong ownership/mode."
+        success_msg: "Marker file present with expected ownership and mode."
+
+    - name: Read the marker file contents
+      ansible.builtin.slurp:
+        src: "{{ example_marker_path }}"
+      register: example_marker_contents
+
+    - name: Marker content reflects the host's env value
+      ansible.builtin.assert:
+        that:
+          - "'env: molecule' in (example_marker_contents.content | b64decode)"
+        fail_msg: "Marker content did not include the expected env value."
+        success_msg: "Marker content includes the expected env value."

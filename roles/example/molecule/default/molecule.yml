@@ -1,0 +1,21 @@
+---
+# Default scenario for the `example` role.
+# Shared settings (driver, verifier, dependency) come from
+# .config/molecule/config.yml via MOLECULE_GLOBAL_CONFIG.
+
+platforms:
+  - name: example-ubuntu-2204
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    command: /usr/lib/systemd/systemd
+    cgroupns_mode: host
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      example-ubuntu-2204:
+        env: molecule

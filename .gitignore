@@ -1,0 +1,34 @@
+# Galaxy-installed roles & collections (managed via requirements.yml)
+galaxy_roles/*
+!galaxy_roles/.gitkeep
+
+# Python virtualenvs
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Ansible artifacts
+*.retry
+.cache/
+*.log
+tests/output/
+
+# Vault password files — never commit
+*.vault_pass
+vault_pass*
+.vault-password
+
+# Local Makefile config (committed template: .env.example)
+.env
+
+# Local inventory / secrets overrides
+inventories/**/host_vars/**/vault.yml
+*.local.yml
+
+# Editor / OS
+.DS_Store
+*.swp
+*~
+.idea/
