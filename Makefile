@@ -9,7 +9,7 @@ SHELL := /bin/bash
 .PHONY: help bootstrap \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-example check-docker \
+        test-molecule test-molecule-example test-molecule-vscode check-docker \
         open-github
 
 # ----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ SHELL := /bin/bash
 -include .env
 
 # Operational defaults (used only if not set in .env or on the CLI).
-INVENTORY ?= inventories/production/hosts.yml
+INVENTORY ?= inventories/production/hosts.ini
 PLAYBOOK  ?= playbooks/site.yml
 LIMIT     ?=
 TAGS      ?=
@@ -148,10 +148,13 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and inventory tests
 	pytest tests/ -v
 
-test-molecule: test-molecule-example ## All Molecule tests
+test-molecule: test-molecule-example test-molecule-vscode ## All Molecule tests
 
 test-molecule-example: check-docker ## Molecule test: example role (default scenario)
 	cd roles/example && molecule test
+
+test-molecule-vscode: check-docker ## Molecule test: vscode role (default scenario, Ubuntu/apt path only)
+	cd roles/vscode && molecule test
 
 check-docker:
 	@docker info > /dev/null 2>&1 \

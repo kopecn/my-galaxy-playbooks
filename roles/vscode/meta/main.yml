@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: vscode
+  author: nbergantz
+  description: >-
+    Install VS Code on Darwin (Homebrew) or Ubuntu (apt), verify the install,
+    and sync extensions from vscode_extensions.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - vscode
+    - workstation
+dependencies: []

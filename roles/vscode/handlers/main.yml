@@ -1,0 +1,5 @@
+---
+- name: Update apt cache for VS Code repository
+  ansible.builtin.apt:
+    update_cache: true
+  become: true

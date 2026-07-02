@@ -1,0 +1,12 @@
+---
+# Homebrew must never run as root — override any inherited become: true.
+- name: Ensure Homebrew is available
+  ansible.builtin.command: brew --version
+  changed_when: false
+  become: false
+
+- name: Ensure VS Code is present (Homebrew cask)
+  community.general.homebrew_cask:
+    name: visual-studio-code
+    state: present
+  become: false
