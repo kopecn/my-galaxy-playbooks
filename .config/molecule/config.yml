@@ -11,6 +11,10 @@ driver:
 
 provisioner:
   name: ansible
+  env:
+    # MOLECULE_PROJECT_DIRECTORY is the role under test (e.g. roles/example),
+    # so its parent is the repo roles/ dir — that lets `- role: example` resolve.
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/..:${MOLECULE_PROJECT_DIRECTORY}/../../galaxy_roles"
   config_options:
     defaults:
       interpreter_python: auto_silent
