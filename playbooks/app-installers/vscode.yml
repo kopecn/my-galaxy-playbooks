@@ -1,7 +1,7 @@
 ---
 # Installs VS Code and its extensions. Targets whatever inventory/host you run
 # it against, e.g.:
-#   make LIMIT=local PLAYBOOK=playbooks/vscode.yml run
+#   make LIMIT=local PLAYBOOK=playbooks/app-installers/vscode.yml run
 - name: Install and configure VS Code
   hosts: all
   gather_facts: true
