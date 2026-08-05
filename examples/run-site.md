@@ -18,11 +18,6 @@ Dry-run (check mode) against staging:
 make check INVENTORY=inventories/staging/hosts.yml
 ```
 
-Apply to production, limited to webservers:
-
-```bash
-make run LIMIT=webservers
-```
 
 Run the localhost smoke test:
 

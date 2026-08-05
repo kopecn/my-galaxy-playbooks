@@ -1,0 +1,42 @@
+---
+# Assertions describing the behavior the role must produce.
+# One concept per assert block; pure Ansible facts, no external mocks.
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check the code apt package is installed
+      ansible.builtin.command: dpkg-query -W -f='${Status}' code
+      changed_when: false
+      register: vscode_dpkg_status
+
+    - name: VS Code package reports installed status
+      ansible.builtin.assert:
+        that:
+          - "'install ok installed' in vscode_dpkg_status.stdout"
+        fail_msg: "code package is not reported as installed by dpkg."
+        success_msg: "code package is installed."
+
+    - name: Query the installed VS Code version
+      ansible.builtin.command: code --version
+      changed_when: false
+      register: vscode_version
+
+    - name: VS Code CLI reports version, commit, and architecture
+      ansible.builtin.assert:
+        that:
+          - vscode_version.stdout_lines | length == 3
+        fail_msg: "'code --version' did not return the expected 3 lines."
+        success_msg: "code --version output looks well-formed."
+
+    - name: List installed VS Code extensions
+      ansible.builtin.command: code --list-extensions
+      changed_when: false
+      register: vscode_extensions_list
+
+    - name: Configured extension was installed
+      ansible.builtin.assert:
+        that:
+          - "'redhat.vscode-yaml' in (vscode_extensions_list.stdout_lines | map('lower') | list)"
+        fail_msg: "redhat.vscode-yaml was not installed."
+        success_msg: "redhat.vscode-yaml is installed."

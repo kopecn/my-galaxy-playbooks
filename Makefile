@@ -9,7 +9,8 @@ SHELL := /bin/bash
 .PHONY: help bootstrap \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-example check-docker
+        test-molecule test-molecule-example test-molecule-vscode check-docker \
+        open-github
 
 # ----------------------------------------------------------------------------
 #  Configuration
@@ -19,7 +20,7 @@ SHELL := /bin/bash
 -include .env
 
 # Operational defaults (used only if not set in .env or on the CLI).
-INVENTORY ?= inventories/production/hosts.yml
+INVENTORY ?= inventories/production/hosts.ini
 PLAYBOOK  ?= playbooks/site.yml
 LIMIT     ?=
 TAGS      ?=
@@ -33,6 +34,9 @@ PLAYBOOKS      := $(wildcard playbooks/*.yml) \
 # Install commands.
 PIP_INSTALL    := pip install --index-url https://pypi.org/simple/ --no-input
 GALAXY_INSTALL := ansible-galaxy collection install --ignore-certs
+
+# Host OS, used to pick a browser opener.
+UNAME_S := $(shell uname -s)
 
 # Share .config/molecule/config.yml across every scenario.
 export MOLECULE_GLOBAL_CONFIG := $(CURDIR)/.config/molecule/config.yml
@@ -144,11 +148,27 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and inventory tests
 	pytest tests/ -v
 
-test-molecule: test-molecule-example ## All Molecule tests
+test-molecule: test-molecule-example test-molecule-vscode ## All Molecule tests
 
 test-molecule-example: check-docker ## Molecule test: example role (default scenario)
 	cd roles/example && molecule test
 
+test-molecule-vscode: check-docker ## Molecule test: vscode role (default scenario, Ubuntu/apt path only)
+	cd roles/vscode && molecule test
+
 check-docker:
 	@docker info > /dev/null 2>&1 \
 		|| (echo "ERROR: Docker daemon is not running. Start Docker Desktop and retry." && exit 1)
+
+# ----------------------------------------------------------------------------
+#  Utilities
+# ----------------------------------------------------------------------------
+
+open-github: ## Open the GitHub repository in the default browser (macOS/Linux)
+	@remote=$$(git remote | head -1); \
+	[ -n "$$remote" ] || { echo "No git remote configured."; exit 1; }; \
+	url=$$(git remote get-url "$$remote" | sed -e 's|git@github.com:|https://github.com/|' -e 's|\.git$$||'); \
+	echo "Opening $$url"; \
+	if [ "$(UNAME_S)" = "Darwin" ]; then open "$$url"; \
+	elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url"; \
+	else echo "No browser opener found; visit: $$url"; fi

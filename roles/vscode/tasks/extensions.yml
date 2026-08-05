@@ -1,0 +1,15 @@
+---
+# Installs any vscode_extensions entry not already present; skips the rest,
+# so re-runs stay idempotent.
+- name: List currently installed VS Code extensions
+  ansible.builtin.command: code --list-extensions
+  changed_when: false
+  become: false
+  register: vscode_installed_extensions
+
+- name: Install missing VS Code extensions
+  ansible.builtin.command: "code --install-extension {{ item }}"
+  loop: "{{ vscode_extensions }}"
+  become: false
+  changed_when: true
+  when: (item | lower) not in (vscode_installed_extensions.stdout_lines | map('lower') | list)

@@ -1,0 +1,109 @@
+# ---
+# Ansible Playbook: Ping Connectivity Check
+#
+# Description:
+# This playbook performs a lightweight connectivity verification against all
+# hosts in the inventory using the Ansible `ping` module. It is designed to
+# validate SSH connectivity, Python availability, and basic Ansible
+# communication with managed nodes.
+#
+# Execution behavior:
+# - Runs against all inventory hosts (`hosts: all`)
+# - Processes hosts in batches of 10 (`serial: 10`)
+# - Uses `free` strategy to allow hosts to run tasks independently
+# - Does not gather facts to reduce overhead (`gather_facts: false`)
+# - Does not escalate privileges (`become: false`)
+#
+# Pre-tasks:
+# - Captures a start timestamp to measure per-host execution time
+#
+# Tasks:
+# - Performs an Ansible ping to verify connectivity (with retries and delay)
+# - Retries up to 3 times with 2-second delay until success
+# - Outputs a confirmation message per reachable host
+#
+# Post-tasks:
+# - Captures an end timestamp
+# - Calculates and displays execution time per host
+#
+# Output:
+# - Connectivity status per host
+# - Execution duration per host in seconds
+#
+# Tags:
+# - ping: allows selective execution of the connectivity check task
+# --- 
+
+- name: Ansible Connectivity Validation Playbook
+  hosts: all
+  gather_facts: false
+  become: false
+
+  # Safer rollout control (adjust based on environment size)
+  serial: "20%"
+  strategy: linear
+
+  # Optional safety gate (uncomment if you want CI-style strictness)
+  # any_errors_fatal: false
+  # max_fail_percentage: 20
+
+  pre_tasks:
+    - name: Capture start timestamp
+      ansible.builtin.set_fact:
+        start_ts: "{{ lookup('pipe', 'date +%s') | int }}"
+
+  tasks:
+    - name: Connectivity validation block
+      block:
+
+        - name: Wait for SSH connection availability
+          ansible.builtin.wait_for_connection:
+            timeout: 10
+            connect_timeout: 2
+
+        - name: Verify Ansible Python connectivity (ping)
+          ansible.builtin.ping:
+          register: ping_result
+          retries: 3
+          delay: 2
+          until: ping_result is succeeded
+          throttle: 5
+          tags:
+            - ping
+
+        - name: Assert connectivity response is valid
+          ansible.builtin.assert:
+            that:
+              - ping_result.ping is defined
+            fail_msg: "Ping response missing or invalid for {{ inventory_hostname }}"
+
+        - name: Show per-host success result
+          ansible.builtin.debug:
+            msg: "Host {{ inventory_hostname }} is reachable and validated"
+
+      rescue:
+
+        - name: Mark host as unreachable
+          ansible.builtin.debug:
+            msg: "Host {{ inventory_hostname }} failed connectivity validation"
+
+        - name: Fail host explicitly
+          ansible.builtin.fail:
+            msg: "Connectivity check failed for {{ inventory_hostname }}"
+
+      always:
+
+        - name: Capture end timestamp
+          ansible.builtin.set_fact:
+            end_ts: "{{ lookup('pipe', 'date +%s') | int }}"
+
+        - name: Show execution time per host
+          ansible.builtin.debug:
+            msg: >
+              Connectivity check completed for {{ inventory_hostname }}
+              in {{ (end_ts | int) - (start_ts | int) }} seconds
+
+  post_tasks:
+    - name: Final summary marker
+      ansible.builtin.debug:
+        msg: "Connectivity validation run completed for host batch"

@@ -1,0 +1,16 @@
+---
+# Confirms the install is functional and not corrupted, regardless of platform.
+- name: Query the installed VS Code version
+  ansible.builtin.command: code --version
+  changed_when: false
+  become: false
+  register: vscode_version
+
+- name: Verify VS Code reports version, commit, and architecture
+  ansible.builtin.assert:
+    that:
+      - vscode_version.stdout_lines | length == 3
+    fail_msg: >-
+      'code --version' returned unexpected output — the install may be
+      corrupted: {{ vscode_version.stdout }}
+    success_msg: "VS Code {{ vscode_version.stdout_lines[0] }} verified."
