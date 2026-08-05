@@ -1,0 +1,29 @@
+---
+- name: Ensure apt prerequisites for adding repositories are present
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - gpg
+    state: present
+  become: true
+
+- name: Add the Microsoft VS Code apt repository
+  ansible.builtin.deb822_repository:
+    name: vscode
+    types: deb
+    uris: https://packages.microsoft.com/repos/code
+    suites: stable
+    components: main
+    architectures: amd64,arm64,armhf
+    signed_by: https://packages.microsoft.com/keys/microsoft.asc
+  become: true
+  notify: Update apt cache for VS Code repository
+
+- name: Flush handlers so the apt cache is current before installing VS Code
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure VS Code package is present
+  ansible.builtin.apt:
+    name: code
+    state: present
+  become: true

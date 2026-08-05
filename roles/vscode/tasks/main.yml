@@ -1,0 +1,25 @@
+---
+# Cross-platform VS Code install: only Darwin and Ubuntu are supported today.
+- name: Fail on unsupported platform
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.os_family in ['Darwin', 'Debian']
+    fail_msg: >-
+      The vscode role only supports Darwin (Homebrew) and Debian/Ubuntu (apt)
+      hosts; {{ ansible_facts.os_family }} is not supported.
+    success_msg: "Platform {{ ansible_facts.os_family }} is supported."
+
+- name: Install VS Code via Homebrew
+  ansible.builtin.include_tasks: Darwin.yml
+  when: ansible_facts.os_family == 'Darwin'
+
+- name: Install VS Code via apt
+  ansible.builtin.include_tasks: Debian.yml
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Validate the VS Code install
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Sync VS Code extensions
+  ansible.builtin.include_tasks: extensions.yml
+  when: vscode_extensions | length > 0

@@ -1,0 +1,10 @@
+---
+# Runs once before converge to put the instance into a known starting state.
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure apt cache is populated
+      ansible.builtin.apt:
+        update_cache: true
+      become: true
