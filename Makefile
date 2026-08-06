@@ -6,7 +6,7 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-.PHONY: help bootstrap \
+.PHONY: help bootstrap venv \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
         test-molecule test-molecule-example test-molecule-vscode check-docker \
@@ -31,9 +31,20 @@ PLAYBOOKS      := $(wildcard playbooks/*.yml) \
                   $(wildcard playbooks/*/update.yml) \
                   $(wildcard playbooks/*/validate.yml)
 
+# Project virtualenv. Everything installs into .venv rather than the ambient
+# interpreter: Homebrew's python is PEP 668 "externally managed" and refuses a
+# bare `pip install`, and on a fresh machine unversioned `pip` is not on PATH at
+# all. Putting .venv/bin first on PATH means every target below keeps calling
+# `ansible-lint` / `pytest` / `molecule` unqualified and still gets the venv —
+# one definition here instead of a prefix on ten recipes.
+PYTHON   ?= python3
+VENV     := .venv
+VENV_BIN := $(VENV)/bin
+export PATH := $(CURDIR)/$(VENV_BIN):$(PATH)
+
 # Install commands.
-PIP_INSTALL    := pip install --index-url https://pypi.org/simple/ --no-input
-GALAXY_INSTALL := ansible-galaxy collection install --ignore-certs
+PIP_INSTALL    := $(VENV_BIN)/pip install --index-url https://pypi.org/simple/ --no-input
+GALAXY_INSTALL := $(VENV_BIN)/ansible-galaxy collection install --ignore-certs
 
 # Host OS, used to pick a browser opener.
 UNAME_S := $(shell uname -s)
@@ -75,7 +86,15 @@ help: ## Show this help
 #  Setup
 # ----------------------------------------------------------------------------
 
-bootstrap: ## Install all dev/test dependencies and verify prerequisites
+venv: $(VENV_BIN)/pip ## Create the project virtualenv (.venv)
+
+# Order-only on the interpreter: create the venv once, then leave it alone.
+$(VENV_BIN)/pip:
+	@echo "==> Creating virtualenv in $(VENV)..."
+	$(PYTHON) -m venv $(VENV)
+	$(VENV_BIN)/pip install --upgrade pip
+
+bootstrap: venv ## Install all dev/test dependencies and verify prerequisites
 	@echo "==> Installing Ansible + linting tools..."
 	$(PIP_INSTALL) "ansible>=9.6" "ansible-lint>=24.5" yamllint "passlib>=1.7"
 	@echo ""
