@@ -1,4 +1,5 @@
 ---
 # Lowest-precedence, user-overridable variables.
-# Populate the real list in inventory group_vars, e.g. inventories/local/group_vars/all.yml
-vscode_extensions: []
+# Populate the real list in inventory group_vars, e.g.
+# inventories/production/group_vars/local.yml
+vscodeExtensions: []

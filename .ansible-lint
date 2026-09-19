@@ -2,14 +2,23 @@
 # https://ansible.readthedocs.io/projects/lint/configuring/
 profile: production
 
+# Project convention is camelCase variable names (see
+# .claude/specs/architecture/playbook-layering.md). Widen the default
+# var-naming pattern (snake_case only) to also permit camelCase.
+var_naming_pattern: "^[a-z_][a-zA-Z0-9_]*$"
+
 exclude_paths:
   - .cache/
   - .github/
   - galaxy_roles/
   - tests/output/
 
-# Roles pulled from Galaxy are third-party; don't lint them.
-skip_list: []
+skip_list:
+  # Project convention is camelCase, and role variables are still namespaced by
+  # a camelCase role prefix (e.g. vscodeExtensions, exampleMarkerPath). This rule
+  # only recognizes snake_case `role_` prefixes, which camelCase cannot satisfy.
+  # See .claude/specs/architecture/playbook-layering.md.
+  - var-naming[no-role-prefix]
 
 warn_list:
   - experimental

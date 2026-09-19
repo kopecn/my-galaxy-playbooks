@@ -20,5 +20,5 @@ provisioner:
   inventory:
     host_vars:
       vscode-ubuntu-2204:
-        vscode_extensions:
+        vscodeExtensions:
           - redhat.vscode-yaml

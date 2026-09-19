@@ -1,0 +1,11 @@
+{
+    "ansible.python.interpreterPath": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+    "ansible.mcpServer.enabled": true,
+    "yaml.schemas": {
+        ".schema/ansible-vars.schema.json": [
+            "inventories/**/host_vars/*.yml",
+            "inventories/**/group_vars/*.yml",
+            "roles/*/defaults/main.yml"
+        ]
+    }
+}

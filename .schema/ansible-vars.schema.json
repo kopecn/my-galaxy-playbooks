@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ansible-vars.schema.json",
+  "title": "Ansible Variables",
+  "description": "Schema for host_vars, group_vars, and role defaults in this inventory. Provides hover documentation for all project variables. Variable names are camelCase per the Playbook Layering spec.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "hostName": {
+      "type": "string",
+      "description": "The hostname for this device."
+    },
+    "hostOperatingSystem": {
+      "type": "string",
+      "description": "Declared OS family of the target host. Roles validate this against ansible_facts.os_family before dispatching. Darwin = macOS; Debian = the Debian/Ubuntu/Raspbian family.",
+      "enum": [
+        "Darwin",
+        "Debian"
+      ]
+    },
+    "hostArchitecture": {
+      "type": "string",
+      "description": "Declared canonical CPU architecture of the target host. Roles validate this against ansible_facts.architecture, normalizing macOS 'arm64' to 'aarch64'. x86_64 = 64-bit Intel/AMD; aarch64 = 64-bit ARM/Apple Silicon; armv7l = 32-bit ARM; i386 = 32-bit Intel.",
+      "enum": [
+        "x86_64",
+        "aarch64",
+        "armv7l",
+        "i386"
+      ]
+    },
+    "env": {
+      "type": "string",
+      "description": "Environment label for the host's inventory (e.g. production, staging, molecule)."
+    },
+    "tailscaleEnable": {
+      "type": "boolean",
+      "description": "Set true to enable Tailscale for this host."
+    },
+    "tailscaleDomain": {
+      "type": "string",
+      "default": "tail313959.ts.net",
+      "description": "Tailscale tailnet domain suffix. Combined with tailscaleHostname to form the FQDN used for SSH connectivity."
+    },
+    "tailscaleHostname": {
+      "type": "string",
+      "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
+    },
+    "vscodeExtensions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "VS Code extension IDs the vscode role installs (e.g. redhat.vscode-yaml). An empty list installs none."
+    },
+    "exampleMarkerPath": {
+      "type": "string",
+      "default": "/etc/ansible-example.marker",
+      "description": "Filesystem path of the marker file written by the example role."
+    }
+  }
+}

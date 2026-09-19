@@ -8,6 +8,12 @@ Ansible automation repo for provisioning dev and production machines: playbooks,
 first-party roles, per-environment inventories, Molecule role tests, and CI
 (lint + molecule via GitHub Actions).
 
+## Specs
+
+- [Playbook Layering](specs/architecture/playbook-layering.md) — mandatory
+  three-layer organization (playbooks declare intent → roles implement per
+  OS × arch → global config supplies data) for authoring and deploying playbooks.
+
 ## Commands
 
 ```bash

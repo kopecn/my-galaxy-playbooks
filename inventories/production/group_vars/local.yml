@@ -3,7 +3,7 @@
 # not to host-01 or other real hosts in this inventory.
 
 # VS Code extensions installed by the vscode role (roles/vscode).
-vscode_extensions:
+vscodeExtensions:
   - Ahern.urscript
   - alefragnani.Bookmarks
   - Anthropic.claude-code

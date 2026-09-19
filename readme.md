@@ -1,40 +1,47 @@
-# automation-ansible
+# my-galaxy-playbooks
 
-Ansible automation repo — playbooks, roles, and inventories with linting and CI.
+Ansible automation for provisioning dev and production machines: playbooks,
+first-party roles, per-environment inventories, and Molecule role tests, with
+lint + molecule CI on GitHub Actions.
 
-## Quick start
+## Layering
+
+Authoring and deployment follow a mandatory three-layer model — complexity is
+pushed down the stack, never smeared across playbooks:
+
+| Layer | Owns | Concern |
+| --- | --- | --- |
+| Playbooks | intent | *What* to do — "install VS Code", "roll ssh keys". OS/arch-agnostic. |
+| Roles | implementation | *How* to do it across the host OS × architecture matrix. |
+| Global configuration | data | Flags and parameters describing hosts and features. |
+
+The [Playbook Layering spec](.claude/specs/architecture/playbook-layering.md) is
+the authoritative, must-follow contract. In short: playbooks declare intent and
+never branch on OS/arch; roles are the only layer that branches on OS ×
+architecture, declare their supported combinations, validate declared
+`hostOperatingSystem`/`hostArchitecture` against gathered facts, and error
+non-fatally on an unsupported host; global config lives in
+`inventories/<env>/group_vars/all.yml`. Variable names are camelCase and every
+variable is documented in
+[`.schema/ansible-vars.schema.json`](.schema/ansible-vars.schema.json).
+
+## Quickstart
 
 ```bash
-make bootstrap   # install deps + Galaxy collections, verify prerequisites
+make bootstrap   # install ansible/lint/test/molecule deps + Galaxy collections
 make lint        # yamllint + ansible-lint
-make check       # dry-run site.yml against production
-make run         # apply site.yml
-```
-
-Run `make help` for all targets.
-
-## Testing
-
-Roles are unit-tested with [Molecule](docs/testing.md) (Docker driver):
-
-```bash
+make check       # dry-run PLAYBOOK against INVENTORY (--check --diff)
+make run         # apply PLAYBOOK to INVENTORY
 make test        # fast: lint + syntax-check + pytest (no Docker)
-make test-all    # everything, including Molecule (requires Docker)
+make test-all    # test + all Molecule scenarios (requires Docker)
 ```
 
-## Layout
+`INVENTORY`, `PLAYBOOK`, `LIMIT`, and `TAGS` are overridable on the CLI or via a
+git-ignored `.env` (copy from `.env.example`).
 
-- `playbooks/` — entry-point playbooks (`site.yml`); keep them thin
-- `roles/` — first-party roles
-- `galaxy_roles/` — Galaxy-installed roles/collections (git-ignored)
-- `inventories/` — `production` / `staging` inventories
-- `files/`, `templates/` — static files and Jinja2 templates
-- `tests/`, `docs/`, `examples/` — tests, docs, usage examples
+## Documentation
 
-## Collections
-
-Pinned in `requirements.yml`: `community.general`, `awx.awx`, `ansible.posix`, `kubernetes.core`.
-
-## License
-
-MIT
+- [Repository structure](docs/structure.md) — layout and conventions.
+- [Testing with Molecule](docs/testing.md) — the test-first role workflow.
+- [Playbook Layering](.claude/specs/architecture/playbook-layering.md) — the
+  authoring/deployment contract.

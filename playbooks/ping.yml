@@ -32,8 +32,9 @@
 #
 # Tags:
 # - ping: allows selective execution of the connectivity check task
-# --- 
+# ---
 
+---
 - name: Ansible Connectivity Validation Playbook
   hosts: all
   gather_facts: false
@@ -50,7 +51,7 @@
   pre_tasks:
     - name: Capture start timestamp
       ansible.builtin.set_fact:
-        start_ts: "{{ lookup('pipe', 'date +%s') | int }}"
+        startTs: "{{ lookup('pipe', 'date +%s') | int }}"
 
   tasks:
     - name: Connectivity validation block
@@ -63,10 +64,10 @@
 
         - name: Verify Ansible Python connectivity (ping)
           ansible.builtin.ping:
-          register: ping_result
+          register: pingResult
           retries: 3
           delay: 2
-          until: ping_result is succeeded
+          until: pingResult is succeeded
           throttle: 5
           tags:
             - ping
@@ -74,7 +75,7 @@
         - name: Assert connectivity response is valid
           ansible.builtin.assert:
             that:
-              - ping_result.ping is defined
+              - pingResult.ping is defined
             fail_msg: "Ping response missing or invalid for {{ inventory_hostname }}"
 
         - name: Show per-host success result
@@ -95,13 +96,13 @@
 
         - name: Capture end timestamp
           ansible.builtin.set_fact:
-            end_ts: "{{ lookup('pipe', 'date +%s') | int }}"
+            endTs: "{{ lookup('pipe', 'date +%s') | int }}"
 
         - name: Show execution time per host
           ansible.builtin.debug:
             msg: >
               Connectivity check completed for {{ inventory_hostname }}
-              in {{ (end_ts | int) - (start_ts | int) }} seconds
+              in {{ (endTs | int) - (startTs | int) }} seconds
 
   post_tasks:
     - name: Final summary marker

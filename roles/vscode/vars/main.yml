@@ -1,0 +1,13 @@
+---
+# Role constants — not meant to be overridden by inventory.
+# Supported (OS family × canonical architecture) matrix for this role.
+# OS family is matched against ansible_facts.os_family; architecture against
+# the normalized ansible_facts.architecture (macOS 'arm64' -> 'aarch64').
+vscodeSupportMatrix:
+  Darwin:
+    - x86_64
+    - aarch64
+  Debian:
+    - x86_64
+    - aarch64
+    - armv7l
