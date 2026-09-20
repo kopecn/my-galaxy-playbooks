@@ -9,7 +9,7 @@ SHELL := /bin/bash
 .PHONY: help bootstrap venv \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-example test-molecule-vscode check-docker \
+        test-molecule test-molecule-example test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
 
 # ----------------------------------------------------------------------------
@@ -25,11 +25,13 @@ PLAYBOOK  ?= playbooks/site.yml
 LIMIT     ?=
 TAGS      ?=
 
+# Single entry point for commands that may query 1Password.
+WITH_OP := scripts/with-op
+
 # Static-analysis inputs.
 TEST_INVENTORY := inventories/test/hosts.ini
 PLAYBOOKS      := $(wildcard playbooks/*.yml) \
-                  $(wildcard playbooks/*/update.yml) \
-                  $(wildcard playbooks/*/validate.yml)
+                  $(wildcard playbooks/*/*.yml)
 
 # Project virtualenv. Everything installs into .venv rather than the ambient
 # interpreter: Homebrew's python is PEP 668 "externally managed" and refuses a
@@ -149,7 +151,7 @@ check: ## Dry-run the playbook (no changes applied)
 	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK) --check --diff
 
 run: ## Apply the playbook
-	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)
+	$(WITH_OP) ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)
 
 ping: ## Ping all hosts in the inventory
 	ansible -i $(INVENTORY) all -m ansible.builtin.ping
@@ -167,10 +169,13 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and inventory tests
 	pytest tests/ -v
 
-test-molecule: test-molecule-example test-molecule-vscode ## All Molecule tests
+test-molecule: test-molecule-example test-molecule-tailscale test-molecule-vscode ## All Molecule tests
 
 test-molecule-example: check-docker ## Molecule test: example role (default scenario)
 	cd roles/example && molecule test
+
+test-molecule-tailscale: check-docker ## Molecule test: Tailscale role (Ubuntu install path only)
+	cd roles/tailscale && molecule test
 
 test-molecule-vscode: check-docker ## Molecule test: vscode role (default scenario, Ubuntu/apt path only)
 	cd roles/vscode && molecule test

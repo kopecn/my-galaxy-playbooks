@@ -1,0 +1,22 @@
+---
+- name: Check whether the Tailscale CLI is installed
+  ansible.builtin.stat:
+    path: /usr/bin/tailscale
+  register: tailscaleCli
+
+- name: Install Tailscale with the official Linux installer
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -fsSL https://tailscale.com/install.sh | sh
+  args:
+    creates: /usr/bin/tailscale
+    executable: /bin/bash
+  become: true
+
+- name: Ensure the Tailscale service is enabled and running
+  ansible.builtin.service:
+    name: tailscaled
+    enabled: true
+    state: started
+  become: true
+  when: not ansible_check_mode or tailscaleCli.stat.exists

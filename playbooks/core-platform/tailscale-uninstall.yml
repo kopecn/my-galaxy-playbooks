@@ -1,0 +1,8 @@
+---
+- name: Uninstall Tailscale
+  hosts: all
+  gather_facts: true
+  serial: 1
+  roles:
+    - role: tailscale
+      tailscaleOperation: uninstall

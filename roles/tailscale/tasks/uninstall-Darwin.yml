@@ -1,0 +1,24 @@
+---
+- name: Check whether the Tailscale formula is installed
+  ansible.builtin.command: brew list --formula tailscale
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  failed_when: false
+  register: tailscaleBrewPackage
+
+- name: Stop and unregister the system Tailscale service
+  community.general.homebrew_services:
+    name: tailscale
+    state: absent
+  become: true
+  when: tailscaleBrewPackage.rc == 0
+
+- name: Ensure the Tailscale formula is absent
+  community.general.homebrew:
+    name: tailscale
+    state: absent
+  become: false
+  vars:
+    ansible_become: false

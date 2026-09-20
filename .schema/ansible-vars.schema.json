@@ -32,6 +32,14 @@
       "type": "string",
       "description": "Environment label for the host's inventory (e.g. production, staging, molecule)."
     },
+    "onePasswordVault": {
+      "type": "string",
+      "description": "Name of the 1Password vault containing automation credentials."
+    },
+    "onePasswordTailscaleAPIKey": {
+      "type": "string",
+      "description": "Name of the 1Password item containing the Tailscale auth key used for Ansible provisioning."
+    },
     "tailscaleEnable": {
       "type": "boolean",
       "description": "Set true to enable Tailscale for this host."
@@ -44,6 +52,16 @@
     "tailscaleHostname": {
       "type": "string",
       "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
+    },
+    "tailscaleAuthKeyReference": {
+      "type": "string",
+      "pattern": "^op://",
+      "description": "1Password secret reference read by the controller's op CLI for tailscale up (for example, op://vault/item/field)."
+    },
+    "tailscaleVersion": {
+      "type": "string",
+      "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Optional Tailscale version 1.36.0 or newer for a Debian-family Linux update. Omit for latest; pinned versions are unsupported on macOS."
     },
     "vscodeExtensions": {
       "type": "array",

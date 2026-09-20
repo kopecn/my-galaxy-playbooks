@@ -1,0 +1,8 @@
+---
+- name: Uninstall Tailscale on macOS
+  ansible.builtin.include_tasks: uninstall-Darwin.yml
+  when: tailscaleOsFamily == 'Darwin'
+
+- name: Uninstall Tailscale on Debian-family Linux
+  ansible.builtin.include_tasks: uninstall-Debian.yml
+  when: tailscaleOsFamily == 'Debian'

@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: tailscale
+  author: nbergantz
+  description: Install, uninstall, connect, and update Tailscale from the CLI.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - networking
+    - tailscale
+dependencies: []

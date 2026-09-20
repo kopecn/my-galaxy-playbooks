@@ -1,0 +1,38 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check the Tailscale package is installed
+      ansible.builtin.command: dpkg-query -W -f='${Status}' tailscale
+      changed_when: false
+      register: tailscaleDpkgStatus
+
+    - name: Confirm the Tailscale package reports installed status
+      ansible.builtin.assert:
+        that:
+          - "'install ok installed' in tailscaleDpkgStatus.stdout"
+        fail_msg: "The tailscale package is not reported as installed by dpkg."
+
+    - name: Query the Tailscale CLI version
+      ansible.builtin.command: tailscale version
+      changed_when: false
+      register: tailscaleVersionOutput
+
+    - name: Confirm the Tailscale CLI reports a version
+      ansible.builtin.assert:
+        that:
+          - tailscaleVersionOutput.stdout_lines | length > 0
+        fail_msg: "tailscale version returned no output."
+
+    - name: Query the Tailscale service state
+      ansible.builtin.systemd_service:
+        name: tailscaled
+      register: tailscaleService
+
+    - name: Confirm the Tailscale service is running and enabled
+      ansible.builtin.assert:
+        that:
+          - tailscaleService.status.ActiveState == 'active'
+          - tailscaleService.status.UnitFileState == 'enabled'
+        fail_msg: "The tailscaled service is not running and enabled."

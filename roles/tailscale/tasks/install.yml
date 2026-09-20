@@ -1,0 +1,15 @@
+---
+- name: Install Tailscale on macOS
+  ansible.builtin.include_tasks: install-Darwin.yml
+  when: tailscaleOsFamily == 'Darwin'
+
+- name: Install Tailscale on Debian-family Linux
+  ansible.builtin.include_tasks: install-Debian.yml
+  when: tailscaleOsFamily == 'Debian'
+
+- name: Query the installed Tailscale version
+  ansible.builtin.command: tailscale version
+  become: true
+  changed_when: false
+  environment:
+    TAILSCALE_BE_CLI: "1"

@@ -1,0 +1,24 @@
+---
+- name: Reject pinned Tailscale updates on macOS
+  ansible.builtin.assert:
+    that:
+      - tailscaleVersion | default('') | length == 0
+    fail_msg: >-
+      Pinned Tailscale updates are not supported on macOS. Omit tailscaleVersion
+      to upgrade the Homebrew formula to its latest available version.
+
+- name: Upgrade the Tailscale formula
+  community.general.homebrew:
+    name: tailscale
+    state: latest
+    update_homebrew: true
+  become: false
+  vars:
+    ansible_become: false
+  register: tailscaleBrewUpdate
+
+- name: Ensure the updated system Tailscale service is running
+  community.general.homebrew_services:
+    name: tailscale
+    state: "{{ 'restarted' if tailscaleBrewUpdate.changed else 'present' }}"
+  become: true

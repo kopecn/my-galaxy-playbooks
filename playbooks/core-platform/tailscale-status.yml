@@ -1,0 +1,7 @@
+---
+- name: Read Tailscale status and diagnostics
+  hosts: all
+  gather_facts: true
+  roles:
+    - role: tailscale
+      tailscaleOperation: status

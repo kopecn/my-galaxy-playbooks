@@ -1,0 +1,40 @@
+---
+- name: Read Tailscale connection status
+  ansible.builtin.command: tailscale status
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: tailscaleStatusOutput
+  environment:
+    TAILSCALE_BE_CLI: "1"
+
+- name: Print Tailscale connection status
+  ansible.builtin.debug:
+    msg: |-
+      $ tailscale status
+      exit code: {{ tailscaleStatusOutput.rc | default('unknown') }}
+      stdout:
+      {{ tailscaleStatusOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ tailscaleStatusOutput.stderr | default(tailscaleStatusOutput.msg | default('(no output)'), true) | indent(2, true) }}
+
+- name: Read Tailscale network diagnostics
+  ansible.builtin.command: tailscale netcheck
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: tailscaleNetcheckOutput
+  environment:
+    TAILSCALE_BE_CLI: "1"
+
+- name: Print Tailscale network diagnostics
+  ansible.builtin.debug:
+    msg: |-
+      $ tailscale netcheck
+      exit code: {{ tailscaleNetcheckOutput.rc | default('unknown') }}
+      stdout:
+      {{ tailscaleNetcheckOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ tailscaleNetcheckOutput.stderr | default(tailscaleNetcheckOutput.msg | default('(no output)'), true) | indent(2, true) }}

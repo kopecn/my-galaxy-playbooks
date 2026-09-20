@@ -1,0 +1,21 @@
+---
+- name: Ensure Homebrew is available
+  ansible.builtin.command: brew --version
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+
+- name: Ensure the Tailscale formula is installed
+  community.general.homebrew:
+    name: tailscale
+    state: present
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Ensure the system Tailscale service is running
+  community.general.homebrew_services:
+    name: tailscale
+    state: present
+  become: true

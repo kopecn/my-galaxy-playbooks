@@ -1,0 +1,13 @@
+---
+- name: Ensure Tailscale is installed before updating
+  ansible.builtin.include_tasks: install.yml
+
+- name: Update Tailscale on macOS
+  ansible.builtin.include_tasks: update-Darwin.yml
+  when: tailscaleOsFamily == 'Darwin'
+
+- name: Update Tailscale on Debian-family Linux
+  ansible.builtin.include_tasks: update-Debian.yml
+  when:
+    - tailscaleOsFamily == 'Debian'
+    - not ansible_check_mode

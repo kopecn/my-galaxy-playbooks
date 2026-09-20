@@ -1,0 +1,48 @@
+---
+- name: Validate the requested Tailscale version
+  ansible.builtin.assert:
+    that:
+      - (tailscaleVersion | default('') | regex_replace('^v', '')) is match('^[0-9]+\.[0-9]+\.[0-9]+$')
+      - (tailscaleVersion | default('') | regex_replace('^v', '')) is version('1.36.0', '>=')
+    fail_msg: >-
+      tailscaleVersion must be a full version such as 1.102.4, and must be
+      1.36.0 or newer so future updates remain available through the Tailscale CLI.
+  when: tailscaleVersion | default('') | length > 0
+
+- name: Query the installed Tailscale version
+  ansible.builtin.command: tailscale version
+  become: true
+  changed_when: false
+  register: tailscaleInstalledVersion
+
+- name: Query the latest Tailscale version in the current track
+  ansible.builtin.command: tailscale version --upstream
+  become: true
+  changed_when: false
+  register: tailscaleUpstreamVersion
+  when: tailscaleVersion | default('') | length == 0
+
+- name: Update Tailscale to the requested version
+  ansible.builtin.command:
+    argv:
+      - tailscale
+      - update
+      - --yes
+      - "--version={{ tailscaleVersion | regex_replace('^v', '') }}"
+  become: true
+  changed_when: true
+  when:
+    - tailscaleVersion | default('') | length > 0
+    - tailscaleInstalledVersion.stdout_lines[0] != (tailscaleVersion | regex_replace('^v', ''))
+
+- name: Update Tailscale to the latest version in the current track
+  ansible.builtin.command:
+    argv:
+      - tailscale
+      - update
+      - --yes
+  become: true
+  changed_when: true
+  when:
+    - tailscaleVersion | default('') | length == 0
+    - tailscaleInstalledVersion.stdout_lines[0] != tailscaleUpstreamVersion.stdout_lines[0]
