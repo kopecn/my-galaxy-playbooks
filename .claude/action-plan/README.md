@@ -33,7 +33,6 @@ Every plan also re-affirms the repo's non-negotiables from
 | --- | --- | --- |
 | [hwe-kernel.md](hwe-kernel.md) | Core Platform | High — reboot-gated |
 | [repos.md](repos.md) | Core Platform | Low |
-| [tailscale.md](tailscale.md) | Core Platform | Medium — network identity |
 | [sshd.md](sshd.md) | Core Platform | High — remote-access daemon |
 | [python.md](python.md) | Language Toolchains | Low |
 | [pip-conf.md](pip-conf.md) | Language Toolchains | Low |

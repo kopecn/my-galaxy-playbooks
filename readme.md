@@ -15,6 +15,22 @@ pushed down the stack, never smeared across playbooks:
 | Roles | implementation | *How* to do it across the host OS × architecture matrix. |
 | Global configuration | data | Flags and parameters describing hosts and features. |
 
+```mermaid
+flowchart TD
+    P["Playbook<br/>declares intent (install VS Code)"]
+    R["Role<br/>resolves host OS x arch"]
+    D{"OS x arch supported?"}
+    I["Implementation<br/>Darwin / Debian tasks"]
+    E["Error this operation<br/>run continues for other work"]
+    G[("Global config<br/>flags and parameters for all hosts")]
+
+    P --> R --> D
+    D -- yes --> I
+    D -- no --> E
+    G -.-> P
+    G -.-> R
+```
+
 The [Playbook Layering spec](.claude/specs/architecture/playbook-layering.md) is
 the authoritative, must-follow contract. In short: playbooks declare intent and
 never branch on OS/arch; roles are the only layer that branches on OS ×
@@ -39,9 +55,29 @@ make test-all    # test + all Molecule scenarios (requires Docker)
 `INVENTORY`, `PLAYBOOK`, `LIMIT`, and `TAGS` are overridable on the CLI or via a
 git-ignored `.env` (copy from `.env.example`).
 
+## Usage notes
+
+- To run against a host that is not in the inventory, pass it as a single-quoted
+  `-i` value with a trailing comma, e.g. `-i 'host-computer-computer,'`.
+- Hosts that require sudo need the become password passed as an extra var, e.g.
+  `-e 'ansible_become_password=<sudo-password>'`.
+
+e.g.
+```bash
+ansible-playbook playbooks/core-platform/tailscale-install.yml -i 'host-computer-name,' -b -e 'ansible_become_password=<sudo-password>'
+```
+
 ## Documentation
 
 - [Repository structure](docs/structure.md) — layout and conventions.
 - [Testing with Molecule](docs/testing.md) — the test-first role workflow.
 - [Playbook Layering](.claude/specs/architecture/playbook-layering.md) — the
   authoring/deployment contract.
+
+## Playbook groupings
+
+Each toolset this repo automates has its own notes under `docs/playbooks/`:
+supported hosts, variables, and example usage.
+
+- [VS Code](docs/playbooks/vscode.md) — `playbooks/app-installers/vscode.yml`
+- [Tailscale](docs/playbooks/tailscale.md) — `playbooks/core-platform/tailscale-*.yml`
