@@ -11,7 +11,7 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OPERATIONS = ("install", "status", "uninstall", "up", "update")
+OPERATIONS = ("diagnose", "down", "install", "status", "uninstall", "up", "update")
 WITH_OP = REPO_ROOT / "scripts" / "with-op"
 OP_BECOME_PASSWORD = REPO_ROOT / "scripts" / "op-become-password"
 
@@ -23,6 +23,7 @@ def test_tailscale_operation_has_thin_playbook(operation):
     playbook = yaml.safe_load(playbook_path.read_text())
 
     assert len(playbook) == 1
+    assert playbook[0]["vars_files"] == ["../../vars/defaults.yml"]
     assert playbook[0]["roles"] == [
         {
             "role": "tailscale",
@@ -36,7 +37,6 @@ def test_tailscale_operation_has_thin_playbook(operation):
     (
         "onePasswordTailscaleAPIKey",
         "onePasswordVault",
-        "tailscaleAuthKeyReference",
         "tailscaleVersion",
     ),
 )
@@ -46,6 +46,31 @@ def test_tailscale_cli_variables_are_documented(variable):
     schema = json.loads(schema_path.read_text())
 
     assert variable in schema["properties"]
+
+
+def test_tailscale_auth_key_is_controller_managed():
+    """The auth key and its reference never come from target inventory."""
+    tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
+    global_vars = yaml.safe_load(
+        (REPO_ROOT / "vars" / "defaults.yml").read_text()
+    )
+    inventory = yaml.safe_load(
+        (REPO_ROOT / "inventories" / "production" / "group_vars" / "all.yml").read_text()
+    )
+    schema = json.loads(
+        (REPO_ROOT / ".schema" / "ansible-vars.schema.json").read_text()
+    )["properties"]
+
+    assert "tailscaleAuthKeyReference" not in tasks
+    assert "hostvars['localhost']" not in tasks
+    assert "delegate_to: localhost" in tasks
+    assert '"{{ role_path }}/../../scripts/with-op"' in tasks
+    assert "{{ onePasswordVault }}" in tasks
+    assert "{{ onePasswordTailscaleAPIKey }}" in tasks
+    for variable in ("onePasswordVault", "onePasswordTailscaleAPIKey"):
+        assert variable not in inventory
+        assert variable in global_vars
+        assert variable in schema
 
 
 @pytest.mark.parametrize("token", [None, "", "\n"])
@@ -87,16 +112,19 @@ def test_with_op_exports_service_account_token(tmp_path):
 
 
 def test_op_authentication_has_one_entry_point():
-    """Token loading stays in the wrapper and make run uses that entry point."""
+    """Every authenticated op path loads the token through the wrapper."""
     tasks_path = REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml"
     tasks = tasks_path.read_text()
     makefile = (REPO_ROOT / "Makefile").read_text()
 
     assert "op-service-account-token" not in tasks
     assert "OP_SERVICE_ACCOUNT_TOKEN" not in tasks
+    assert "{{ role_path }}/../../scripts/with-op" in tasks
     assert "WITH_OP := scripts/with-op" in makefile
     assert "$(WITH_OP) ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)" in makefile
     assert "${HOME}/.config/op/op-service-account-token" in WITH_OP.read_text()
+    assert "vars/defaults.yml" in OP_BECOME_PASSWORD.read_text()
+    assert "onePasswordVault" in OP_BECOME_PASSWORD.read_text()
 
 
 def test_tailscale_status_prints_diagnostics():

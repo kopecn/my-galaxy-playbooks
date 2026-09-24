@@ -1,7 +1,4 @@
 ---
 # Variables applied to every host in production.
-# Keep secrets in an Ansible Vault file, not here.
+# Keep controller integrations and secrets out of inventory.
 env: production
-
-onePasswordVault: Personal-Automation
-onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning

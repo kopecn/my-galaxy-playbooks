@@ -1,0 +1,5 @@
+---
+# Global, non-secret configuration shared by playbooks and controller helpers.
+# Secret values remain in 1Password and are resolved only at run time.
+onePasswordVault: Personal-Automation
+onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning

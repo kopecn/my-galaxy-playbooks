@@ -1,5 +1,7 @@
 ---
 tailscaleSupportedOperations:
+  - diagnose
+  - down
   - install
   - status
   - uninstall

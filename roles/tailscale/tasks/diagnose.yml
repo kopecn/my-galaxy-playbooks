@@ -1,0 +1,20 @@
+---
+- name: Read Tailscale preferences
+  ansible.builtin.command: tailscale debug prefs
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: tailscalePrefsOutput
+  environment:
+    TAILSCALE_BE_CLI: "1"
+
+- name: Print Tailscale preferences
+  ansible.builtin.debug:
+    msg: |-
+      $ tailscale debug prefs
+      exit code: {{ tailscalePrefsOutput.rc | default('unknown') }}
+      stdout:
+      {{ tailscalePrefsOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ tailscalePrefsOutput.stderr | default(tailscalePrefsOutput.msg | default('(no output)'), true) | indent(2, true) }}

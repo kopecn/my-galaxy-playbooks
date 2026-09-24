@@ -5,7 +5,8 @@
         ".schema/ansible-vars.schema.json": [
             "inventories/**/host_vars/*.yml",
             "inventories/**/group_vars/*.yml",
-            "roles/*/defaults/main.yml"
+            "roles/*/defaults/main.yml",
+            "vars/defaults.yml"
         ]
     }
 }

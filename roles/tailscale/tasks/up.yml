@@ -42,15 +42,14 @@
          or tailscaleSshSetting.stdout | trim != 'true'
          or tailscaleAcceptRoutesSetting.stdout | trim != 'true' }}
 
-- name: Validate the 1Password auth-key reference
+- name: Validate the controller's 1Password configuration
   ansible.builtin.assert:
     that:
-      - tailscaleAuthKeyReference is defined
-      - tailscaleAuthKeyReference | length > 0
-      - tailscaleAuthKeyReference is match('^op://')
+      - onePasswordVault | length > 0
+      - onePasswordTailscaleAPIKey | length > 0
     fail_msg: >-
-      Set tailscaleAuthKeyReference to the op:// secret reference containing the
-      Tailscale auth key.
+      Set onePasswordVault and onePasswordTailscaleAPIKey in the repository's
+      vars/defaults.yml file on the playbook controller.
   when:
     - tailscaleNeedsUp
     - not ansible_check_mode
@@ -70,9 +69,10 @@
 - name: Read the Tailscale auth key from 1Password
   ansible.builtin.command:
     argv:
+      - "{{ role_path }}/../../scripts/with-op"
       - op
       - read
-      - "{{ tailscaleAuthKeyReference }}"
+      - "op://{{ onePasswordVault }}/{{ onePasswordTailscaleAPIKey }}/credential"
       - --no-newline
   delegate_to: localhost
   become: false
@@ -92,7 +92,6 @@
       - tailscale
       - up
       - --auth-key=file:/dev/stdin
-      - --ssh
       - --reset
       - --accept-routes
       - --timeout=2m

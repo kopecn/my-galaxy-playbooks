@@ -34,11 +34,11 @@
     },
     "onePasswordVault": {
       "type": "string",
-      "description": "Name of the 1Password vault containing automation credentials."
+      "description": "1Password vault name loaded from the controller's repository-root vars/defaults.yml."
     },
     "onePasswordTailscaleAPIKey": {
       "type": "string",
-      "description": "Name of the 1Password item containing the Tailscale auth key used for Ansible provisioning."
+      "description": "1Password Tailscale auth-key item name loaded from the controller's repository-root vars/defaults.yml."
     },
     "tailscaleEnable": {
       "type": "boolean",
@@ -52,11 +52,6 @@
     "tailscaleHostname": {
       "type": "string",
       "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
-    },
-    "tailscaleAuthKeyReference": {
-      "type": "string",
-      "pattern": "^op://",
-      "description": "1Password secret reference read by the controller's op CLI for tailscale up (for example, op://vault/item/field)."
     },
     "tailscaleVersion": {
       "type": "string",

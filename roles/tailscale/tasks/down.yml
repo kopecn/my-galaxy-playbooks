@@ -1,0 +1,49 @@
+---
+- name: Query Tailscale connection status
+  ansible.builtin.command: tailscale status --json
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: tailscaleStatus
+  environment:
+    TAILSCALE_BE_CLI: "1"
+
+- name: Determine whether Tailscale needs to be brought down
+  ansible.builtin.set_fact:
+    tailscaleNeedsDown: >-
+      {{ tailscaleStatus.rc == 0
+         and (tailscaleStatus.stdout | from_json).BackendState == 'Running' }}
+
+- name: Disconnect Tailscale
+  ansible.builtin.command:
+    argv:
+      - tailscale
+      - down
+  become: true
+  changed_when: true
+  environment:
+    TAILSCALE_BE_CLI: "1"
+  when:
+    - tailscaleNeedsDown
+    - not ansible_check_mode
+
+- name: Verify Tailscale connection state after disconnecting
+  ansible.builtin.command: tailscale status --json
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: tailscaleDisconnectedStatus
+  environment:
+    TAILSCALE_BE_CLI: "1"
+  when: not ansible_check_mode
+
+- name: Confirm the Tailscale backend is no longer running
+  ansible.builtin.assert:
+    that:
+      - >-
+        tailscaleDisconnectedStatus.rc != 0
+        or (tailscaleDisconnectedStatus.stdout | from_json).BackendState != 'Running'
+    fail_msg: "Tailscale is still in the Running state after down."
+  when: not ansible_check_mode
