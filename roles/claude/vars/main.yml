@@ -1,0 +1,13 @@
+---
+claudeSupportedOperations:
+  - diagnose
+  - install
+  - uninstall
+
+claudeSupportMatrix:
+  Darwin:
+    - x86_64
+    - aarch64
+  Debian:
+    - x86_64
+    - aarch64

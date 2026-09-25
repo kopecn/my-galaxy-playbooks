@@ -1,0 +1,16 @@
+---
+# Resolve the login user's home without become, so the Claude CLI installs to and
+# is queried from the real user's ~/.local — not /root, which host-level
+# ansible_become would otherwise select. Kept role-local rather than depending on
+# a repo-wide login_user_home fact.
+- name: Resolve the login user's home directory
+  ansible.builtin.shell: printf '%s' "$HOME"
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  register: claudeHomeProbe
+
+- name: Record the Claude install prefix
+  ansible.builtin.set_fact:
+    claudeUserHome: "{{ claudeHomeProbe.stdout }}"

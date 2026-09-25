@@ -9,7 +9,7 @@ SHELL := /bin/bash
 .PHONY: help bootstrap venv \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
+        test-molecule test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
 
 # ----------------------------------------------------------------------------
@@ -169,7 +169,10 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and inventory tests
 	pytest tests/ -v
 
-test-molecule: test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
+test-molecule: test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
+
+test-molecule-claude: check-docker ## Molecule test: claude role (Ubuntu install path only)
+	cd roles/claude && molecule test
 
 test-molecule-example: check-docker ## Molecule test: example role (default scenario)
 	cd roles/example && molecule test

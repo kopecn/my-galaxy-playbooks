@@ -70,6 +70,11 @@
       "type": "string",
       "description": "Direct Samba password, resolved at run time and never persisted. Pass via -e to set a password without 1Password; when unset the password is read from 1Password via sambaPasswordOpItem."
     },
+    "claudeRemoveConfig": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the claude uninstall operation also removes user config (~/.claude and ~/.claude.json). Default false keeps settings, MCP server configuration, and session history."
+    },
     "vscodeExtensions": {
       "type": "array",
       "items": {

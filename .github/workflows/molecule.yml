@@ -15,6 +15,7 @@ jobs:
       matrix:
         # One entry per molecule make target; add a target here as roles grow.
         target:
+          - test-molecule-claude
           - test-molecule-example
           - test-molecule-samba
           - test-molecule-tailscale

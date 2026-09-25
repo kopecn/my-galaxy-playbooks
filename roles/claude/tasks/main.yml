@@ -1,0 +1,48 @@
+---
+- name: Validate the requested Claude operation
+  ansible.builtin.assert:
+    that:
+      - claudeOperation is defined
+      - claudeOperation in claudeSupportedOperations
+    fail_msg: >-
+      claudeOperation must be one of {{ claudeSupportedOperations }}.
+
+- name: Normalize the gathered architecture to its canonical name
+  ansible.builtin.set_fact:
+    claudeArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
+
+- name: Validate declared hostOperatingSystem against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostOperatingSystem == ansible_facts.os_family
+    fail_msg: >-
+      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
+      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
+  when: hostOperatingSystem is defined
+
+- name: Validate declared hostArchitecture against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostArchitecture == claudeArch
+    fail_msg: >-
+      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
+      gathered architecture ({{ claudeArch }}) on {{ inventory_hostname }}.
+  when: hostArchitecture is defined
+
+- name: Resolve the effective OS family and architecture for dispatch
+  ansible.builtin.set_fact:
+    claudeOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
+    claudeEffectiveArch: "{{ hostArchitecture | default(claudeArch) }}"
+
+- name: Fail this operation when the host platform is unsupported
+  ansible.builtin.fail:
+    msg: >-
+      The claude role cannot {{ claudeOperation }} Claude Code on
+      {{ claudeOsFamily }} / {{ claudeEffectiveArch }} ({{ inventory_hostname }}).
+      Supported combinations: {{ claudeSupportMatrix }}.
+  when: >-
+    claudeOsFamily not in claudeSupportMatrix
+    or claudeEffectiveArch not in claudeSupportMatrix[claudeOsFamily]
+
+- name: Run the requested Claude operation
+  ansible.builtin.include_tasks: "{{ claudeOperation }}.yml"

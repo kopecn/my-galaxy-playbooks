@@ -1,0 +1,43 @@
+---
+- name: Resolve the login user's home directory
+  ansible.builtin.include_tasks: resolve-home.yml
+
+- name: Read the Claude CLI version
+  ansible.builtin.command: "{{ claudeUserHome }}/.local/bin/claude --version"
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: claudeVersionOutput
+
+- name: Print the Claude CLI version
+  ansible.builtin.debug:
+    msg: |-
+      $ claude --version
+      exit code: {{ claudeVersionOutput.rc | default('unknown') }}
+      stdout:
+      {{ claudeVersionOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ claudeVersionOutput.stderr | default(claudeVersionOutput.msg | default('(no output)'), true) | indent(2, true) }}
+
+- name: Run the Claude installation doctor
+  ansible.builtin.command: "{{ claudeUserHome }}/.local/bin/claude doctor"
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: claudeDoctorOutput
+
+- name: Print the Claude installation diagnostics
+  ansible.builtin.debug:
+    msg: |-
+      $ claude doctor
+      exit code: {{ claudeDoctorOutput.rc | default('unknown') }}
+      stdout:
+      {{ claudeDoctorOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ claudeDoctorOutput.stderr | default(claudeDoctorOutput.msg | default('(no output)'), true) | indent(2, true) }}

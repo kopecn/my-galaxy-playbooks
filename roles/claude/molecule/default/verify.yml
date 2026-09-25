@@ -1,0 +1,19 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Stat the installed Claude CLI binary
+      ansible.builtin.shell: 'test -x "$HOME/.local/bin/claude"'
+      changed_when: false
+
+    - name: Query the Claude CLI version
+      ansible.builtin.shell: '"$HOME/.local/bin/claude" --version'
+      changed_when: false
+      register: claudeVersionOutput
+
+    - name: Confirm the Claude CLI reports a version
+      ansible.builtin.assert:
+        that:
+          - claudeVersionOutput.stdout_lines | length > 0
+        fail_msg: "claude --version returned no output."

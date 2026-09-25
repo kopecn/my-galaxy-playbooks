@@ -1,0 +1,9 @@
+---
+- name: Install Claude Code
+  hosts: all
+  gather_facts: true
+  vars_files:
+    - ../../vars/defaults.yml
+  roles:
+    - role: claude
+      claudeOperation: install

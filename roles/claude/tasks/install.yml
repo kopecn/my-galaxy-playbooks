@@ -1,0 +1,28 @@
+---
+- name: Resolve the login user's home directory
+  ansible.builtin.include_tasks: resolve-home.yml
+
+- name: Ensure the native installer's prerequisites are present on Debian
+  ansible.builtin.apt:
+    name:
+      - bash
+      - curl
+    state: present
+  become: true
+  when: claudeOsFamily == 'Debian'
+
+- name: Install Claude Code via the native installer
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+    creates: "{{ claudeUserHome }}/.local/bin/claude"
+    executable: /bin/bash
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Query the installed Claude CLI version
+  ansible.builtin.command: "{{ claudeUserHome }}/.local/bin/claude --version"
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false

@@ -1,0 +1,26 @@
+---
+- name: Resolve the login user's home directory
+  ansible.builtin.include_tasks: resolve-home.yml
+
+- name: Remove the Claude Code native installation
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: false
+  vars:
+    ansible_become: false
+  loop:
+    - "{{ claudeUserHome }}/.local/bin/claude"
+    - "{{ claudeUserHome }}/.local/share/claude"
+
+- name: Remove the Claude Code user configuration
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: false
+  vars:
+    ansible_become: false
+  loop:
+    - "{{ claudeUserHome }}/.claude"
+    - "{{ claudeUserHome }}/.claude.json"
+  when: claudeRemoveConfig | default(false) | bool
