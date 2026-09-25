@@ -1,0 +1,54 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check the Samba package is installed
+      ansible.builtin.command: dpkg-query -W -f='${Status}' samba
+      changed_when: false
+      register: sambaDpkgStatus
+
+    - name: Confirm the Samba package reports installed status
+      ansible.builtin.assert:
+        that:
+          - "'install ok installed' in sambaDpkgStatus.stdout"
+        fail_msg: "The samba package is not reported as installed by dpkg."
+
+    - name: Read the effective smb encrypt setting
+      ansible.builtin.command: >-
+        testparm -s --section-name global --parameter-name 'smb encrypt'
+      changed_when: false
+      register: sambaEncryptSetting
+
+    - name: Confirm SMB transport encryption is required
+      ansible.builtin.assert:
+        that:
+          - "'required' in sambaEncryptSetting.stdout"
+        fail_msg: "smb encrypt is not set to 'required' in the global section."
+
+    - name: Query the Samba service state
+      ansible.builtin.systemd_service:
+        name: smbd
+      register: sambaService
+
+    - name: Confirm the Samba service is running and enabled
+      ansible.builtin.assert:
+        that:
+          - sambaService.status.ActiveState == 'active'
+          - sambaService.status.UnitFileState == 'enabled'
+        fail_msg: "The smbd service is not running and enabled."
+
+    - name: Confirm the Unix account exists
+      ansible.builtin.command: getent passwd smbtest
+      changed_when: false
+
+    - name: List the Samba passdb users
+      ansible.builtin.command: pdbedit --list
+      changed_when: false
+      register: sambaPassdbUsers
+
+    - name: Confirm the Samba user is present in the passdb
+      ansible.builtin.assert:
+        that:
+          - "'smbtest' in sambaPassdbUsers.stdout"
+        fail_msg: "The smbtest user was not created in the Samba passdb."

@@ -1,0 +1,4 @@
+---
+- name: Uninstall Samba on Debian-family Linux
+  ansible.builtin.include_tasks: uninstall-Debian.yml
+  when: sambaOsFamily == 'Debian'

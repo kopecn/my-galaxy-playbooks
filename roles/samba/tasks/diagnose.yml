@@ -1,0 +1,54 @@
+---
+- name: Validate the Samba configuration file
+  ansible.builtin.command: testparm -s
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: sambaTestparmOutput
+
+- name: Print the effective Samba configuration
+  ansible.builtin.debug:
+    msg: |-
+      $ testparm -s
+      exit code: {{ sambaTestparmOutput.rc | default('unknown') }}
+      stdout:
+      {{ sambaTestparmOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ sambaTestparmOutput.stderr | default(sambaTestparmOutput.msg | default('(no output)'), true) | indent(2, true) }}
+
+- name: List the Samba users in the passdb
+  ansible.builtin.command: pdbedit --list --verbose
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: sambaPassdbList
+
+- name: Print the Samba passdb users
+  ansible.builtin.debug:
+    msg: |-
+      $ pdbedit --list --verbose
+      exit code: {{ sambaPassdbList.rc | default('unknown') }}
+      stdout:
+      {{ sambaPassdbList.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ sambaPassdbList.stderr | default(sambaPassdbList.msg | default('(no output)'), true) | indent(2, true) }}
+
+- name: Query the Samba server status
+  ansible.builtin.command: smbstatus --brief
+  become: true
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  register: sambaStatusOutput
+
+- name: Print the Samba server status
+  ansible.builtin.debug:
+    msg: |-
+      $ smbstatus --brief
+      exit code: {{ sambaStatusOutput.rc | default('unknown') }}
+      stdout:
+      {{ sambaStatusOutput.stdout | default('(no output)', true) | indent(2, true) }}
+      stderr:
+      {{ sambaStatusOutput.stderr | default(sambaStatusOutput.msg | default('(no output)'), true) | indent(2, true) }}

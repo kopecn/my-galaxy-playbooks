@@ -1,0 +1,13 @@
+---
+# sambaPassword is supplied directly here so the test exercises the full
+# install + user-creation path without the controller's 1Password token, which
+# is unavailable inside the container. Production runs omit it and resolve the
+# secret from 1Password via sambaPasswordOpItem.
+- name: Converge
+  hosts: all
+  become: true
+  roles:
+    - role: samba
+      sambaOperation: install
+      sambaUsername: smbtest
+      sambaPassword: "Molecule-Test-Passw0rd!"

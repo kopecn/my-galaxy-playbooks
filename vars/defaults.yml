@@ -3,3 +3,9 @@
 # Secret values remain in 1Password and are resolved only at run time.
 onePasswordVault: Personal-Automation
 onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
+
+# Samba: global defaults, overridden per variable at run time
+# (-e sambaUsername=... -e sambaPasswordOpItem=...) or per host/group in a
+# downstream inventory. Empty defaults force an explicit override.
+sambaUsername: ""
+sambaPasswordOpItem: ""

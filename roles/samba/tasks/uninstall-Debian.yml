@@ -1,0 +1,45 @@
+---
+# Full teardown: remove Samba, its configuration, and its state (including the
+# passdb and every SMB user) so a later install starts from scratch. Unix
+# accounts and their home directories are OS state, not Samba's, and are left
+# untouched.
+- name: Check whether the Samba daemon is installed
+  ansible.builtin.stat:
+    path: /usr/sbin/smbd
+  register: sambaSmbdBinary
+
+- name: Stop and disable the Samba services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  become: true
+  loop:
+    - smbd
+    - nmbd
+  when: sambaSmbdBinary.stat.exists
+
+- name: Purge the Samba packages
+  ansible.builtin.apt:
+    name:
+      # samba-common owns /etc/samba/smb.conf and /var/lib/samba; purging it is
+      # what lets a later install restore the default config and state dirs.
+      - samba
+      - samba-common
+      - samba-common-bin
+    state: absent
+    purge: true
+    autoremove: true
+  become: true
+
+- name: Remove residual Samba configuration and state
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - /etc/samba
+    - /var/lib/samba
+    - /var/cache/samba
+    - /var/log/samba
+    - /run/samba

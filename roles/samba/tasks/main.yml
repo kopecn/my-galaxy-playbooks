@@ -1,0 +1,48 @@
+---
+- name: Validate the requested Samba operation
+  ansible.builtin.assert:
+    that:
+      - sambaOperation is defined
+      - sambaOperation in sambaSupportedOperations
+    fail_msg: >-
+      sambaOperation must be one of {{ sambaSupportedOperations }}.
+
+- name: Normalize the gathered architecture to its canonical name
+  ansible.builtin.set_fact:
+    sambaArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
+
+- name: Validate declared hostOperatingSystem against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostOperatingSystem == ansible_facts.os_family
+    fail_msg: >-
+      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
+      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
+  when: hostOperatingSystem is defined
+
+- name: Validate declared hostArchitecture against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostArchitecture == sambaArch
+    fail_msg: >-
+      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
+      gathered architecture ({{ sambaArch }}) on {{ inventory_hostname }}.
+  when: hostArchitecture is defined
+
+- name: Resolve the effective OS family and architecture for dispatch
+  ansible.builtin.set_fact:
+    sambaOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
+    sambaEffectiveArch: "{{ hostArchitecture | default(sambaArch) }}"
+
+- name: Fail this operation when the host platform is unsupported
+  ansible.builtin.fail:
+    msg: >-
+      The samba role cannot {{ sambaOperation }} Samba on
+      {{ sambaOsFamily }} / {{ sambaEffectiveArch }} ({{ inventory_hostname }}).
+      Supported combinations: {{ sambaSupportMatrix }}.
+  when: >-
+    sambaOsFamily not in sambaSupportMatrix
+    or sambaEffectiveArch not in sambaSupportMatrix[sambaOsFamily]
+
+- name: Run the requested Samba operation
+  ansible.builtin.include_tasks: "{{ sambaOperation }}.yml"

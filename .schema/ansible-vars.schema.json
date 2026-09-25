@@ -58,6 +58,18 @@
       "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$",
       "description": "Optional Tailscale version 1.36.0 or newer for a Debian-family Linux update. Omit for latest; pinned versions are unsupported on macOS."
     },
+    "sambaUsername": {
+      "type": "string",
+      "description": "SMB/Unix account name the samba role provisions. Global default in vars/defaults.yml (empty), overridden per variable at run time (-e sambaUsername=...) or per host/group in a downstream inventory. Varies by machine."
+    },
+    "sambaPasswordOpItem": {
+      "type": "string",
+      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller at run time via scripts/with-op. Global default in vars/defaults.yml (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
+    },
+    "sambaPassword": {
+      "type": "string",
+      "description": "Direct Samba password, resolved at run time and never persisted. Pass via -e to set a password without 1Password; when unset the password is read from 1Password via sambaPasswordOpItem."
+    },
     "vscodeExtensions": {
       "type": "array",
       "items": {

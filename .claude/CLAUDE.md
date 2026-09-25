@@ -13,6 +13,9 @@ first-party roles, per-environment inventories, Molecule role tests, and CI
 - [Playbook Layering](specs/architecture/playbook-layering.md) — mandatory
   three-layer organization (playbooks declare intent → roles implement per
   OS × arch → global config supplies data) for authoring and deploying playbooks.
+- [Playbook Documentation](specs/architecture/playbook-documentation.md) — every
+  toolset must have a `docs/playbooks/<toolset>.md` page and a `readme.md`
+  pointer, updated in the same change that alters the toolset.
 
 ## Commands
 

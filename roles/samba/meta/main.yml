@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: samba
+  author: nbergantz
+  description: >-
+    Install and diagnose Samba (SMB) with required transport encryption and a
+    provisioned SMB user account.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - networking
+    - samba
+    - smb
+dependencies: []

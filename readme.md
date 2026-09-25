@@ -81,3 +81,4 @@ supported hosts, variables, and example usage.
 
 - [VS Code](docs/playbooks/vscode.md) — `playbooks/app-installers/vscode.yml`
 - [Tailscale](docs/playbooks/tailscale.md) — `playbooks/core-platform/tailscale-*.yml`
+- [Samba](docs/playbooks/samba.md) — `playbooks/core-platform/samba-*.yml`

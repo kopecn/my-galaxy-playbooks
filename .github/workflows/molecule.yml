@@ -16,6 +16,7 @@ jobs:
         # One entry per molecule make target; add a target here as roles grow.
         target:
           - test-molecule-example
+          - test-molecule-samba
           - test-molecule-tailscale
           - test-molecule-vscode
     steps:
