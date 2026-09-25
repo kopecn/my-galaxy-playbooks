@@ -26,6 +26,18 @@
           - "'required' in sambaEncryptSetting.stdout"
         fail_msg: "smb encrypt is not set to 'required' in the global section."
 
+    - name: Read the effective read only setting for the homes share
+      ansible.builtin.command: >-
+        testparm -s --section-name homes --parameter-name 'read only'
+      changed_when: false
+      register: sambaHomesReadOnly
+
+    - name: Confirm the per-user home share is writable
+      ansible.builtin.assert:
+        that:
+          - "'No' in sambaHomesReadOnly.stdout"
+        fail_msg: "The [homes] share is still read only; users cannot create files."
+
     - name: Query the Samba service state
       ansible.builtin.systemd_service:
         name: smbd

@@ -32,6 +32,30 @@
   become: true
   notify: Restart Samba
 
+- name: Make the per-user home share writable
+  # The stock Debian smb.conf ships [homes] as read only = yes, so users can
+  # connect and browse but cannot create files. Turn the built-in per-user home
+  # share writable in place; %S resolves to the connecting user's own home.
+  community.general.ini_file:
+    path: /etc/samba/smb.conf
+    section: homes
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop:
+    - { option: "read only", value: "no" }
+    - { option: "valid users", value: "%S" }
+    - { option: "create mask", value: "0644" }
+    - { option: "directory mask", value: "0755" }
+    - { option: "browseable", value: "no" }
+  loop_control:
+    label: "{{ item.option }}"
+  notify: Restart Samba
+
 - name: Ensure the Samba services are enabled and running
   ansible.builtin.service:
     name: "{{ item }}"
@@ -41,6 +65,19 @@
   loop:
     - smbd
     - nmbd
+
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Allow SMB through UFW when UFW is present
+  community.general.ufw:
+    rule: allow
+    port: "445"
+    proto: tcp
+    comment: "Samba SMB"
+  become: true
+  when: "'ufw' in ansible_facts.packages"
 
 - name: Ensure the Unix account backing the Samba user exists
   ansible.builtin.user:
