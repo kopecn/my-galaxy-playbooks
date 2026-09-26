@@ -16,7 +16,6 @@ build_ignore:
   - galaxy_roles
   - .ansible
   - .config
-  - .schema
   - .mypy_cache
   - .pytest_cache
   - .github
