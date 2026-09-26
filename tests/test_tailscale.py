@@ -59,8 +59,10 @@ def test_tailscale_auth_key_is_controller_managed():
 
     assert "tailscaleAuthKeyReference" not in tasks
     assert "hostvars['localhost']" not in tasks
-    assert "delegate_to: localhost" in tasks
-    assert '"{{ role_path }}/../../scripts/with-op"' in tasks
+    # Secret resolution is delegated to the shared, controller-side onepassword role.
+    assert "name: onepassword" in tasks
+    assert "tailscaleAuthKey:" in tasks
+    assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in tasks
     assert "{{ onePasswordTailscaleAPIKey }}" in tasks
     for variable in ("onePasswordVault", "onePasswordTailscaleAPIKey"):
@@ -106,20 +108,33 @@ def test_with_op_exports_service_account_token(tmp_path):
     assert result.returncode == 0, result.stderr
 
 
-def test_op_authentication_has_one_entry_point():
-    """Every authenticated op path loads the token through the wrapper."""
-    tasks_path = REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml"
-    tasks = tasks_path.read_text()
+def test_secret_reads_use_the_onepassword_role_not_the_makefile_wrapper():
+    """Playbook secret reads resolve through the onepassword role; the Makefile no
+    longer pipes every run through the op wrapper."""
+    up_tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
+    role_defaults = (REPO_ROOT / "roles" / "onepassword" / "defaults" / "main.yml").read_text()
+    role_tasks = (REPO_ROOT / "roles" / "onepassword" / "tasks" / "main.yml").read_text()
     makefile = (REPO_ROOT / "Makefile").read_text()
 
-    assert "op-service-account-token" not in tasks
-    assert "OP_SERVICE_ACCOUNT_TOKEN" not in tasks
-    assert "{{ role_path }}/../../scripts/with-op" in tasks
-    assert "WITH_OP := scripts/with-op" in makefile
-    assert "$(WITH_OP) ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)" in makefile
+    # The consuming role no longer shells the wrapper or handles the raw token.
+    assert "with-op" not in up_tasks
+    assert "OP_SERVICE_ACCOUNT_TOKEN" not in up_tasks
+    # The onepassword role is the single place secret reads load the controller token.
     assert "${HOME}/.config/op/op-service-account-token" in WITH_OP.read_text()
-    assert "vars/defaults.yml" in OP_BECOME_PASSWORD.read_text()
-    assert "onePasswordVault" in OP_BECOME_PASSWORD.read_text()
+    assert ".config/op/op-service-account-token" in role_defaults
+    assert "community.general.onepassword" in role_tasks
+    # The Makefile run target no longer wraps ansible-playbook in the op token.
+    assert "WITH_OP" not in makefile
+    assert "run: ## Apply the playbook" in makefile
+
+
+def test_become_password_path_still_self_wraps_the_token():
+    """The become-password path is unchanged and keeps its own wrapper (handled next)."""
+    op_become = OP_BECOME_PASSWORD.read_text()
+
+    assert "with-op" in op_become
+    assert "vars/defaults.yml" in op_become
+    assert "onePasswordVault" in op_become
 
 
 def test_tailscale_status_prints_diagnostics():

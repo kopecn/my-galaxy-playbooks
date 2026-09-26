@@ -1,3 +1,0 @@
----
-# Lowest-precedence, user-overridable variables.
-exampleMarkerPath: /etc/ansible-example.marker

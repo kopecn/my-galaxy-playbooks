@@ -1,0 +1,53 @@
+---
+- name: Validate the requested 1Password secrets
+  ansible.builtin.assert:
+    that:
+      - op_secrets is mapping
+      - op_secrets | length > 0
+    fail_msg: >-
+      Include the onepassword role with a non-empty op_secrets map:
+      { factName: { item: <name>, vault: <vault>, field: <field> } }.
+
+- name: Confirm the 1Password service-account token exists on the controller
+  ansible.builtin.stat:
+    path: "{{ op_token_file }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+  register: opTokenFileStat
+
+- name: Fail clearly when the service-account token is missing or empty
+  ansible.builtin.assert:
+    that:
+      - opTokenFileStat.stat.exists
+      - (opTokenFileStat.stat.size | default(0)) > 0
+    fail_msg: >-
+      No usable 1Password service-account token at {{ op_token_file }} on the
+      controller. Write the service-account token to that file before running.
+
+- name: Ensure the 1Password CLI is available on the controller
+  ansible.builtin.command: op --version
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+
+- name: Resolve each requested secret on the controller and set it as a fact
+  ansible.builtin.set_fact:
+    "{{ item.key }}": >-
+      {{ lookup('community.general.onepassword',
+                item.value.item,
+                vault=item.value.vault,
+                field=(item.value.field | default('password')),
+                section=(item.value.section | default(None)),
+                service_account_token=lookup('ansible.builtin.file', op_token_file)) }}
+  loop: "{{ op_secrets | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  no_log: true
+  check_mode: false

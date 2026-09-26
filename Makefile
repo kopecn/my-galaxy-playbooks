@@ -9,7 +9,7 @@ SHELL := /bin/bash
 .PHONY: help bootstrap venv \
         lint syntax-check check run ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
+        test-molecule test-molecule-claude test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
 
 # MARK: - Configuration
@@ -19,12 +19,9 @@ SHELL := /bin/bash
 
 # Operational defaults (used only if not set in .env or on the CLI).
 INVENTORY ?= tests/inventory/hosts.ini
-PLAYBOOK  ?= playbooks/site.yml
+PLAYBOOK  ?= playbooks/ping.yml
 LIMIT     ?=
 TAGS      ?=
-
-# Single entry point for commands that may query 1Password.
-WITH_OP := scripts/with-op
 
 # Static-analysis inputs.
 TEST_INVENTORY := tests/inventory/hosts.ini
@@ -141,7 +138,7 @@ check: ## Dry-run the playbook (no changes applied)
 	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK) --check --diff
 
 run: ## Apply the playbook
-	$(WITH_OP) ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)
+	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)
 
 ping: ## Ping all hosts in the inventory
 	ansible -i $(INVENTORY) all -m ansible.builtin.ping
@@ -157,13 +154,10 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and contract tests
 	pytest tests/ -v -p no:cacheprovider
 
-test-molecule: test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
+test-molecule: test-molecule-claude test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
 
 test-molecule-claude: check-docker ## Molecule test: claude role (Ubuntu install path only)
 	cd roles/claude && molecule test
-
-test-molecule-example: check-docker ## Molecule test: example role (default scenario)
-	cd roles/example && molecule test
 
 test-molecule-samba: check-docker ## Molecule test: samba role (Ubuntu install path only)
 	cd roles/samba && molecule test

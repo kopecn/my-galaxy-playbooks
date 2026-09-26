@@ -1,7 +1,0 @@
----
-# Applies the role under test. Molecule runs this twice to check idempotency.
-- name: Converge
-  hosts: all
-  become: true
-  roles:
-    - role: example

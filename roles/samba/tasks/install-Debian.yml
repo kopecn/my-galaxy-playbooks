@@ -1,13 +1,38 @@
 ---
+- name: Resolve the Samba username from 1Password on the controller
+  when: sambaUsername is not defined or (sambaUsername | length == 0)
+  block:
+    - name: Validate the controller's 1Password configuration for the Samba username
+      ansible.builtin.assert:
+        that:
+          - onePasswordVault | length > 0
+          - sambaPasswordOpItem is defined
+          - sambaPasswordOpItem | length > 0
+        fail_msg: >-
+          Set sambaUsername directly, or set onePasswordVault (controller
+          vars/defaults.yml) and sambaPasswordOpItem (per-host inventory) so the
+          Samba username can be read from 1Password for {{ inventory_hostname }}.
+
+    - name: Resolve the Samba username on the controller
+      ansible.builtin.include_role:
+        name: onepassword
+      vars:
+        op_secrets:
+          sambaUsername:
+            item: "{{ sambaPasswordOpItem }}"
+            vault: "{{ onePasswordVault }}"
+            field: username
+
 - name: Validate the Samba account configuration
   ansible.builtin.assert:
     that:
       - sambaUsername is defined
       - sambaUsername | length > 0
     fail_msg: >-
-      sambaUsername must be set (per-host, normally from the downstream
-      inventory) to the SMB/Unix account name to provision on
-      {{ inventory_hostname }}.
+      sambaUsername must resolve to the SMB/Unix account name to provision on
+      {{ inventory_hostname }} — set it directly (per-host, normally from the
+      downstream inventory) or via the username field of sambaPasswordOpItem in
+      1Password.
 
 - name: Install the Samba packages
   ansible.builtin.apt:
@@ -118,36 +143,15 @@
               sambaPasswordOpItem (per-host inventory) so the Samba password can
               be read from 1Password for {{ inventory_hostname }}.
 
-        - name: Ensure the 1Password CLI is available on the controller
-          ansible.builtin.command: op --version
-          delegate_to: localhost
-          become: false
+        - name: Resolve the Samba password on the controller
+          ansible.builtin.include_role:
+            name: onepassword
           vars:
-            ansible_become: false
-          check_mode: false
-          changed_when: false
-
-        - name: Read the Samba password from 1Password
-          ansible.builtin.command:
-            argv:
-              - "{{ role_path }}/../../scripts/with-op"
-              - op
-              - read
-              - "op://{{ onePasswordVault }}/{{ sambaPasswordOpItem }}/password"
-              - --no-newline
-          delegate_to: localhost
-          become: false
-          vars:
-            ansible_become: false
-          check_mode: false
-          changed_when: false
-          no_log: true
-          register: sambaOpPassword
-
-        - name: Record the resolved Samba password
-          ansible.builtin.set_fact:
-            sambaEffectivePassword: "{{ sambaOpPassword.stdout }}"
-          no_log: true
+            op_secrets:
+              sambaEffectivePassword:
+                item: "{{ sambaPasswordOpItem }}"
+                vault: "{{ onePasswordVault }}"
+                field: password
 
     - name: Create the Samba user with the resolved password
       ansible.builtin.command:

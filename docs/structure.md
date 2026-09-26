@@ -2,7 +2,7 @@
 
 | Path               | Purpose                                                        |
 | ------------------ | -------------------------------------------------------------- |
-| `playbooks/`       | Thin entry-point playbooks (`site.yml`). Logic lives in roles. |
+| `playbooks/`       | Thin entry-point playbooks (`ping.yml`, per-toolset). Logic lives in roles. |
 | `roles/`           | First-party roles maintained in this repo.                     |
 | `galaxy_roles/`    | Roles & collections installed from Galaxy (git-ignored).       |
 | `templates/`       | Jinja2 templates rendered to hosts.                            |

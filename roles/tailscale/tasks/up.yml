@@ -54,34 +54,15 @@
     - tailscaleNeedsUp
     - not ansible_check_mode
 
-- name: Ensure the 1Password CLI is available on the controller
-  ansible.builtin.command: op --version
-  delegate_to: localhost
-  become: false
+- name: Resolve the Tailscale auth key from 1Password on the controller
+  ansible.builtin.include_role:
+    name: onepassword
   vars:
-    ansible_become: false
-  check_mode: false
-  changed_when: false
-  when:
-    - tailscaleNeedsUp
-    - not ansible_check_mode
-
-- name: Read the Tailscale auth key from 1Password
-  ansible.builtin.command:
-    argv:
-      - "{{ role_path }}/../../scripts/with-op"
-      - op
-      - read
-      - "op://{{ onePasswordVault }}/{{ onePasswordTailscaleAPIKey }}/credential"
-      - --no-newline
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-  check_mode: false
-  changed_when: false
-  no_log: true
-  register: tailscaleAuthKey
+    op_secrets:
+      tailscaleAuthKey:
+        item: "{{ onePasswordTailscaleAPIKey }}"
+        vault: "{{ onePasswordVault }}"
+        field: credential
   when:
     - tailscaleNeedsUp
     - not ansible_check_mode
@@ -95,7 +76,7 @@
       - --reset
       - --accept-routes
       - --timeout=2m
-    stdin: "{{ tailscaleAuthKey.stdout }}"
+    stdin: "{{ tailscaleAuthKey }}"
     stdin_add_newline: false
   become: true
   changed_when: true

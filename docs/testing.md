@@ -45,14 +45,14 @@ There is one make target per role/scenario, each running the full
 `molecule test` sequence:
 
 ```bash
-make test-molecule-example   # example role, default scenario
+make test-molecule-vscode    # vscode role, default scenario
 ```
 
 To drive molecule directly while iterating on a single scenario (converge and
 leave the instance up, re-run asserts, log in, tear down):
 
 ```bash
-cd roles/example
+cd roles/vscode
 molecule converge -s default   # apply the role, keep the instance running
 molecule verify   -s default   # re-run verify.yml assertions
 molecule login    -s default   # shell into the instance to debug

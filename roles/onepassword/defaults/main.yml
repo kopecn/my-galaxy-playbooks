@@ -1,0 +1,24 @@
+---
+# Controller-side 1Password secret resolution.
+#
+# Include this role with an op_secrets map. Each entry resolves an item on the
+# Ansible controller (the community.general.onepassword lookup always runs on the
+# controller) and sets a fact named by the map key:
+#
+#   - ansible.builtin.include_role:
+#       name: onepassword
+#     vars:
+#       op_secrets:
+#         someFact:
+#           item: "<item name or uuid>"   # required
+#           vault: "<vault name>"         # required
+#           field: credential             # optional, default: password
+#           section: "<section>"          # optional
+#
+# Authentication uses the 1Password service-account token file on the controller
+# (op_token_file) — never target inventory, never a process env var. Resolution
+# is no_log; secrets never reach logs or disk.
+op_token_file: "{{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token"
+
+# Requested secrets, keyed by the fact name to populate. Callers override this.
+op_secrets: {}

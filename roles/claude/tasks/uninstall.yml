@@ -23,4 +23,3 @@
   loop:
     - "{{ claudeUserHome }}/.claude"
     - "{{ claudeUserHome }}/.claude.json"
-  when: claudeRemoveConfig | default(false) | bool

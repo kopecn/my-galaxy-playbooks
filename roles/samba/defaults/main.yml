@@ -1,8 +1,9 @@
 ---
 # Lowest-precedence, user-overridable variables. Empty string defaults force an
 # explicit override (per-host inventory or -e) before Samba will configure a
-# user. onePasswordVault is the non-secret vault name; the password itself is
-# resolved from sambaPasswordOpItem at run time.
+# user. onePasswordVault is the non-secret vault name; the username and password
+# are resolved from sambaPasswordOpItem's username/password fields at run time
+# (sambaUsername set directly takes precedence over the 1Password lookup).
 onePasswordVault: Personal-Automation
 sambaUsername: ""
 sambaPasswordOpItem: ""

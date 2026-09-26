@@ -33,39 +33,36 @@ Windows is not yet supported by this role.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `claudeRemoveConfig` | `group_vars`/`host_vars` or `-e` at run time | When `true`, `uninstall` also removes user config (`~/.claude` and `~/.claude.json`). Defaults to `false`, which keeps settings, MCP configuration, and session history. |
 | `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
+
+`uninstall` always removes user config (`~/.claude` and `~/.claude.json`) along
+with the CLI itself — settings, MCP configuration, and session history do not
+survive an uninstall.
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 
 ## Usage
 
-Install the Claude CLI:
+Target a host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP). Only `install` escalates (it apt-installs the `bash`/`curl` prerequisites on Debian); the CLI install step itself, `diagnose`, and `uninstall` all run as the login user, so they take no `-b`/`ansible_become_pass`.
+
+Install the Claude CLI — `-b` with `ansible_become_pass` supplies the target's sudo password for the Debian prerequisites:
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/claude_install.yml run
+ansible-playbook playbooks/claude_install.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Print installation diagnostics (`claude --version` and `claude doctor`) without
 changing anything (`serial: 1` — one host at a time):
 
 ```bash
-make PLAYBOOK=playbooks/claude_diagnose.yml run
+ansible-playbook playbooks/claude_diagnose.yml -i '<host-or-ip>,'
 ```
 
-Uninstall, keeping user config (`serial: 1` — one host at a time):
+Uninstall the CLI and remove user config — settings, MCP config, and session
+history (`serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/claude_uninstall.yml run
-```
-
-Uninstall and also remove user config (settings, MCP config, session history).
-Set `claudeRemoveConfig: true` in the host's inventory, or pass it directly:
-
-```bash
-ansible-playbook -i path/to/your/inventory --limit host-01 \
-  -e claudeRemoveConfig=true \
-  playbooks/claude_uninstall.yml
+ansible-playbook playbooks/claude_uninstall.yml -i '<host-or-ip>,'
 ```
 
 ## Verification

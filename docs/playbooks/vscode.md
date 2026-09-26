@@ -26,23 +26,16 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 
 ## Usage
 
-Install/update VS Code and sync extensions on the default local inventory
-(`tests/inventory/hosts.ini`, the `localhost` loopback):
+Install/update VS Code and sync extensions on a target host. On Debian the apt install escalates, so pass the host's sudo password with `-b -e 'ansible_become_pass=<password>'` (the Homebrew-cask path on macOS escalates nothing, but the flag is harmless there). Target the host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP):
 
 ```bash
-make PLAYBOOK=playbooks/vscode.yml run
-```
-
-Target just the `[local]` group:
-
-```bash
-make LIMIT=local PLAYBOOK=playbooks/vscode.yml run
+ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Dry-run before applying (`--check --diff`):
 
 ```bash
-make PLAYBOOK=playbooks/vscode.yml check
+ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>' --check --diff
 ```
 
 Configure the extension list for a group or host in your downstream inventory's

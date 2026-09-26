@@ -1,18 +1,18 @@
 ---
 galaxy_info:
-  role_name: example
+  role_name: onepassword
   author: nbergantz
-  description: Starter role — replace with real automation.
+  description: Resolve 1Password secrets on the Ansible controller into facts.
   license: MIT
   min_ansible_version: "2.16"
   platforms:
-    - name: EL
-      versions:
-        - "9"
+    - name: MacOSX
+    - name: Debian
     - name: Ubuntu
       versions:
         - jammy
         - noble
   galaxy_tags:
-    - example
+    - security
+    - onepassword
 dependencies: []

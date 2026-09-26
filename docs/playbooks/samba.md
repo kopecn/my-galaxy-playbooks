@@ -29,8 +29,8 @@ continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `sambaUsername` | `vars/defaults.yml` (global default), overridden per variable | SMB/Unix account name to provision. Required for `install`. Empty default forces an explicit override. |
-| `sambaPasswordOpItem` | `vars/defaults.yml` (global default), overridden per variable | 1Password item name (within `onePasswordVault`) whose `password` field holds the Samba password. Resolved on the controller. Empty default forces an explicit override. |
+| `sambaUsername` | `vars/defaults.yml` (global default), overridden per variable | SMB/Unix account name to provision. Required for `install`. When unset, it is resolved on the controller from the `username` field of `sambaPasswordOpItem` in 1Password. |
+| `sambaPasswordOpItem` | `vars/defaults.yml` (global default), overridden per variable | 1Password item name (within `onePasswordVault`) whose `username` and `password` fields hold the Samba account name and password. Resolved on the controller. Empty default forces an explicit override. |
 | `sambaPassword` | Extra var (`-e`), never persisted | Direct password, resolved at run time. Use it to pass a password without 1Password; when unset the password comes from `sambaPasswordOpItem` via 1Password. |
 | `onePasswordVault` | `vars/defaults.yml` | 1Password vault containing the Samba password item. Loaded on the controller; never read from target inventory. |
 | `hostOperatingSystem`, `hostArchitecture` | override or `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
@@ -55,29 +55,31 @@ onePasswordVault: your-vault-name
 ```
 
 The password is passed directly from the controller's `op` CLI to `smbpasswd`
-over stdin and is never written to inventory or disk. The controller-side task
-invokes `scripts/with-op` directly, so it always loads
-`~/.config/op/op-service-account-token`, including when the playbook is started
+over stdin and is never written to inventory or disk. Secret resolution runs
+through the shared `onepassword` role on the controller, which reads
+`~/.config/op/op-service-account-token` and resolves the item with the
+`community.general.onepassword` lookup, including when the playbook is started
 directly or by an IDE.
 
 Install Samba and provision the SMB user on a host, overriding the account name
-and 1Password item per variable (no inventory required). `-b` escalates
-privileges on the target, so pass the host's **sudo password** as
-`ansible_become_password` — this is the login account's sudo password, distinct
-from the Samba password:
+and 1Password item per variable (no inventory required — `-i '<host-or-ip>,'` is the
+target host name or IP, the trailing comma making it an inline inventory). `-b`
+escalates privileges on the target, so pass the host's **sudo password** as
+`ansible_become_pass` — this is the login account's sudo password, distinct from
+the Samba password:
 
 ```bash
-ansible-playbook playbooks/samba_install.yml -i 'host-01,' -b \
-  -e ansible_become_password='<sudo-password>' \
-  -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - host-01'
+ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
+  -e 'ansible_become_pass=<password>' \
+  -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - <host-or-ip>'
 ```
 
 To pass a Samba password directly without 1Password, override `sambaPassword`
 instead of `sambaPasswordOpItem` (still alongside the sudo password):
 
 ```bash
-ansible-playbook playbooks/samba_install.yml -i 'host-01,' -b \
-  -e ansible_become_password='<sudo-password>' \
+ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
+  -e 'ansible_become_pass=<password>' \
   -e sambaUsername=fileshare -e sambaPassword='<samba-password>'
 ```
 
@@ -92,8 +94,8 @@ Fully remove Samba from a host — a clean teardown so a later `install` starts
 from scratch (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/samba_uninstall.yml -i 'host-01,' -b \
-  -e ansible_become_password='<sudo-password>'
+ansible-playbook playbooks/samba_uninstall.yml -i '<host-or-ip>,' -b \
+  -e 'ansible_become_pass=<password>'
 ```
 
 This purges the `samba`, `samba-common`, and `samba-common-bin` packages
@@ -104,11 +106,13 @@ later install restore them) and removes Samba's config and state —
 accounts or home directories; those are OS state, not Samba's, and are left
 intact.
 
-Print Samba configuration and status without changing anything (`serial: 1` —
-one host at a time):
+Print Samba configuration and status without changing anything — `diagnose` reads
+`testparm`/`pdbedit`/`smbstatus` as root, so it also needs the sudo password
+(`serial: 1` — one host at a time):
 
 ```bash
-make PLAYBOOK=playbooks/samba_diagnose.yml run
+ansible-playbook playbooks/samba_diagnose.yml -i '<host-or-ip>,' -b \
+  -e 'ansible_become_pass=<password>'
 ```
 
 ## Verification

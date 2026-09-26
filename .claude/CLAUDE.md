@@ -35,7 +35,7 @@ make open-github # open the repo's GitHub remote in the browser
 `INVENTORY`, `PLAYBOOK`, `LIMIT`, `TAGS` are overridable on the CLI
 (`make run LIMIT=local PLAYBOOK=playbooks/vscode.yml`) or via a git-ignored
 `.env` (copy from `.env.example`); CLI wins over `.env` wins over the Makefile
-defaults (`tests/inventory/hosts.ini`, `playbooks/site.yml`).
+defaults (`tests/inventory/hosts.ini`, `playbooks/ping.yml`).
 
 ### Running a single Molecule scenario
 
@@ -61,7 +61,7 @@ pytest tests/test_tailscale.py::test_tailscale_status_prints_diagnostics -v
 
 ## Architecture
 
-- `playbooks/` — thin entry points (`site.yml`, `vscode.yml`, `ping.yml`). All
+- `playbooks/` — thin entry points (`ping.yml`, `vscode.yml`, per-toolset install/uninstall). All
   logic lives in roles; playbooks just select which roles run against which
   hosts.
 - `roles/<name>/{defaults,tasks,handlers,meta}` — first-party roles. Roles that
@@ -86,6 +86,10 @@ pytest tests/test_tailscale.py::test_tailscale_status_prints_diagnostics -v
   the `molecule.yml` workflow matrix (see [docs/testing.md](../docs/testing.md)).
 
 ## Critical Rules
+
+### Verify against the Ansible docs — never assume
+
+Every decision about Ansible usage — module names, parameters and their defaults, return values, plugin behavior, variable precedence, idempotency, and `become`/`delegate_to` semantics — must be grounded in the official Ansible documentation (https://docs.ansible.com/ansible/latest/) for the version this repo targets, not in memory, inference, or how an adjacent task happens to look. When the docs are silent or ambiguous, say so and confirm the intended behavior before acting — do not close the gap with an assumption. Cite the specific module or doc page a non-obvious decision rests on.
 
 ### Ansible hosts are long-lived production systems
 

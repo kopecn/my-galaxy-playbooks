@@ -60,43 +60,45 @@ The playbooks load those global variables at run time. The key itself is passed
 directly from the controller's `op` CLI to `tailscale up` over stdin and is
 never written to inventory or disk.
 
-The controller-side task invokes `scripts/with-op` directly, so it always loads
-`~/.config/op/op-service-account-token`, including when the playbook is started
-directly or by an IDE. `make run` also uses the same wrapper; `check` does not
-query 1Password.
+Secret resolution runs through the shared `onepassword` role on the controller,
+which reads `~/.config/op/op-service-account-token` and resolves the item with
+the `community.general.onepassword` lookup — including when the playbook is
+started directly or by an IDE. A `--check` dry-run does not query 1Password.
+
+Every Tailscale operation escalates on the target, so pass the host's sudo password with `-b -e 'ansible_become_pass=<password>'`. Target the host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP).
 
 Connect a host to the tailnet:
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_up.yml run
+ansible-playbook playbooks/tailscale_up.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Disconnect a host from the tailnet (`serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_down.yml run
+ansible-playbook playbooks/tailscale_down.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Check connection status and network diagnostics without changing anything:
 
 ```bash
-make PLAYBOOK=playbooks/tailscale_status.yml run
+ansible-playbook playbooks/tailscale_status.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Print Tailscale preferences (`tailscale debug prefs`) without changing anything:
 
 ```bash
-make PLAYBOOK=playbooks/tailscale_diagnose.yml run
+ansible-playbook playbooks/tailscale_diagnose.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Update Tailscale to the latest version:
 
 ```bash
-make PLAYBOOK=playbooks/tailscale_update.yml run
+ansible-playbook playbooks/tailscale_update.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 Pin a version on Debian hosts in your downstream inventory's `host_vars`, e.g.
-`host_vars/host-01.yml`:
+`host_vars/<host-or-ip>.yml`:
 
 ```yaml
 tailscaleVersion: "1.102.4"
@@ -105,7 +107,7 @@ tailscaleVersion: "1.102.4"
 Uninstall (runs `serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_uninstall.yml run
+ansible-playbook playbooks/tailscale_uninstall.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
 ```
 
 ## Verification

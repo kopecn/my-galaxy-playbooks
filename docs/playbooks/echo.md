@@ -23,13 +23,14 @@ agnostic — it declares no support matrix and does not branch on OS.
 
 ## Usage
 
-```bash
-# Against the local loopback group
-make run PLAYBOOK=playbooks/echo.yml LIMIT=local
+Echo escalates nothing — it runs as the login user — so no `-b`/`ansible_become_pass` is needed. Target a host with `-i '<host-or-ip>,'` (the trailing comma makes it an inline inventory; replace `<host-or-ip>` with your host name or IP).
 
-# Against your own inventory, overriding the phrase to confirm propagation
-ansible-playbook playbooks/echo.yml \
-  -i path/to/your/inventory -e echo_phrase='override reached me'
+```bash
+# Against a target host
+ansible-playbook playbooks/echo.yml -i '<host-or-ip>,'
+
+# Overriding the phrase to confirm a downstream override propagates
+ansible-playbook playbooks/echo.yml -i '<host-or-ip>,' -e echo_phrase='override reached me'
 ```
 
 Expected output shows the same phrase from `Control node echoed:` and from each

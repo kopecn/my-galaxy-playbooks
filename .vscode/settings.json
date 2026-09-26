@@ -1,4 +1,12 @@
 {
+  "ansible.python.interpreterPath": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+  "ansible.mcpServer.enabled": true,
+  "yaml.schemas": {
+    ".schema/ansible-vars.schema.json": [
+      "roles/*/defaults/main.yml",
+      "vars/defaults.yml"
+    ]
+  },
   "files.associations": {
     "*.yml": "ansible",
     "**/inventories/**/*.yml": "yaml",
@@ -6,7 +14,9 @@
     ".ansible-lint": "yaml",
     ".yamllint.yml": "yaml"
   },
-  "yaml.customTags": ["!vault scalar"],
+  "yaml.customTags": [
+    "!vault scalar"
+  ],
   "[ansible]": {
     "editor.tabSize": 2,
     "editor.insertSpaces": true
