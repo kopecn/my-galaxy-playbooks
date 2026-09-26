@@ -30,19 +30,19 @@ Install/update VS Code and sync extensions on the default inventory
 (`inventories/production/hosts.ini`):
 
 ```bash
-make PLAYBOOK=playbooks/app-installers/vscode.yml run
+make PLAYBOOK=playbooks/vscode.yml run
 ```
 
 Target just the `[local]` group:
 
 ```bash
-make LIMIT=local PLAYBOOK=playbooks/app-installers/vscode.yml run
+make LIMIT=local PLAYBOOK=playbooks/vscode.yml run
 ```
 
 Dry-run before applying (`--check --diff`):
 
 ```bash
-make PLAYBOOK=playbooks/app-installers/vscode.yml check
+make PLAYBOOK=playbooks/vscode.yml check
 ```
 
 Configure the extension list for a group or host, e.g.

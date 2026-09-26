@@ -12,9 +12,7 @@ SHELL := /bin/bash
         test-molecule test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
 
-# ----------------------------------------------------------------------------
-#  Configuration
-# ----------------------------------------------------------------------------
+# MARK: - Configuration
 
 # Optional local overrides; see .env.example. CLI overrides (make VAR=...) win.
 -include .env
@@ -75,18 +73,14 @@ ifneq ($(TAGS),)
 ANSIBLE_PLAYBOOK_OPTS += --tags $(TAGS)
 endif
 
-# ----------------------------------------------------------------------------
-#  Help
-# ----------------------------------------------------------------------------
+# MARK: - Help
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
 
-# ----------------------------------------------------------------------------
-#  Setup
-# ----------------------------------------------------------------------------
+# MARK: - Setup
 
 venv: $(VENV_BIN)/pip ## Create the project virtualenv (.venv)
 
@@ -121,9 +115,7 @@ bootstrap: venv ## Install all dev/test dependencies and verify prerequisites
 	@echo ""
 	@echo "Bootstrap complete. Run 'make test' for fast checks or 'make test-all' for the full suite."
 
-# ----------------------------------------------------------------------------
-#  Static analysis
-# ----------------------------------------------------------------------------
+# MARK: - Static analysis
 
 lint: ## Run yamllint and ansible-lint
 	yamllint .
@@ -143,9 +135,7 @@ syntax-check: ## Syntax-check all playbooks against the test inventory
 	done; \
 	[ $$failed -eq 0 ] || (echo "" && echo "Syntax check failed." && exit 1)
 
-# ----------------------------------------------------------------------------
-#  Run playbooks
-# ----------------------------------------------------------------------------
+# MARK: - Run playbooks
 
 check: ## Dry-run the playbook (no changes applied)
 	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK) --check --diff
@@ -156,9 +146,7 @@ run: ## Apply the playbook
 ping: ## Ping all hosts in the inventory
 	ansible -i $(INVENTORY) all -m ansible.builtin.ping
 
-# ----------------------------------------------------------------------------
-#  Tests
-# ----------------------------------------------------------------------------
+# MARK: - Tests
 
 test: test-static test-unit ## Fast tests (no Docker) — run before committing
 
@@ -167,7 +155,7 @@ test-all: test test-molecule ## Full test suite including Molecule (requires Doc
 test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 
 test-unit: ## Run pytest template and inventory tests
-	pytest tests/ -v
+	pytest tests/ -v -p no:cacheprovider
 
 test-molecule: test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
 
@@ -190,9 +178,7 @@ check-docker:
 	@docker info > /dev/null 2>&1 \
 		|| (echo "ERROR: Docker daemon is not running. Start Docker Desktop and retry." && exit 1)
 
-# ----------------------------------------------------------------------------
-#  Utilities
-# ----------------------------------------------------------------------------
+# MARK: - Utilities
 
 open-github: ## Open the GitHub repository in the default browser (macOS/Linux)
 	@remote=$$(git remote | head -1); \

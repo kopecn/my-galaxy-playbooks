@@ -6,7 +6,6 @@
 | `roles/`           | First-party roles maintained in this repo.                     |
 | `galaxy_roles/`    | Roles & collections installed from Galaxy (git-ignored).       |
 | `inventories/`     | Per-environment inventories (`production`, `staging`).         |
-| `files/`           | Static files copied verbatim to hosts.                         |
 | `templates/`       | Jinja2 templates rendered to hosts.                            |
 | `examples/`        | Usage examples and reference snippets.                         |
 | `tests/`           | Smoke / molecule-style tests.                                  |

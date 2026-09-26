@@ -2,8 +2,6 @@
 - name: Install Samba
   hosts: all
   gather_facts: true
-  vars_files:
-    - ../../vars/defaults.yml
   roles:
     - role: samba
       sambaOperation: install

@@ -5,7 +5,7 @@ host, via `delegate_to: localhost`) and then on each target host, confirming the
 variable resolves the same on both — the intended way to check that a downstream
 Galaxy variable override actually reaches the managed nodes.
 
-The thin playbook `playbooks/core-platform/echo.yml` dispatches into
+The thin playbook `playbooks/echo.yml` dispatches into
 [`roles/echo`](../../roles/echo), which owns the implementation. See the
 [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
 for the layering this follows.
@@ -25,10 +25,10 @@ agnostic — it declares no support matrix and does not branch on OS.
 
 ```bash
 # Against the local loopback group
-make run PLAYBOOK=playbooks/core-platform/echo.yml LIMIT=local
+make run PLAYBOOK=playbooks/echo.yml LIMIT=local
 
 # Against an inventory, overriding the phrase to confirm propagation
-ansible-playbook playbooks/core-platform/echo.yml \
+ansible-playbook playbooks/echo.yml \
   -i inventories/production/hosts.ini -e echo_phrase='override reached me'
 ```
 

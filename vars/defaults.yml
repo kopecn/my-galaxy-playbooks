@@ -1,15 +1,7 @@
 ---
-# Global, non-secret configuration shared by playbooks and controller helpers.
-# Secret values remain in 1Password and are resolved only at run time.
+# Controller-side configuration for helper scripts (e.g. scripts/op-become-password).
+# NOT part of the collection artifact and NOT loaded by any playbook: role/playbook
+# variables are single-sourced in each role's defaults/main.yml and overridden by the
+# downstream inventory. Only values that controller scripts (which run outside Ansible
+# and cannot read role defaults) need belong here.
 onePasswordVault: Personal-Automation
-onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
-
-# Samba: global defaults, overridden per variable at run time
-# (-e sambaUsername=... -e sambaPasswordOpItem=...) or per host/group in a
-# downstream inventory. Empty defaults force an explicit override.
-sambaUsername: ""
-sambaPasswordOpItem: ""
-
-# Echo Phrase
-# Use this to validate downstream galaxy variable overrides
-echo_phrase: "why hello there"

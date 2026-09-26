@@ -11,13 +11,13 @@ One thin playbook per operation, all dispatching into the same role via
 
 | Playbook | Operation |
 | --- | --- |
-| `playbooks/core-platform/tailscale-install.yml` | `install` |
-| `playbooks/core-platform/tailscale-up.yml` | `up` — connect to the tailnet |
-| `playbooks/core-platform/tailscale-down.yml` | `down` — disconnect from the tailnet |
-| `playbooks/core-platform/tailscale-status.yml` | `status` — connection + network diagnostics |
-| `playbooks/core-platform/tailscale-diagnose.yml` | `diagnose` — print `tailscale debug prefs` |
-| `playbooks/core-platform/tailscale-update.yml` | `update` |
-| `playbooks/core-platform/tailscale-uninstall.yml` | `uninstall` |
+| `playbooks/tailscale_install.yml` | `install` |
+| `playbooks/tailscale_up.yml` | `up` — connect to the tailnet |
+| `playbooks/tailscale_down.yml` | `down` — disconnect from the tailnet |
+| `playbooks/tailscale_status.yml` | `status` — connection + network diagnostics |
+| `playbooks/tailscale_diagnose.yml` | `diagnose` — print `tailscale debug prefs` |
+| `playbooks/tailscale_update.yml` | `update` |
+| `playbooks/tailscale_uninstall.yml` | `uninstall` |
 
 ## Supported hosts
 
@@ -68,31 +68,31 @@ query 1Password.
 Connect a host to the tailnet:
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/core-platform/tailscale-up.yml run
+make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_up.yml run
 ```
 
 Disconnect a host from the tailnet (`serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/core-platform/tailscale-down.yml run
+make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_down.yml run
 ```
 
 Check connection status and network diagnostics without changing anything:
 
 ```bash
-make PLAYBOOK=playbooks/core-platform/tailscale-status.yml run
+make PLAYBOOK=playbooks/tailscale_status.yml run
 ```
 
 Print Tailscale preferences (`tailscale debug prefs`) without changing anything:
 
 ```bash
-make PLAYBOOK=playbooks/core-platform/tailscale-diagnose.yml run
+make PLAYBOOK=playbooks/tailscale_diagnose.yml run
 ```
 
 Update Tailscale to the latest version:
 
 ```bash
-make PLAYBOOK=playbooks/core-platform/tailscale-update.yml run
+make PLAYBOOK=playbooks/tailscale_update.yml run
 ```
 
 Pin a version on Debian hosts, e.g. `inventories/production/host_vars/host-01.yml`:
@@ -104,7 +104,7 @@ tailscaleVersion: "1.102.4"
 Uninstall (runs `serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/core-platform/tailscale-uninstall.yml run
+make LIMIT=host-01 PLAYBOOK=playbooks/tailscale_uninstall.yml run
 ```
 
 ## Verification

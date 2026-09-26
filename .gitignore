@@ -2,6 +2,12 @@
 galaxy_roles/*
 !galaxy_roles/.gitkeep
 
+# Local Ansible runtime cache (installed collections/roles/modules, fact cache)
+.ansible/
+
+# Built collection artifacts (ansible-galaxy collection build)
+*.tar.gz
+
 # Python virtualenvs
 .venv/
 venv/
@@ -32,3 +38,8 @@ inventories/**/host_vars/**/vault.yml
 *.swp
 *~
 .idea/
+
+# VS Code
+# workspace settings — track only the shared extension recommendations
+.vscode/*
+!.vscode/extensions.json

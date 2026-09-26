@@ -20,12 +20,11 @@ step for anything host-specific.
 
 1. `ansible.builtin.git`: clone/update the shared config repo to
    `{{ login_user_home }}/.claude` (or wherever the repo's own convention
-   places it — confirm against the *actual* path this user's global
+   places it — confirm against the _actual_ path this user's global
    `~/.claude/CLAUDE.md` resolves from before hardcoding one).
 2. If any host-specific override file is needed (e.g. a `settings.local.json`
    this repo's own `.claude/settings.local.json` suggests exists per-project),
-   template it separately — don't let host-specific values leak into the
-   shared repo's tracked files.
+   template it separately — don't let host-specific values leak into the shared repo's tracked files.
 
 ## Safety notes
 

@@ -78,8 +78,6 @@ pytest tests/test_inventory.py::test_inventory_parses -v
   < `group_vars/<group>.yml` < `host_vars/`. `production/group_vars/local.yml`
   applies only to the `[local]` loopback group in `hosts.ini`
   (`ansible_connection=local`), not to real hosts like `host-01`.
-- `files/`, `templates/` — static files and Jinja2 templates referenced by role
-  tasks.
 - CI (`.github/workflows/lint.yml`, `molecule.yml`) runs `make bootstrap` then
   `make test` / `make test-molecule-<role>` per role — the same targets used
   locally, so a green `make test-all` locally should stay green in CI. Adding a

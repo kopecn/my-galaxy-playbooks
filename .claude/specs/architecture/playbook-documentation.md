@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-24
-semver: 0.0.1
+last_updated: 2026-09-25
+semver: 0.0.2
 author: Nicholas Bergantz
 scope: project
 ---
@@ -29,7 +29,7 @@ Every toolset SHALL have:
 - A page at `docs/playbooks/<toolset>.md`.
 - A pointer to that page in the **Playbook groupings** list of
   [`readme.md`](../../../readme.md), naming the toolset and its playbook path
-  (e.g. `playbooks/core-platform/<toolset>-*.yml`).
+  (e.g. `playbooks/<toolset>_*.yml`).
 
 The page and the pointer SHALL be created or updated in the same change that
 adds or alters the toolset's playbooks, role, or variables. A toolset whose

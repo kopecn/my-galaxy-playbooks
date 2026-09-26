@@ -3,8 +3,6 @@
   hosts: all
   gather_facts: true
   serial: 1
-  vars_files:
-    - ../../vars/defaults.yml
   roles:
     - role: samba
       sambaOperation: diagnose

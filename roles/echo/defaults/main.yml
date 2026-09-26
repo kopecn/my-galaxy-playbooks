@@ -1,0 +1,4 @@
+---
+# Lowest-precedence, user-overridable variable. The downstream overrides this
+# per-host/group or with -e to validate variable propagation.
+echo_phrase: "why hello there"

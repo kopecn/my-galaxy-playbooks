@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-19
-semver: 0.0.1
+last_updated: 2026-09-25
+semver: 0.1.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -42,8 +42,12 @@ features — for example `hostOperatingSystem`, `hostArchitecture`,
   `inventories/<env>/group_vars/all.yml`.
 - Per-host declared facts (operating system, architecture, hostname) SHALL live
   in `inventories/<env>/host_vars/<host>.yml`.
-- A role's `defaults/main.yml` is role-local, not global, and SHALL NOT be used
-  to carry cross-host configuration.
+- A role's `defaults/main.yml` is role-local and lowest-precedence. It MAY carry
+  overridable fallback values so the role is self-contained when installed as
+  part of the collection (e.g. `onePasswordVault`, `echo_phrase`), but it SHALL
+  NOT be the authoritative source of cross-host configuration: authoritative
+  per-environment values live in `inventories/<env>/group_vars` and override the
+  role default.
 - Every project variable SHALL be documented in
   [`.schema/ansible-vars.schema.json`](../../../.schema/ansible-vars.schema.json)
   with a description. An undocumented project variable is a defect.
@@ -76,6 +80,29 @@ Playbooks declare intent and nothing more.
 - A playbook SHALL be OS/architecture-agnostic. Branching on operating system or
   architecture in a playbook is a defect; that logic belongs in a role.
 - A playbook SHALL NOT contain implementation logic that a role should own.
+- Playbooks SHALL live directly under `playbooks/` (no category
+  subdirectories) and be named in lowercase with `_` word separators. This is
+  required for the collection: only playbooks directly under the collection's
+  top-level `playbooks/` are addressable downstream by fully-qualified collection
+  name (`kopecn.home.<name>`, e.g. `kopecn.home.echo`).
+- A playbook SHALL NOT use `vars_files` with a project-relative path
+  (e.g. `../../vars/defaults.yml`): that path does not resolve once the
+  collection is installed downstream. Shared values come from the role's
+  `defaults/main.yml` and are overridden by the downstream inventory.
+
+## Collection Packaging
+
+This repository is published as the Ansible collection `kopecn.home` (namespace
+`kopecn`, name `home`), defined by [`galaxy.yml`](../../../galaxy.yml) at the
+repo root.
+
+- `roles/` and `playbooks/` at the repo root are the collection's roles and
+  playbooks; downstream references them as `kopecn.home.<role>` and
+  `kopecn.home.<playbook>`.
+- Collection and playbook identifiers are lowercase alphanumeric + `_`, starting
+  with a letter — no dashes (why the collection name is `home`, not the git repo
+  name `my-galaxy-playbooks`).
+- `ansible-galaxy collection build` SHALL succeed; it is the packaging gate.
 
 ## Failure Isolation
 

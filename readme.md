@@ -64,7 +64,7 @@ git-ignored `.env` (copy from `.env.example`).
 
 e.g.
 ```bash
-ansible-playbook playbooks/core-platform/tailscale-install.yml -i 'host-computer-name,' -b -e 'ansible_become_password=<sudo-password>'
+ansible-playbook playbooks/tailscale_install.yml -i 'host-computer-name,' -b -e 'ansible_become_password=<sudo-password>'
 ```
 
 ## Documentation
@@ -79,8 +79,8 @@ ansible-playbook playbooks/core-platform/tailscale-install.yml -i 'host-computer
 Each toolset this repo automates has its own notes under `docs/playbooks/`:
 supported hosts, variables, and example usage.
 
-- [VS Code](docs/playbooks/vscode.md) — `playbooks/app-installers/vscode.yml`
-- [Tailscale](docs/playbooks/tailscale.md) — `playbooks/core-platform/tailscale-*.yml`
-- [Samba](docs/playbooks/samba.md) — `playbooks/core-platform/samba-*.yml`
-- [Claude CLI](docs/playbooks/claude.md) — `playbooks/core-platform/claude-*.yml`
-- [Echo](docs/playbooks/echo.md) — `playbooks/core-platform/echo.yml` (variable-override validation)
+- [VS Code](docs/playbooks/vscode.md) — `playbooks/vscode.yml`
+- [Tailscale](docs/playbooks/tailscale.md) — `playbooks/tailscale_*.yml`
+- [Samba](docs/playbooks/samba.md) — `playbooks/samba_*.yml`
+- [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
+- [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)

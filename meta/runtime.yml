@@ -1,0 +1,3 @@
+---
+# Minimum Ansible version the kopecn.home collection supports.
+requires_ansible: ">=2.15.0"

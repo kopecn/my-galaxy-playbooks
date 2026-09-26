@@ -10,9 +10,9 @@ One thin playbook per operation, all dispatching into the same role via
 
 | Playbook | Operation |
 | --- | --- |
-| `playbooks/core-platform/claude-install.yml` | `install` |
-| `playbooks/core-platform/claude-diagnose.yml` | `diagnose` — print `claude --version` and `claude doctor` |
-| `playbooks/core-platform/claude-uninstall.yml` | `uninstall` |
+| `playbooks/claude_install.yml` | `install` |
+| `playbooks/claude_diagnose.yml` | `diagnose` — print `claude --version` and `claude doctor` |
+| `playbooks/claude_uninstall.yml` | `uninstall` |
 
 ## Supported hosts
 
@@ -43,20 +43,20 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 Install the Claude CLI:
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/core-platform/claude-install.yml run
+make LIMIT=host-01 PLAYBOOK=playbooks/claude_install.yml run
 ```
 
 Print installation diagnostics (`claude --version` and `claude doctor`) without
 changing anything (`serial: 1` — one host at a time):
 
 ```bash
-make PLAYBOOK=playbooks/core-platform/claude-diagnose.yml run
+make PLAYBOOK=playbooks/claude_diagnose.yml run
 ```
 
 Uninstall, keeping user config (`serial: 1` — one host at a time):
 
 ```bash
-make LIMIT=host-01 PLAYBOOK=playbooks/core-platform/claude-uninstall.yml run
+make LIMIT=host-01 PLAYBOOK=playbooks/claude_uninstall.yml run
 ```
 
 Uninstall and also remove user config (settings, MCP config, session history).
@@ -65,7 +65,7 @@ Set `claudeRemoveConfig: true` in the host's inventory, or pass it directly:
 ```bash
 ansible-playbook -i inventories/production/hosts.ini --limit host-01 \
   -e claudeRemoveConfig=true \
-  playbooks/core-platform/claude-uninstall.yml
+  playbooks/claude_uninstall.yml
 ```
 
 ## Verification

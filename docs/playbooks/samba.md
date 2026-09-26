@@ -10,9 +10,9 @@ One thin playbook per operation, all dispatching into the same role via
 
 | Playbook | Operation |
 | --- | --- |
-| `playbooks/core-platform/samba-install.yml` | `install` — packages, `smb encrypt = required`, SMB user |
-| `playbooks/core-platform/samba-uninstall.yml` | `uninstall` — full teardown: purge Samba, config, and passdb |
-| `playbooks/core-platform/samba-diagnose.yml` | `diagnose` — print `testparm`, `pdbedit`, `smbstatus` |
+| `playbooks/samba_install.yml` | `install` — packages, `smb encrypt = required`, SMB user |
+| `playbooks/samba_uninstall.yml` | `uninstall` — full teardown: purge Samba, config, and passdb |
+| `playbooks/samba_diagnose.yml` | `diagnose` — print `testparm`, `pdbedit`, `smbstatus` |
 
 ## Supported hosts
 
@@ -67,7 +67,7 @@ privileges on the target, so pass the host's **sudo password** as
 from the Samba password:
 
 ```bash
-ansible-playbook playbooks/core-platform/samba-install.yml -i 'host-01,' -b \
+ansible-playbook playbooks/samba_install.yml -i 'host-01,' -b \
   -e ansible_become_password='<sudo-password>' \
   -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - host-01'
 ```
@@ -76,7 +76,7 @@ To pass a Samba password directly without 1Password, override `sambaPassword`
 instead of `sambaPasswordOpItem` (still alongside the sudo password):
 
 ```bash
-ansible-playbook playbooks/core-platform/samba-install.yml -i 'host-01,' -b \
+ansible-playbook playbooks/samba_install.yml -i 'host-01,' -b \
   -e ansible_become_password='<sudo-password>' \
   -e sambaUsername=fileshare -e sambaPassword='<samba-password>'
 ```
@@ -92,7 +92,7 @@ Fully remove Samba from a host — a clean teardown so a later `install` starts
 from scratch (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/core-platform/samba-uninstall.yml -i 'host-01,' -b \
+ansible-playbook playbooks/samba_uninstall.yml -i 'host-01,' -b \
   -e ansible_become_password='<sudo-password>'
 ```
 
@@ -108,7 +108,7 @@ Print Samba configuration and status without changing anything (`serial: 1` —
 one host at a time):
 
 ```bash
-make PLAYBOOK=playbooks/core-platform/samba-diagnose.yml run
+make PLAYBOOK=playbooks/samba_diagnose.yml run
 ```
 
 ## Verification

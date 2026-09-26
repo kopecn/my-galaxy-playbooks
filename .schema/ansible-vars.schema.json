@@ -87,6 +87,10 @@
       "type": "string",
       "default": "/etc/ansible-example.marker",
       "description": "Filesystem path of the marker file written by the example role."
+    },
+    "echo_phrase": {
+      "type": "string",
+      "description": "Phrase the echo role prints on the controller and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
     }
   }
 }

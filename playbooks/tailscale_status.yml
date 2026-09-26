@@ -2,8 +2,6 @@
 - name: Read Tailscale status and diagnostics
   hosts: all
   gather_facts: true
-  vars_files:
-    - ../../vars/defaults.yml
   roles:
     - role: tailscale
       tailscaleOperation: status

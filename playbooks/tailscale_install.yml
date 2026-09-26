@@ -2,8 +2,6 @@
 - name: Install Tailscale
   hosts: all
   gather_facts: true
-  vars_files:
-    - ../../vars/defaults.yml
   roles:
     - role: tailscale
       tailscaleOperation: install

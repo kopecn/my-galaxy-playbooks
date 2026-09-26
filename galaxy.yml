@@ -1,0 +1,27 @@
+---
+namespace: kopecn
+name: home
+version: 0.0.3
+readme: readme.md
+authors:
+  - nbergantz
+description: Home lab provisioning playbooks and roles (dev + production hosts).
+license_file: ""
+tags:
+  - infrastructure
+  - homelab
+repository: https://github.com/kopecn/my-galaxy-playbooks
+build_ignore:
+  - .venv
+  - galaxy_roles
+  - .ansible
+  - .config
+  - .schema
+  - .mypy_cache
+  - .pytest_cache
+  - .github
+  - .vscode
+  - tests/output
+  - examples
+  - scripts
+  - "*.tar.gz"

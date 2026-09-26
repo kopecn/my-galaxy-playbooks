@@ -14,11 +14,10 @@ OPERATIONS = ("diagnose", "install", "uninstall")
 @pytest.mark.parametrize("operation", OPERATIONS)
 def test_claude_operation_has_thin_playbook(operation):
     """Each public operation delegates to the Claude role."""
-    playbook_path = REPO_ROOT / "playbooks" / "core-platform" / f"claude-{operation}.yml"
+    playbook_path = REPO_ROOT / "playbooks" / f"claude_{operation}.yml"
     playbook = yaml.safe_load(playbook_path.read_text())
 
     assert len(playbook) == 1
-    assert playbook[0]["vars_files"] == ["../../vars/defaults.yml"]
     assert playbook[0]["roles"] == [
         {
             "role": "claude",

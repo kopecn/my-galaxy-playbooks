@@ -19,11 +19,10 @@ OP_BECOME_PASSWORD = REPO_ROOT / "scripts" / "op-become-password"
 @pytest.mark.parametrize("operation", OPERATIONS)
 def test_tailscale_operation_has_thin_playbook(operation):
     """Each public operation delegates to the Tailscale role."""
-    playbook_path = REPO_ROOT / "playbooks" / "core-platform" / f"tailscale-{operation}.yml"
+    playbook_path = REPO_ROOT / "playbooks" / f"tailscale_{operation}.yml"
     playbook = yaml.safe_load(playbook_path.read_text())
 
     assert len(playbook) == 1
-    assert playbook[0]["vars_files"] == ["../../vars/defaults.yml"]
     assert playbook[0]["roles"] == [
         {
             "role": "tailscale",
@@ -51,8 +50,8 @@ def test_tailscale_cli_variables_are_documented(variable):
 def test_tailscale_auth_key_is_controller_managed():
     """The auth key and its reference never come from target inventory."""
     tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
-    global_vars = yaml.safe_load(
-        (REPO_ROOT / "vars" / "defaults.yml").read_text()
+    role_defaults = yaml.safe_load(
+        (REPO_ROOT / "roles" / "tailscale" / "defaults" / "main.yml").read_text()
     )
     inventory = yaml.safe_load(
         (REPO_ROOT / "inventories" / "production" / "group_vars" / "all.yml").read_text()
@@ -69,7 +68,7 @@ def test_tailscale_auth_key_is_controller_managed():
     assert "{{ onePasswordTailscaleAPIKey }}" in tasks
     for variable in ("onePasswordVault", "onePasswordTailscaleAPIKey"):
         assert variable not in inventory
-        assert variable in global_vars
+        assert variable in role_defaults
         assert variable in schema
 
 
