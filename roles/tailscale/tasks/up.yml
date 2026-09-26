@@ -48,8 +48,8 @@
       - onePasswordVault | length > 0
       - onePasswordTailscaleAPIKey | length > 0
     fail_msg: >-
-      Set onePasswordVault and onePasswordTailscaleAPIKey in the repository's
-      vars/defaults.yml file on the playbook controller.
+      Set onePasswordVault and onePasswordTailscaleAPIKey via the role defaults
+      or the downstream inventory so the auth key can be read on the controller.
   when:
     - tailscaleNeedsUp
     - not ansible_check_mode

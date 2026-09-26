@@ -19,7 +19,7 @@ agnostic — it declares no support matrix and does not branch on OS.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `echo_phrase` | Repository-root `vars/defaults.yml` | Phrase echoed on both the control node and each target host. Override to validate that a downstream override propagates. |
+| `echo_phrase` | Role default (`roles/echo/defaults/main.yml`), overridden by downstream inventory or `-e` | Phrase echoed on both the control node and each target host. Override to validate that a downstream override propagates. |
 
 ## Usage
 

@@ -7,7 +7,7 @@
 SHELL := /bin/bash
 
 .PHONY: help bootstrap venv \
-        lint syntax-check check run ping \
+        lint syntax-check check ping \
         test test-all test-static test-unit \
         test-molecule test-molecule-claude test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
@@ -136,9 +136,6 @@ syntax-check: ## Syntax-check all playbooks against the test inventory
 
 check: ## Dry-run the playbook (no changes applied)
 	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK) --check --diff
-
-run: ## Apply the playbook
-	ansible-playbook $(ANSIBLE_PLAYBOOK_OPTS) $(PLAYBOOK)
 
 ping: ## Ping all hosts in the inventory
 	ansible -i $(INVENTORY) all -m ansible.builtin.ping

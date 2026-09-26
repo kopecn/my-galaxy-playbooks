@@ -49,7 +49,6 @@ camelCase and every variable is documented in
 make bootstrap   # install ansible/lint/test/molecule deps + Galaxy collections
 make lint        # yamllint + ansible-lint
 make check       # dry-run PLAYBOOK against INVENTORY (--check --diff)
-make run         # apply PLAYBOOK to INVENTORY
 make test        # fast: lint + syntax-check + pytest (no Docker)
 make test-all    # test + all Molecule scenarios (requires Docker)
 ```

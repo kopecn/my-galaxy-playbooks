@@ -9,9 +9,9 @@
           - sambaPasswordOpItem is defined
           - sambaPasswordOpItem | length > 0
         fail_msg: >-
-          Set sambaUsername directly, or set onePasswordVault (controller
-          vars/defaults.yml) and sambaPasswordOpItem (per-host inventory) so the
-          Samba username can be read from 1Password for {{ inventory_hostname }}.
+          Set sambaUsername directly, or set onePasswordVault (role default or
+          downstream inventory) and sambaPasswordOpItem (per-host inventory) so
+          the Samba username can be read from 1Password for {{ inventory_hostname }}.
 
     - name: Resolve the Samba username on the controller
       ansible.builtin.include_role:
@@ -139,7 +139,7 @@
               - sambaPasswordOpItem is defined
               - sambaPasswordOpItem | length > 0
             fail_msg: >-
-              Set onePasswordVault (controller vars/defaults.yml) and
+              Set onePasswordVault (role default or downstream inventory) and
               sambaPasswordOpItem (per-host inventory) so the Samba password can
               be read from 1Password for {{ inventory_hostname }}.
 

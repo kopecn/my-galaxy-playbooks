@@ -34,8 +34,8 @@ the operation with a clear error; other hosts and playbooks continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `onePasswordVault` | Repository-root `vars/defaults.yml` | 1Password vault containing the Tailscale provisioning item. Loaded on the controller; never read from target inventory. |
-| `onePasswordTailscaleAPIKey` | Repository-root `vars/defaults.yml` | 1Password item containing the Tailscale auth key. Loaded on the controller; never read from target inventory. |
+| `onePasswordVault` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the controller; never read from target inventory. |
+| `onePasswordTailscaleAPIKey` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the controller; never read from target inventory. |
 | `tailscaleVersion` | `group_vars`/`host_vars` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS — `update` rejects a pin there. |
 | `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
@@ -48,15 +48,16 @@ isn't wired up yet.
 ## Usage
 
 `up` reads the Tailscale auth key from 1Password on the controller. It does
-not read the key or its reference from target-host inventory. Configure the
-vault and item names in the repository-root `vars/defaults.yml` file:
+not read the key or its reference from target-host inventory. Set the vault and
+item names via the role defaults (`roles/tailscale/defaults/main.yml`), a
+downstream inventory, or `-e` at run time:
 
 ```yaml
 onePasswordVault: your-vault-name
 onePasswordTailscaleAPIKey: your-item-name
 ```
 
-The playbooks load those global variables at run time. The key itself is passed
+The key itself is passed
 directly from the controller's `op` CLI to `tailscale up` over stdin and is
 never written to inventory or disk.
 

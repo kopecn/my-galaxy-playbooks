@@ -1,7 +1,0 @@
----
-# Controller-side configuration for helper scripts (e.g. scripts/op-become-password).
-# NOT part of the collection artifact and NOT loaded by any playbook: role/playbook
-# variables are single-sourced in each role's defaults/main.yml and overridden by the
-# downstream inventory. Only values that controller scripts (which run outside Ansible
-# and cannot read role defaults) need belong here.
-onePasswordVault: Personal-Automation

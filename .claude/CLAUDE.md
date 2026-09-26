@@ -24,7 +24,6 @@ make bootstrap   # install ansible/lint/test/molecule deps + Galaxy collections
 make lint        # yamllint + ansible-lint
 make syntax-check # syntax-check every playbook against the test inventory
 make check       # dry-run PLAYBOOK against INVENTORY (--check --diff)
-make run         # apply PLAYBOOK to INVENTORY
 make ping        # ansible.builtin.ping against every host in INVENTORY
 make test        # fast: test-static (lint+syntax-check) + test-unit (pytest) — no Docker
 make test-all    # test + test-molecule (all roles, requires Docker)
@@ -33,7 +32,7 @@ make open-github # open the repo's GitHub remote in the browser
 ```
 
 `INVENTORY`, `PLAYBOOK`, `LIMIT`, `TAGS` are overridable on the CLI
-(`make run LIMIT=local PLAYBOOK=playbooks/vscode.yml`) or via a git-ignored
+(`make check LIMIT=local PLAYBOOK=playbooks/vscode.yml`) or via a git-ignored
 `.env` (copy from `.env.example`); CLI wins over `.env` wins over the Makefile
 defaults (`tests/inventory/hosts.ini`, `playbooks/ping.yml`).
 

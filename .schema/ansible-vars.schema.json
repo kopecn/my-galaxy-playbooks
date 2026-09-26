@@ -38,11 +38,11 @@
     },
     "onePasswordVault": {
       "type": "string",
-      "description": "1Password vault name loaded from the controller's repository-root vars/defaults.yml."
+      "description": "1Password vault name. Role default, overridden by the downstream inventory or -e; resolved on the controller."
     },
     "onePasswordTailscaleAPIKey": {
       "type": "string",
-      "description": "1Password Tailscale auth-key item name loaded from the controller's repository-root vars/defaults.yml."
+      "description": "1Password Tailscale auth-key item name. Role default, overridden by the downstream inventory or -e; resolved on the controller."
     },
     "tailscaleEnable": {
       "type": "boolean",
@@ -68,11 +68,11 @@
     },
     "sambaUsername": {
       "type": "string",
-      "description": "SMB/Unix account name the samba role provisions. Global default in vars/defaults.yml (empty), overridden per variable at run time (-e sambaUsername=...) or per host/group in a downstream inventory. Varies by machine."
+      "description": "SMB/Unix account name the samba role provisions. Role default (empty), overridden per variable at run time (-e sambaUsername=...) or per host/group in a downstream inventory. Varies by machine."
     },
     "sambaPasswordOpItem": {
       "type": "string",
-      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller at run time via scripts/with-op. Global default in vars/defaults.yml (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
+      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller by the onepassword role. Role default (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
     },
     "sambaPassword": {
       "type": "string",
