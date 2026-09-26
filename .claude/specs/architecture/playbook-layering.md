@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-09-25
-semver: 0.1.0
+semver: 0.2.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -38,16 +38,22 @@ Global configuration is the flags and parameters that describe hosts and select
 features — for example `hostOperatingSystem`, `hostArchitecture`,
 `tailscaleEnable`, `vscodeEnable`.
 
-- Configuration applying to all hosts SHALL live in
-  `inventories/<env>/group_vars/all.yml`.
-- Per-host declared facts (operating system, architecture, hostname) SHALL live
-  in `inventories/<env>/host_vars/<host>.yml`.
-- A role's `defaults/main.yml` is role-local and lowest-precedence. It MAY carry
-  overridable fallback values so the role is self-contained when installed as
-  part of the collection (e.g. `onePasswordVault`, `echo_phrase`), but it SHALL
-  NOT be the authoritative source of cross-host configuration: authoritative
-  per-environment values live in `inventories/<env>/group_vars` and override the
-  role default.
+- This repository is a collection artifact and SHALL NOT carry environment
+  inventories. Configuration that describes real hosts — per-environment
+  `group_vars` and per-host `host_vars` — lives in the **downstream consumer's**
+  inventory: the repository that installs this collection and supplies that data.
+- A role's `defaults/main.yml` is role-local and lowest-precedence. It SHALL
+  carry overridable fallback values so the role is self-contained when installed
+  as part of the collection (e.g. `onePasswordVault`, `echo_phrase`), and it is
+  the single in-repo source of each role variable's default. It SHALL NOT be the
+  authoritative source of cross-host configuration: authoritative per-environment
+  values live in the downstream inventory and override the role default.
+- For local development and testing this repository keeps one loopback inventory
+  at [`tests/inventory/hosts.ini`](../../../tests/inventory/hosts.ini)
+  (`localhost ansible_connection=local`). It is the default `INVENTORY` and
+  `TEST_INVENTORY` for the Makefile, so `make check/run/ping/syntax-check` run
+  locally against the controller with `-e`/`LIMIT` arguments. It is a test
+  fixture, not shipped host data.
 - Every project variable SHALL be documented in
   [`.schema/ansible-vars.schema.json`](../../../.schema/ansible-vars.schema.json)
   with a description. An undocumented project variable is a defect.
@@ -84,7 +90,7 @@ Playbooks declare intent and nothing more.
   subdirectories) and be named in lowercase with `_` word separators. This is
   required for the collection: only playbooks directly under the collection's
   top-level `playbooks/` are addressable downstream by fully-qualified collection
-  name (`kopecn.home.<name>`, e.g. `kopecn.home.echo`).
+  name (`bergantz_galaxy.home.<name>`, e.g. `bergantz_galaxy.home.echo`).
 - A playbook SHALL NOT use `vars_files` with a project-relative path
   (e.g. `../../vars/defaults.yml`): that path does not resolve once the
   collection is installed downstream. Shared values come from the role's
@@ -92,13 +98,13 @@ Playbooks declare intent and nothing more.
 
 ## Collection Packaging
 
-This repository is published as the Ansible collection `kopecn.home` (namespace
-`kopecn`, name `home`), defined by [`galaxy.yml`](../../../galaxy.yml) at the
-repo root.
+This repository is published as the Ansible collection `bergantz_galaxy.home`
+(namespace `bergantz_galaxy`, name `home`), defined by
+[`galaxy.yml`](../../../galaxy.yml) at the repo root.
 
 - `roles/` and `playbooks/` at the repo root are the collection's roles and
-  playbooks; downstream references them as `kopecn.home.<role>` and
-  `kopecn.home.<playbook>`.
+  playbooks; downstream references them as `bergantz_galaxy.home.<role>` and
+  `bergantz_galaxy.home.<playbook>`.
 - Collection and playbook identifiers are lowercase alphanumeric + `_`, starting
   with a letter — no dashes (why the collection name is `home`, not the git repo
   name `my-galaxy-playbooks`).
@@ -120,8 +126,8 @@ Conformance is observable:
 
 - No playbook branches on operating system or architecture (no OS/arch `when:`
   conditions in `playbooks/`).
-- Every variable defined in `inventories/**/group_vars`, `inventories/**/host_vars`,
-  and `roles/*/defaults` is present in `.schema/ansible-vars.schema.json`.
+- Every variable defined in `roles/*/defaults` is present in
+  `.schema/ansible-vars.schema.json`.
 - Every role that supports more than one platform declares its supported
   `(operatingSystem × architecture)` set and validates declared OS/arch against
   gathered facts.

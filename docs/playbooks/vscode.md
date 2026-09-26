@@ -26,8 +26,8 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 
 ## Usage
 
-Install/update VS Code and sync extensions on the default inventory
-(`inventories/production/hosts.ini`):
+Install/update VS Code and sync extensions on the default local inventory
+(`tests/inventory/hosts.ini`, the `localhost` loopback):
 
 ```bash
 make PLAYBOOK=playbooks/vscode.yml run
@@ -45,8 +45,8 @@ Dry-run before applying (`--check --diff`):
 make PLAYBOOK=playbooks/vscode.yml check
 ```
 
-Configure the extension list for a group or host, e.g.
-`inventories/production/group_vars/local.yml`:
+Configure the extension list for a group or host in your downstream inventory's
+`group_vars`/`host_vars`, or pass it at run time with `-e`:
 
 ```yaml
 vscodeExtensions:

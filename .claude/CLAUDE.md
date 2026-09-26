@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Overview
 
 Ansible automation repo for provisioning dev and production machines: playbooks,
-first-party roles, per-environment inventories, Molecule role tests, and CI
+first-party roles, Molecule role tests, and CI
 (lint + molecule via GitHub Actions).
 
 ## Specs
@@ -35,7 +35,7 @@ make open-github # open the repo's GitHub remote in the browser
 `INVENTORY`, `PLAYBOOK`, `LIMIT`, `TAGS` are overridable on the CLI
 (`make run LIMIT=local PLAYBOOK=playbooks/vscode.yml`) or via a git-ignored
 `.env` (copy from `.env.example`); CLI wins over `.env` wins over the Makefile
-defaults (`inventories/production/hosts.ini`, `playbooks/site.yml`).
+defaults (`tests/inventory/hosts.ini`, `playbooks/site.yml`).
 
 ### Running a single Molecule scenario
 
@@ -56,7 +56,7 @@ first. Full details, including how to add a new scenario, are in
 ### Running a single pytest test
 
 ```bash
-pytest tests/test_inventory.py::test_inventory_parses -v
+pytest tests/test_tailscale.py::test_tailscale_status_prints_diagnostics -v
 ```
 
 ## Architecture
@@ -72,12 +72,13 @@ pytest tests/test_inventory.py::test_inventory_parses -v
   [docs/testing.md](../docs/testing.md) for the full test-first workflow.
 - `galaxy_roles/` — Galaxy-installed roles/collections, git-ignored, populated
   by `make bootstrap` from `requirements.yml`.
-- `inventories/{production,staging,test}/` — one inventory per environment,
-  each with its own `hosts.ini` + `group_vars/` (and `host_vars/` where
-  needed). Variable precedence is role `defaults/` < inventory `group_vars/all.yml`
-  < `group_vars/<group>.yml` < `host_vars/`. `production/group_vars/local.yml`
-  applies only to the `[local]` loopback group in `hosts.ini`
-  (`ansible_connection=local`), not to real hosts like `host-01`.
+- This repo is the `bergantz_galaxy.home` collection and ships **no** environment
+  inventory. Real host data (per-environment `group_vars`, per-host `host_vars`)
+  lives in the downstream consumer repo that installs the collection; role
+  `defaults/` are the self-contained, lowest-precedence fallbacks the downstream
+  inventory overrides. `tests/inventory/hosts.ini` is the only inventory here — a
+  single `localhost` loopback for local dev/testing (`make check/run/ping/
+  syntax-check`), not shipped host data.
 - CI (`.github/workflows/lint.yml`, `molecule.yml`) runs `make bootstrap` then
   `make test` / `make test-molecule-<role>` per role — the same targets used
   locally, so a green `make test-all` locally should stay green in CI. Adding a

@@ -63,7 +63,7 @@ Uninstall and also remove user config (settings, MCP config, session history).
 Set `claudeRemoveConfig: true` in the host's inventory, or pass it directly:
 
 ```bash
-ansible-playbook -i inventories/production/hosts.ini --limit host-01 \
+ansible-playbook -i path/to/your/inventory --limit host-01 \
   -e claudeRemoveConfig=true \
   playbooks/claude_uninstall.yml
 ```

@@ -1,11 +1,11 @@
 ---
-namespace: kopecn
+namespace: bergantz_galaxy
 name: home
 version: 0.0.3
 readme: readme.md
 authors:
   - nbergantz
-description: Home lab provisioning playbooks and roles (dev + production hosts).
+description: Provisioning playbooks and roles.
 license_file: ""
 tags:
   - infrastructure

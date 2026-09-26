@@ -30,7 +30,6 @@ vault_pass*
 .env
 
 # Local inventory / secrets overrides
-inventories/**/host_vars/**/vault.yml
 *.local.yml
 
 # Editor / OS

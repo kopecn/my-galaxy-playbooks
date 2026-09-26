@@ -53,9 +53,6 @@ def test_tailscale_auth_key_is_controller_managed():
     role_defaults = yaml.safe_load(
         (REPO_ROOT / "roles" / "tailscale" / "defaults" / "main.yml").read_text()
     )
-    inventory = yaml.safe_load(
-        (REPO_ROOT / "inventories" / "production" / "group_vars" / "all.yml").read_text()
-    )
     schema = json.loads(
         (REPO_ROOT / ".schema" / "ansible-vars.schema.json").read_text()
     )["properties"]
@@ -67,7 +64,6 @@ def test_tailscale_auth_key_is_controller_managed():
     assert "{{ onePasswordVault }}" in tasks
     assert "{{ onePasswordTailscaleAPIKey }}" in tasks
     for variable in ("onePasswordVault", "onePasswordTailscaleAPIKey"):
-        assert variable not in inventory
         assert variable in role_defaults
         assert variable in schema
 
@@ -142,11 +138,6 @@ def test_become_password_uses_global_provider(tmp_path):
     config.read(REPO_ROOT / "ansible.cfg")
 
     assert config["defaults"]["become_password_file"] == "scripts/op-become-password"
-
-    group_vars_path = REPO_ROOT / "inventories" / "production" / "group_vars" / "all.yml"
-    group_vars = yaml.safe_load(group_vars_path.read_text())
-    assert "ansible_become_pass" not in group_vars
-    assert "onePasswordHostSudoPassword" not in group_vars
 
     secrets_dir = tmp_path / ".config" / "op"
     secrets_dir.mkdir(parents=True)

@@ -1,5 +1,5 @@
 ---
 # Lowest-precedence, user-overridable variables.
-# Populate the real list in inventory group_vars, e.g.
-# inventories/production/group_vars/local.yml
+# Populate the real list in the downstream consumer's inventory
+# (group_vars/host_vars) or pass it at run time with -e.
 vscodeExtensions: []

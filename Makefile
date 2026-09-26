@@ -18,7 +18,7 @@ SHELL := /bin/bash
 -include .env
 
 # Operational defaults (used only if not set in .env or on the CLI).
-INVENTORY ?= inventories/production/hosts.ini
+INVENTORY ?= tests/inventory/hosts.ini
 PLAYBOOK  ?= playbooks/site.yml
 LIMIT     ?=
 TAGS      ?=
@@ -27,7 +27,7 @@ TAGS      ?=
 WITH_OP := scripts/with-op
 
 # Static-analysis inputs.
-TEST_INVENTORY := inventories/test/hosts.ini
+TEST_INVENTORY := tests/inventory/hosts.ini
 PLAYBOOKS      := $(wildcard playbooks/*.yml) \
                   $(wildcard playbooks/*/*.yml)
 
@@ -154,7 +154,7 @@ test-all: test test-molecule ## Full test suite including Molecule (requires Doc
 
 test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 
-test-unit: ## Run pytest template and inventory tests
+test-unit: ## Run pytest template and contract tests
 	pytest tests/ -v -p no:cacheprovider
 
 test-molecule: test-molecule-claude test-molecule-example test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests

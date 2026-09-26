@@ -95,7 +95,8 @@ Update Tailscale to the latest version:
 make PLAYBOOK=playbooks/tailscale_update.yml run
 ```
 
-Pin a version on Debian hosts, e.g. `inventories/production/host_vars/host-01.yml`:
+Pin a version on Debian hosts in your downstream inventory's `host_vars`, e.g.
+`host_vars/host-01.yml`:
 
 ```yaml
 tailscaleVersion: "1.102.4"

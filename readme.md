@@ -1,8 +1,9 @@
 # my-galaxy-playbooks
 
-Ansible automation for provisioning dev and production machines: playbooks,
-first-party roles, per-environment inventories, and Molecule role tests, with
-lint + molecule CI on GitHub Actions.
+Ansible automation for provisioning dev and production machines: the
+`bergantz_galaxy.home` collection of playbooks and first-party roles, with
+Molecule role tests and lint + molecule CI on GitHub Actions. Real host
+inventory lives in the downstream repo that installs this collection.
 
 ## Layering
 
@@ -36,9 +37,10 @@ the authoritative, must-follow contract. In short: playbooks declare intent and
 never branch on OS/arch; roles are the only layer that branches on OS ×
 architecture, declare their supported combinations, validate declared
 `hostOperatingSystem`/`hostArchitecture` against gathered facts, and error
-non-fatally on an unsupported host; global config lives in
-`inventories/<env>/group_vars/all.yml`. Variable names are camelCase and every
-variable is documented in
+non-fatally on an unsupported host; global config (per-environment `group_vars`,
+per-host `host_vars`) is supplied by the downstream consumer's inventory, and
+role `defaults/` provide the self-contained fallbacks. Variable names are
+camelCase and every variable is documented in
 [`.schema/ansible-vars.schema.json`](.schema/ansible-vars.schema.json).
 
 ## Quickstart

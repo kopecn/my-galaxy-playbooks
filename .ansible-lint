@@ -30,4 +30,3 @@ kinds:
   - playbook: "**/molecule/*/{converge,prepare,verify,side_effect,cleanup}.yml"
   - yaml: "**/molecule/*/molecule.yml"
   - tasks: "roles/**/tasks/*.yml"
-  - vars: "inventories/**/group_vars/*.yml"

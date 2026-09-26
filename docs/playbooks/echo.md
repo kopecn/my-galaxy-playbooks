@@ -27,9 +27,9 @@ agnostic — it declares no support matrix and does not branch on OS.
 # Against the local loopback group
 make run PLAYBOOK=playbooks/echo.yml LIMIT=local
 
-# Against an inventory, overriding the phrase to confirm propagation
+# Against your own inventory, overriding the phrase to confirm propagation
 ansible-playbook playbooks/echo.yml \
-  -i inventories/production/hosts.ini -e echo_phrase='override reached me'
+  -i path/to/your/inventory -e echo_phrase='override reached me'
 ```
 
 Expected output shows the same phrase from `Control node echoed:` and from each

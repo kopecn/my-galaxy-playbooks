@@ -1,4 +1,0 @@
----
-# Variables applied to every host in production.
-# Keep controller integrations and secrets out of inventory.
-env: production
