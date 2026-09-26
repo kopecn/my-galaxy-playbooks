@@ -9,3 +9,7 @@ onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
 # downstream inventory. Empty defaults force an explicit override.
 sambaUsername: ""
 sambaPasswordOpItem: ""
+
+# Echo Phrase
+# Use this to validate downstream galaxy variable overrides
+echo_phrase: "why hello there"

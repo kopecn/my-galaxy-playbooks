@@ -1,0 +1,43 @@
+# Echo
+
+Validation toolset. Echoes `echo_phrase` first on the control node (the running
+host, via `delegate_to: localhost`) and then on each target host, confirming the
+variable resolves the same on both — the intended way to check that a downstream
+Galaxy variable override actually reaches the managed nodes.
+
+The thin playbook `playbooks/core-platform/echo.yml` dispatches into
+[`roles/echo`](../../roles/echo), which owns the implementation. See the
+[Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
+for the layering this follows.
+
+## Supported hosts
+
+Any host reachable by Ansible. The role runs `echo` and is OS/architecture-
+agnostic — it declares no support matrix and does not branch on OS.
+
+## Variables
+
+| Variable | Where set | Purpose |
+| --- | --- | --- |
+| `echo_phrase` | Repository-root `vars/defaults.yml` | Phrase echoed on both the control node and each target host. Override to validate that a downstream override propagates. |
+
+## Usage
+
+```bash
+# Against the local loopback group
+make run PLAYBOOK=playbooks/core-platform/echo.yml LIMIT=local
+
+# Against an inventory, overriding the phrase to confirm propagation
+ansible-playbook playbooks/core-platform/echo.yml \
+  -i inventories/production/hosts.ini -e echo_phrase='override reached me'
+```
+
+Expected output shows the same phrase from `Control node echoed:` and from each
+`<host> echoed:` line.
+
+## Verification
+
+No Molecule scenario yet — the toolset is verified manually with the Usage
+commands above. Add a scenario under `roles/echo/molecule/` (and its
+`test-molecule-echo` targets in the Makefile and `molecule.yml` matrix) to bring
+it under CI; see [`docs/testing.md`](../testing.md).

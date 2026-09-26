@@ -1,0 +1,8 @@
+---
+- name: Echo phrase validation
+  hosts: all
+  gather_facts: false
+  vars_files:
+    - ../../vars/defaults.yml
+  roles:
+    - role: echo

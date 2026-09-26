@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: echo
+  author: nbergantz
+  description: >-
+    Echo echo_phrase on the control node and on the target host to validate that
+    a downstream Galaxy variable override reaches both. OS/architecture-agnostic.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "9"
+  galaxy_tags:
+    - echo
+    - validation
+dependencies: []

@@ -83,3 +83,4 @@ supported hosts, variables, and example usage.
 - [Tailscale](docs/playbooks/tailscale.md) — `playbooks/core-platform/tailscale-*.yml`
 - [Samba](docs/playbooks/samba.md) — `playbooks/core-platform/samba-*.yml`
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/core-platform/claude-*.yml`
+- [Echo](docs/playbooks/echo.md) — `playbooks/core-platform/echo.yml` (variable-override validation)

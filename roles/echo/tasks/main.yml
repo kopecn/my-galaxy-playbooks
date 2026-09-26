@@ -1,0 +1,32 @@
+---
+# Echo `echo_phrase` on the control node (running host) and on the target host,
+# to validate that a downstream Galaxy variable override reaches both. This role
+# is OS/architecture-agnostic — `echo` runs anywhere Ansible can reach — so it
+# declares no support matrix and does not branch on OS.
+# See .claude/specs/architecture/playbook-layering.md.
+
+- name: Echo phrase on the control node (running host)
+  ansible.builtin.command:
+    cmd: "echo {{ echo_phrase }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  vars:
+    ansible_become: false
+  register: echoControlResult
+  changed_when: false
+
+- name: Show control-node echo output
+  ansible.builtin.debug:
+    msg: "Control node echoed: {{ echoControlResult.stdout }}"
+  run_once: true
+
+- name: Echo phrase on the target host
+  ansible.builtin.command:
+    cmd: "echo {{ echo_phrase }}"
+  register: echoTargetResult
+  changed_when: false
+
+- name: Show target-host echo output
+  ansible.builtin.debug:
+    msg: "{{ inventory_hostname }} echoed: {{ echoTargetResult.stdout }}"
