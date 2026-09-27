@@ -111,6 +111,8 @@ bootstrap: venv ## Install all dev/test dependencies and verify prerequisites
 		|| echo "NOT RUNNING — start Docker Desktop for molecule tests"
 	@echo ""
 	@echo "Bootstrap complete. Run 'make test' for fast checks or 'make test-all' for the full suite."
+	python3 -m pip install ansible-dev-tools
+
 
 # MARK: - Static analysis
 

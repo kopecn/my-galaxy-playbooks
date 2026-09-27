@@ -4,3 +4,6 @@
 # Override per environment in the downstream inventory group_vars.
 onePasswordVault: Personal-Automation
 onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
+
+# Enable Tailscale SSH (the `--ssh` flag) when bringing the node up.
+tailscaleSSH: false

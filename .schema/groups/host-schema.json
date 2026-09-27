@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Host Variables",
+  "description": "Host group: identity, OS, and architecture of the target host. Variable names are camelCase and prefixed with the group token 'host'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "hostName": {
+      "type": "string",
+      "description": "The hostname for this device."
+    },
+    "hostUserName": {
+      "type": "string",
+      "description": "Login user account name on the target host. Set per host/group in a downstream inventory."
+    },
+    "hostOperatingSystem": {
+      "type": "string",
+      "description": "Declared OS family of the target host. Roles validate this against ansible_facts.os_family before dispatching. Darwin = macOS; Debian = the Debian/Ubuntu/Raspbian family.",
+      "enum": [
+        "Darwin",
+        "Debian"
+      ]
+    },
+    "hostArchitecture": {
+      "type": "string",
+      "description": "Declared canonical CPU architecture of the target host. Roles validate this against ansible_facts.architecture, normalizing macOS 'arm64' to 'aarch64'. x86_64 = 64-bit Intel/AMD; aarch64 = 64-bit ARM/Apple Silicon; armv7l = 32-bit ARM; i386 = 32-bit Intel.",
+      "enum": [
+        "x86_64",
+        "aarch64",
+        "armv7l",
+        "i386"
+      ]
+    }
+  },
+  "properties": {
+    "hostName": {
+      "$ref": "#/$defs/hostName"
+    },
+    "hostUserName": {
+      "$ref": "#/$defs/hostUserName"
+    },
+    "hostOperatingSystem": {
+      "$ref": "#/$defs/hostOperatingSystem"
+    },
+    "hostArchitecture": {
+      "$ref": "#/$defs/hostArchitecture"
+    }
+  }
+}

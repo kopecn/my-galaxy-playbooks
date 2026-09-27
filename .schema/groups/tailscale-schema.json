@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tailscale Variables",
+  "description": "Tailscale group: connectivity flags and tailnet coordinates. Variable names are camelCase and prefixed with the group token 'tailscale'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "tailscaleEnable": {
+      "type": "boolean",
+      "description": "Set true to enable Tailscale for this host."
+    },
+    "tailscaleSSH": {
+      "type": "boolean",
+      "description": "Set true to enable Tailscale SSH (the --ssh flag) for this host."
+    },
+    "tailscaleDomain": {
+      "type": "string",
+      "default": "tail313959.ts.net",
+      "description": "Tailscale tailnet domain suffix. Combined with tailscaleHostname to form the FQDN used for SSH connectivity."
+    },
+    "tailscaleHostname": {
+      "type": "string",
+      "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
+    },
+    "tailscaleVersion": {
+      "type": "string",
+      "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Optional Tailscale version 1.36.0 or newer for a Debian-family Linux update. Omit for latest; pinned versions are unsupported on macOS."
+    }
+  },
+  "properties": {
+    "tailscaleEnable": {
+      "$ref": "#/$defs/tailscaleEnable"
+    },
+    "tailscaleSSH": {
+      "$ref": "#/$defs/tailscaleSSH"
+    },
+    "tailscaleDomain": {
+      "$ref": "#/$defs/tailscaleDomain"
+    },
+    "tailscaleHostname": {
+      "$ref": "#/$defs/tailscaleHostname"
+    },
+    "tailscaleVersion": {
+      "$ref": "#/$defs/tailscaleVersion"
+    }
+  }
+}

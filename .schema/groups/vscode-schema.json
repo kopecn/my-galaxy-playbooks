@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VS Code Variables",
+  "description": "VS Code group: editor provisioning parameters. Variable names are camelCase and prefixed with the group token 'vscode'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "vscodeExtensions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "VS Code extension IDs the vscode role installs (e.g. redhat.vscode-yaml). An empty list installs none."
+    }
+  },
+  "properties": {
+    "vscodeExtensions": {
+      "$ref": "#/$defs/vscodeExtensions"
+    }
+  }
+}

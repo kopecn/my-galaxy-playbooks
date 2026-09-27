@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Samba Variables",
+  "description": "Samba group: SMB provisioning flags and credentials. Variable names are camelCase and prefixed with the group token 'samba'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "sambaEnabled": {
+      "type": "boolean",
+      "description": "Set true to enable Samba provisioning for this host."
+    },
+    "sambaUsername": {
+      "type": "string",
+      "description": "SMB/Unix account name the samba role provisions. Role default (empty), overridden per variable at run time (-e sambaUsername=...) or per host/group in a downstream inventory. Varies by machine."
+    },
+    "sambaPasswordOpItem": {
+      "type": "string",
+      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller by the onepassword role. Role default (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
+    },
+    "sambaPassword": {
+      "type": "string",
+      "description": "Direct Samba password, resolved at run time and never persisted. Pass via -e to set a password without 1Password; when unset the password is read from 1Password via sambaPasswordOpItem."
+    }
+  },
+  "properties": {
+    "sambaEnabled": {
+      "$ref": "#/$defs/sambaEnabled"
+    },
+    "sambaUsername": {
+      "$ref": "#/$defs/sambaUsername"
+    },
+    "sambaPasswordOpItem": {
+      "$ref": "#/$defs/sambaPasswordOpItem"
+    },
+    "sambaPassword": {
+      "$ref": "#/$defs/sambaPassword"
+    }
+  }
+}

@@ -1,16 +1,15 @@
 {
   "ansible.python.interpreterPath": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
-  "ansible.mcpServer.enabled": true,
   "yaml.schemas": {
     ".schema/ansible-vars.schema.json": [
-      "roles/*/defaults/main.yml",
-      "vars/defaults.yml"
+      "*/roles/*/defaults/main.yml",
+      "*/vars/defaults.yml"
     ]
   },
   "files.associations": {
     "*.yml": "ansible",
-    "**/inventories/**/*.yml": "yaml",
-    "requirements.yml": "yaml",
+    "*/roles/*/defaults/main.yml": "yaml",
+    "*/vars/defaults.yml": "yaml",
     ".ansible-lint": "yaml",
     ".yamllint.yml": "yaml"
   },
@@ -23,5 +22,6 @@
   },
   "ansible.validation.lint.enabled": true,
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "ansible.validation.lint.autoFixOnSave": true
 }

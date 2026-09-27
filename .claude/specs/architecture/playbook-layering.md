@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-25
-semver: 0.2.0
+last_updated: 2026-09-27
+semver: 0.3.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -54,10 +54,46 @@ features — for example `hostOperatingSystem`, `hostArchitecture`,
   `TEST_INVENTORY` for the Makefile, so `make check/run/ping/syntax-check` run
   locally against the controller with `-e`/`LIMIT` arguments. It is a test
   fixture, not shipped host data.
-- Every project variable SHALL be documented in
-  [`.schema/ansible-vars.schema.json`](../../../.schema/ansible-vars.schema.json)
-  with a description. An undocumented project variable is a defect.
-- Variable names SHALL be camelCase.
+- Every project variable SHALL be documented in the variable schema
+  (see [Variable Schema Organization](#variable-schema-organization)) with a
+  description. An undocumented project variable is a defect.
+- Variable names SHALL be flat and camelCase. Variables that belong to a group
+  SHALL be named `<group><parameter>` (e.g. `tailscaleDomain`,
+  `hostArchitecture`, `onePasswordVault`). Grouping is expressed by the name
+  prefix and by file organization, never by nesting variables into a dict.
+
+### Variable Schema Organization
+
+The variable schema provides hover documentation for `host_vars`, `group_vars`,
+and role defaults. It is wired to the editor in
+[`.vscode/settings.json`](../../../.vscode/settings.json), so the root file
+SHALL remain at
+[`.schema/ansible-vars.schema.json`](../../../.schema/ansible-vars.schema.json).
+
+- **Variables stay flat.** A variable SHALL be a top-level scalar/array key, not
+  a nested dict. Depth is organizational (files and directories), not structural
+  (nested objects). This preserves per-key override under Ansible's default
+  `hash_behaviour: replace`, where defining a parent dict at a higher-precedence
+  layer replaces the whole dict rather than merging keys — which would silently
+  drop the role-default fallbacks a downstream inventory did not restate.
+- **One file per group.** Each group's variables SHALL be defined in a companion
+  file [`.schema/groups/<group>-schema.json`](../../../.schema/groups), where
+  `<group>` is the lowercase group token: `host`, `vscode`, `tailscale`,
+  `samba`, `onepassword`. The group token in the filename is lowercase; the
+  matching variable-name prefix is camelCase (file `onepassword-schema.json` ↔
+  prefix `onePassword`).
+- **Define once, reference in `properties`.** Within a group file each variable
+  SHALL be defined exactly once under `$defs` and exposed through `properties`
+  by a local `$ref` (`#/$defs/<variableName>`).
+- **Compose in the root.** The root schema SHALL pull in every group file via
+  `allOf` `$ref` to `groups/<group>-schema.json`. Group files and the root
+  SHALL set `additionalProperties: true` so the `allOf` composition validates
+  each variable where it is defined and permits the rest.
+- **Ungrouped variables live in the root.** Standalone variables that carry no
+  group prefix (`echo_phrase`, `env`) SHALL be defined directly in the root
+  schema's `$defs`/`properties`, not in a group file.
+- **Adding a group.** Create `.schema/groups/<group>-schema.json` following the
+  pattern above and add one `allOf` `$ref` to it in the root schema.
 
 ## Layer 2 — Roles
 

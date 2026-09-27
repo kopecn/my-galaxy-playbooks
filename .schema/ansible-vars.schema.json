@@ -1,94 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "ansible-vars.schema.json",
   "title": "Ansible Variables",
-  "description": "Schema for host_vars, group_vars, and role defaults in this inventory. Provides hover documentation for all project variables. Variable names are camelCase per the Playbook Layering spec.",
+  "description": "Root schema for host_vars, group_vars, and role defaults in this inventory. Provides hover documentation for all project variables. Variables are flat and camelCase, named <group><parameter> per the Playbook Layering spec; each group's variables live in a companion file under groups/ and are composed here via allOf. Ungrouped standalone variables (echo, env) are defined directly in this root.",
   "type": "object",
   "additionalProperties": true,
-  "properties": {
-    "hostName": {
+  "$defs": {
+    "echo_phrase": {
       "type": "string",
-      "description": "The hostname for this device."
-    },
-    "hostUserName": {
-      "type": "string",
-      "description": "Login user account name on the target host. Set per host/group in a downstream inventory."
-    },
-    "hostOperatingSystem": {
-      "type": "string",
-      "description": "Declared OS family of the target host. Roles validate this against ansible_facts.os_family before dispatching. Darwin = macOS; Debian = the Debian/Ubuntu/Raspbian family.",
-      "enum": [
-        "Darwin",
-        "Debian"
-      ]
-    },
-    "hostArchitecture": {
-      "type": "string",
-      "description": "Declared canonical CPU architecture of the target host. Roles validate this against ansible_facts.architecture, normalizing macOS 'arm64' to 'aarch64'. x86_64 = 64-bit Intel/AMD; aarch64 = 64-bit ARM/Apple Silicon; armv7l = 32-bit ARM; i386 = 32-bit Intel.",
-      "enum": [
-        "x86_64",
-        "aarch64",
-        "armv7l",
-        "i386"
-      ]
+      "description": "Phrase the echo role prints on the controller and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
     },
     "env": {
       "type": "string",
       "description": "Environment label for the host's inventory (e.g. production, staging, molecule)."
-    },
-    "onePasswordVault": {
-      "type": "string",
-      "description": "1Password vault name. Role default, overridden by the downstream inventory or -e; resolved on the controller."
-    },
-    "onePasswordTailscaleAPIKey": {
-      "type": "string",
-      "description": "1Password Tailscale auth-key item name. Role default, overridden by the downstream inventory or -e; resolved on the controller."
-    },
-    "tailscaleEnable": {
-      "type": "boolean",
-      "description": "Set true to enable Tailscale for this host."
-    },
-    "tailscaleDomain": {
-      "type": "string",
-      "default": "tail313959.ts.net",
-      "description": "Tailscale tailnet domain suffix. Combined with tailscaleHostname to form the FQDN used for SSH connectivity."
-    },
-    "tailscaleHostname": {
-      "type": "string",
-      "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
-    },
-    "tailscaleVersion": {
-      "type": "string",
-      "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+$",
-      "description": "Optional Tailscale version 1.36.0 or newer for a Debian-family Linux update. Omit for latest; pinned versions are unsupported on macOS."
-    },
-    "sambaEnabled": {
-      "type": "boolean",
-      "description": "Set true to enable Samba provisioning for this host."
-    },
-    "sambaUsername": {
-      "type": "string",
-      "description": "SMB/Unix account name the samba role provisions. Role default (empty), overridden per variable at run time (-e sambaUsername=...) or per host/group in a downstream inventory. Varies by machine."
-    },
-    "sambaPasswordOpItem": {
-      "type": "string",
-      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller by the onepassword role. Role default (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
-    },
-    "sambaPassword": {
-      "type": "string",
-      "description": "Direct Samba password, resolved at run time and never persisted. Pass via -e to set a password without 1Password; when unset the password is read from 1Password via sambaPasswordOpItem."
-    },
-    "vscodeExtensions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "default": [],
-      "description": "VS Code extension IDs the vscode role installs (e.g. redhat.vscode-yaml). An empty list installs none."
-    },
-    "echo_phrase": {
-      "type": "string",
-      "description": "Phrase the echo role prints on the controller and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
     }
-  }
+  },
+  "properties": {
+    "echo_phrase": {
+      "$ref": "#/$defs/echo_phrase"
+    },
+    "env": {
+      "$ref": "#/$defs/env"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "groups/host-schema.json"
+    },
+    {
+      "$ref": "groups/vscode-schema.json"
+    },
+    {
+      "$ref": "groups/tailscale-schema.json"
+    },
+    {
+      "$ref": "groups/samba-schema.json"
+    },
+    {
+      "$ref": "groups/onepassword-schema.json"
+    }
+  ]
 }
