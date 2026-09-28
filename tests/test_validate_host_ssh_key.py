@@ -39,9 +39,13 @@ def test_onepassword_queries_use_only_the_short_hostname():
 def test_every_remote_playbook_runs_credentials_then_router():
     for path in sorted((REPO_ROOT / "playbooks").glob("*.yml")):
         play = yaml.safe_load(path.read_text())[0]
+        role_names = [
+            role if isinstance(role, str) else role["role"]
+            for role in play["roles"]
+        ]
         assert play["gather_facts"] is False, path.name
-        assert play["roles"][0] == {"role": "1password_ssh_user_pass"}, path.name
-        assert play["roles"][1] == {"role": "ssh"}, path.name
+        assert role_names[0] == "1password_ssh_user_pass", path.name
+        assert role_names[1] == "ssh", path.name
 
 
 def test_router_preserves_inline_inventory_and_prioritizes_vpn():
@@ -51,6 +55,15 @@ def test_router_preserves_inline_inventory_and_prioritizes_vpn():
     assert "{{ inventory_hostname }}" in tasks
     assert "{{ hostName }}.local" in tasks
     assert "{{ vpnHostname }}.{{ vpnDomain }}" in tasks
+
+
+def test_router_rejects_ambiguous_bare_inline_targets():
+    tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+
+    assert "Reject ambiguous bare inline SSH targets" in tasks
+    assert "or '.' in inventory_hostname" in tasks
+    assert "or ':' in inventory_hostname" in tasks
+    assert "Inline inventory target" in tasks
 
 
 def test_router_ignores_dot_ssh_config_and_control_sockets():

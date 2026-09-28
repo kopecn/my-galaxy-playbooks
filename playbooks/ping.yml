@@ -13,3 +13,4 @@
     - name: Ping
       ansible.builtin.ping:
       tags: [ping]
+      timeout: 10

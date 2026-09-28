@@ -6,10 +6,12 @@ action role. Credential resolution and routing remain separate steps.
 ```mermaid
 flowchart TD
     Start[Playbook starts] --> Credentials[1password_ssh_user_pass loads username, password, and key]
-    Credentials --> Flag{useVpn}
+    Credentials --> Gate{Inline target explicit?}
+    Gate -->|bare hostname| Reject[Reject ambiguous target]
+    Gate -->|IP or qualified hostname<br/>such as &lt;hostname&gt;.example.com| Flag{useVpn}
     Flag -->|true| Tail[Use vpnHostname.vpnDomain]
     Flag -->|false| Source{Inventory source}
-    Source -->|Inline -i host,| Exact[Use inventory_hostname exactly]
+    Source -->|Inline -i &lt;hostname&gt;.example.com,| Exact[Use &lt;hostname&gt;.example.com exactly]
     Source -->|Inventory file| Local[Use hostName.local]
     Exact --> Route[Set ansible_host]
     Local --> Route
@@ -20,21 +22,27 @@ flowchart TD
 
 ## Inline inventory
 
-When `useVpn` is false, an inline host list is rigid. The router does not
-append, remove, or replace any part of the supplied target.
+An inline host list must provide an explicit address or qualified hostname.
+Single-label names such as `hostname` are rejected because the controller's DNS
+search domains could route them differently. The router does not append,
+remove, or replace any part of an accepted target.
 
 | Invocation | SSH endpoint |
 | --- | --- |
-| `-i 'hostname,'` | `hostname` |
+| `-i '192.0.2.10,'` | `192.0.2.10` |
+| `-i '2001:db8::10,'` | `2001:db8::10` |
 | `-i 'hostname.local,'` | `hostname.local` |
 | `-i 'hostname.tail313959.ts.net,'` | `hostname.tail313959.ts.net` |
+| `-i 'hostname.example.com,'` | `hostname.example.com` |
+
+`-i 'hostname,'` fails before a remote connection is attempted.
 
 ## Inventory file
 
 Routing follows this precedence for every host:
 
 - `useVpn: true` selects `vpnHostname.vpnDomain` first.
-- Otherwise, an inline `-i` target is used exactly.
+- Otherwise, an accepted inline `-i` target is used exactly.
 - Otherwise, a host loaded from an inventory file selects `hostName.local`.
 
 The inventory owns `hostName`, `vpnHostname`, `vpnDomain`, and the
