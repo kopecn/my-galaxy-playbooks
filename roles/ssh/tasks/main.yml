@@ -14,8 +14,13 @@
 - name: Resolve the SSH route
   ansible.builtin.set_fact:
     sshResolvedHost: >-
-      {%- if useVpn | bool -%} {{ vpnHostname }}.{{ vpnDomain }}{%- elif ',' in inventory_file -%} {{ inventory_hostname }}{%- else -%} {{ hostName }}.local{%- endif
-      -%}
+      {%- if useVpn | bool -%}
+      {{ vpnHostname }}.{{ vpnDomain }}
+      {%- elif ',' in inventory_file -%}
+      {{ inventory_hostname }}
+      {%- else -%}
+      {{ hostName }}.local
+      {%- endif -%}
 
 - name: Apply the resolved ephemeral SSH route
   ansible.builtin.set_fact:
