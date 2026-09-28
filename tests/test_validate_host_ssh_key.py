@@ -5,27 +5,9 @@ from pathlib import Path
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SSH_ROLE = REPO_ROOT / "roles" / "ssh"
 ONEPASSWORD_ROLE = REPO_ROOT / "roles" / "onepassword"
-
-
-def test_validation_playbook_uses_the_shared_credential_and_router_roles():
-    playbook = yaml.safe_load(
-        (REPO_ROOT / "playbooks" / "validate_host_ssh_key.yml").read_text()
-    )
-
-    assert len(playbook) == 1
-    assert playbook[0]["gather_facts"] is False
-    assert playbook[0]["serial"] == 1
-    assert playbook[0]["roles"] == [
-        {
-            "role": "onepassword",
-            "onePasswordTasks": ["ssh_user_pass"],
-        },
-        {"role": "ssh"},
-    ]
 
 
 def test_onepassword_queries_use_only_the_short_hostname():
@@ -43,8 +25,7 @@ def test_every_remote_playbook_runs_credentials_then_router():
     for path in sorted((REPO_ROOT / "playbooks").glob("*.yml")):
         play = yaml.safe_load(path.read_text())[0]
         role_names = [
-            role if isinstance(role, str) else role["role"]
-            for role in play["roles"]
+            role if isinstance(role, str) else role["role"] for role in play["roles"]
         ]
         assert play["gather_facts"] is False, path.name
         assert role_names[0] == "onepassword", path.name

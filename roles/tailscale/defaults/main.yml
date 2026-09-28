@@ -3,7 +3,7 @@
 # coordinates; the actual credential is resolved from the vault at run time.
 # Override per environment in the downstream inventory group_vars.
 onePasswordVault: Personal-Automation
-onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
+onePasswordTailscaleAPIKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
 
 # Enable Tailscale SSH (the `--ssh` flag) when bringing the node up.
 tailscaleSSH: false

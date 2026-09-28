@@ -15,10 +15,6 @@
       "default": "user",
       "description": "Prefix used to construct the per-host 1Password Login item name."
     },
-    "vpnEnable": {
-      "type": "boolean",
-      "description": "Set true to enable VPN connectivity for this host."
-    },
     "vpnHostname": {
       "type": "string",
       "description": "Per-host VPN name combined with vpnDomain for SSH routing."
@@ -40,9 +36,6 @@
     },
     "sshLoginPrefix": {
       "$ref": "#/$defs/sshLoginPrefix"
-    },
-    "vpnEnable": {
-      "$ref": "#/$defs/vpnEnable"
     },
     "vpnHostname": {
       "$ref": "#/$defs/vpnHostname"

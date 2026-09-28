@@ -35,8 +35,7 @@ lower layers; lower layers SHALL NOT depend on higher layers.
 ## Layer 1 — Global Configuration & Variables
 
 Global configuration is the flags and parameters that describe hosts and select
-features — for example `hostOperatingSystem`, `hostArchitecture`,
-`vpnEnable`, `vscodeEnable`.
+features — for example `hostOperatingSystem`, `hostArchitecture`, `vscodeEnable`.
 
 - This repository is a collection artifact and SHALL NOT carry environment
   inventories. Configuration that describes real hosts — per-environment

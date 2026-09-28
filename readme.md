@@ -95,5 +95,4 @@ supported hosts, variables, and example usage.
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
 - [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
-  - [Validation](docs/playbooks/ssh.md#validation-control-flow) — `playbooks/validate_host_ssh_key.yml`
   - [Provisioning](docs/playbooks/provision_host_ssh.md) — `playbooks/provision_host_ssh*.yml`

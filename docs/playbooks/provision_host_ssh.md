@@ -189,8 +189,7 @@ so unrelated agent keys cannot be selected. It neither reads nor includes
 ## Verification
 
 Static contract tests in `tests/test_provision_host_ssh.py` verify operation
-layering, shared-validator reuse, rollback behavior, and schema coverage. The
-shared validator has its own contracts in `tests/test_validate_host_ssh_key.py`.
+layering, shared-validator reuse, rollback behavior, and schema coverage.
 No Molecule scenario performs the live path because it requires an external
 writable 1Password vault and a second real SSH connection. Before production,
 run `make test`, then use a disposable Ubuntu host to exercise the full playbook
