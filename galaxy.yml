@@ -13,6 +13,7 @@ tags:
 repository: https://github.com/kopecn/my-galaxy-playbooks
 build_ignore:
   - .venv
+  - collections
   - galaxy_roles
   - .ansible
   - .config
