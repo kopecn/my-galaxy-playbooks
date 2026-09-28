@@ -1,18 +1,4 @@
 ---
 # Lowest-precedence inputs. Override these in the downstream inventory.
 onePasswordVault: Personal-Automation
-
-provisionHostSshUser: >-
-  {{ ansible_user | default(hostUserName | default('')) }}
-provisionHostSshHost: >-
-  {{ ansible_host | default(inventory_hostname) }}
-provisionHostSshPort: 22
-provisionHostSshItemName: >-
-  sshkey-{{ (hostName | default(inventory_hostname)).split('.')[0] }}
-provisionHostSshKeyType: ed25519
-provisionHostSshOpTokenFile: "{{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token"
-provisionHostSshSshdDropIn: /etc/ssh/sshd_config.d/00-zero-bringup.conf
-provisionHostSshStrictHostKeyChecking: accept-new
-provisionHostSshValidationTimeout: 10
-provisionHostSshValidationExtraArgs: []
-provisionHostSshAddBookmark: true
+onePasswordTailscaleAPIKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
