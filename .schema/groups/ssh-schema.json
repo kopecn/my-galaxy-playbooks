@@ -5,131 +5,15 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
-    "sshOperation": {
-      "type": "string",
-      "enum": [
-        "prepare_key_connection",
-        "prepare_password_connection",
-        "validate_key"
-      ],
-      "description": "Shared SSH role operation. Remote playbooks prepare an explicit 1Password-backed connection; the validation entry point runs an independent key proof."
-    },
-    "sshHost": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Controller-resolvable hostname or address used for SSH connection preparation and independent validation. Defaults to the original inventory host's ansible_host, then inventory_hostname."
-    },
-    "sshPort": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 65535,
-      "description": "Port used for SSH connection preparation and independent validation. Defaults to the original inventory host's ansible_port, then 22."
-    },
-    "sshKeyItemName": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Exact 1Password SSH Key item title. Defaults to sshkey-<short-hostname>, removing .local and DNS/Tailnet suffixes."
-    },
-    "sshLoginItemName": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Exact 1Password Login item containing the remote username. Defaults to user-<short-hostname>, removing .local and DNS/Tailnet suffixes."
-    },
-    "sshValidationOpTokenFile": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Compatibility alias for sshOpTokenFile used by existing downstream inventories."
-    },
-    "sshOpTokenFile": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Controller path containing the 1Password service-account token used by SSH connection preparation and validation."
-    },
-    "sshStrictHostKeyChecking": {
-      "type": "string",
-      "enum": [
-        "yes",
-        "accept-new"
-      ],
-      "description": "StrictHostKeyChecking policy. The accept-new default pins the first host key for the remainder of the current playbook run; ephemeral trust resets on the next run."
-    },
-    "sshValidationTimeout": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "OpenSSH ConnectTimeout in seconds for the independent key-only probe."
-    },
-    "sshValidationExtraArgs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Additional ssh argv entries placed before the validation host, such as a ProxyJump."
-    },
-    "sshConnectionKnownHostsFile": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Per-run known-hosts file under Ansible's DEFAULT_LOCAL_TMP. It is isolated from ~/.ssh and removed when ansible-playbook exits."
-    },
-    "sshConnectionGatherFacts": {
+    "useTailscale": {
       "type": "boolean",
-      "description": "Gather facts only after the explicit SSH connection has been prepared."
-    },
-    "sshConnectionLoadBecomePassword": {
-      "type": "boolean",
-      "description": "Read the Login item password into ansible_become_password for operational playbooks. Validation never reads the password."
-    },
-    "sshValidationState": {
-      "type": "string",
-      "enum": [
-        "complete",
-        "unprovisioned",
-        "validationError"
-      ],
-      "description": "Per-host SSH provisioning validation state maintained by the downstream inventory. Validation sets complete only when the exact 1Password key works, unprovisioned when the expected SSH Key or Login item is absent, and validationError for all other failures."
+      "default": false,
+      "description": "Use the Tailscale address for SSH routing."
     }
   },
   "properties": {
-    "sshOperation": {
-      "$ref": "#/$defs/sshOperation"
-    },
-    "sshHost": {
-      "$ref": "#/$defs/sshHost"
-    },
-    "sshPort": {
-      "$ref": "#/$defs/sshPort"
-    },
-    "sshKeyItemName": {
-      "$ref": "#/$defs/sshKeyItemName"
-    },
-    "sshLoginItemName": {
-      "$ref": "#/$defs/sshLoginItemName"
-    },
-    "sshValidationOpTokenFile": {
-      "$ref": "#/$defs/sshValidationOpTokenFile"
-    },
-    "sshOpTokenFile": {
-      "$ref": "#/$defs/sshOpTokenFile"
-    },
-    "sshStrictHostKeyChecking": {
-      "$ref": "#/$defs/sshStrictHostKeyChecking"
-    },
-    "sshValidationTimeout": {
-      "$ref": "#/$defs/sshValidationTimeout"
-    },
-    "sshValidationExtraArgs": {
-      "$ref": "#/$defs/sshValidationExtraArgs"
-    },
-    "sshConnectionKnownHostsFile": {
-      "$ref": "#/$defs/sshConnectionKnownHostsFile"
-    },
-    "sshConnectionGatherFacts": {
-      "$ref": "#/$defs/sshConnectionGatherFacts"
-    },
-    "sshConnectionLoadBecomePassword": {
-      "$ref": "#/$defs/sshConnectionLoadBecomePassword"
-    },
-    "sshValidationState": {
-      "$ref": "#/$defs/sshValidationState"
+    "useTailscale": {
+      "$ref": "#/$defs/useTailscale"
     }
   }
 }
