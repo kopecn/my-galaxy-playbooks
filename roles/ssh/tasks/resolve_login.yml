@@ -1,0 +1,88 @@
+---
+- name: List Login items in the target 1Password vault
+  ansible.builtin.command:
+    argv:
+      - op
+      - item
+      - list
+      - --categories=Login
+      - "--vault={{ sshVaultId }}"
+      - --format=json
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ sshOpToken }}"
+  check_mode: false
+  changed_when: false
+  no_log: true
+  register: sshLoginItemListResult
+
+- name: Select the exact host Login item
+  ansible.builtin.set_fact:
+    sshMatchingLoginItems: >-
+      {{ (sshLoginItemListResult.stdout | from_json)
+         | selectattr('title', 'equalto', sshResolvedLoginItemName)
+         | list }}
+  no_log: true
+
+- name: Reject ambiguous duplicate host Login items
+  ansible.builtin.assert:
+    that:
+      - sshMatchingLoginItems | length <= 1
+    fail_msg: >-
+      More than one Login item named {{ sshResolvedLoginItemName }} exists in
+      vault {{ onePasswordVault }}. Keep exactly one before retrying. State:
+      validationError.
+
+- name: Record an unprovisioned host when its Login item is absent
+  ansible.builtin.set_fact:
+    sshValidationState: unprovisioned
+  when: sshMatchingLoginItems | length == 0
+
+- name: Fail when the host Login item is absent
+  ansible.builtin.fail:
+    msg: >-
+      Login item {{ sshResolvedLoginItemName }} does not exist in vault
+      {{ onePasswordVault }}. Create it with the host username and password.
+      State: unprovisioned.
+  when: sshMatchingLoginItems | length == 0
+
+- name: Remember the matching host Login item ID
+  ansible.builtin.set_fact:
+    sshLoginItemId: "{{ sshMatchingLoginItems[0].id }}"
+  no_log: true
+
+- name: Read the host username from 1Password
+  ansible.builtin.command:
+    argv:
+      - op
+      - read
+      - "op://{{ sshVaultId }}/{{ sshLoginItemId }}/username"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ sshOpToken }}"
+  check_mode: false
+  changed_when: false
+  failed_when: false
+  no_log: true
+  register: sshUsernameResult
+
+- name: Remember the host username from 1Password
+  ansible.builtin.set_fact:
+    sshResolvedUser: "{{ sshUsernameResult.stdout | trim }}"
+  no_log: true
+  when: sshUsernameResult.rc == 0
+
+- name: Require a non-empty username in the host Login item
+  ansible.builtin.assert:
+    that:
+      - sshUsernameResult.rc == 0
+      - sshResolvedUser | default('') | length > 0
+    fail_msg: >-
+      Login item {{ sshResolvedLoginItemName }} must contain a non-empty
+      username field. State: validationError.

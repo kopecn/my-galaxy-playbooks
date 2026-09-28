@@ -4,6 +4,8 @@
 #   make LIMIT=local PLAYBOOK=playbooks/vscode.yml run
 - name: Install and configure VS Code
   hosts: all
-  gather_facts: true
+  gather_facts: false
   roles:
-    - vscode
+    - role: ssh
+      sshOperation: prepare_key_connection
+    - role: vscode

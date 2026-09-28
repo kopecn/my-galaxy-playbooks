@@ -1,8 +1,10 @@
 ---
 - name: Connect Tailscale
   hosts: all
-  gather_facts: true
+  gather_facts: false
   serial: 1
   roles:
+    - role: ssh
+      sshOperation: prepare_key_connection
     - role: tailscale
       tailscaleOperation: up

@@ -1,7 +1,9 @@
 ---
 - name: Install Claude Code
   hosts: all
-  gather_facts: true
+  gather_facts: false
   roles:
+    - role: ssh
+      sshOperation: prepare_key_connection
     - role: claude
       claudeOperation: install

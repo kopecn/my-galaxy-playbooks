@@ -1,0 +1,124 @@
+---
+- name: Confirm the OpenSSH daemon configuration binary exists
+  ansible.builtin.stat:
+    path: /usr/sbin/sshd
+  become: true
+  register: provisionHostSshSshdBinary
+
+- name: Require the OpenSSH daemon before hardening it
+  ansible.builtin.assert:
+    that:
+      - provisionHostSshSshdBinary.stat.exists
+      - provisionHostSshSshdBinary.stat.executable
+    fail_msg: >-
+      /usr/sbin/sshd is not executable on {{ inventory_hostname }}. Install
+      openssh-server before disabling password authentication.
+
+- name: Inspect the existing managed SSH daemon drop-in
+  ansible.builtin.stat:
+    path: "{{ provisionHostSshSshdDropIn }}"
+  become: true
+  register: provisionHostSshOriginalDropInStat
+
+- name: Preserve the existing managed SSH daemon drop-in for rollback
+  ansible.builtin.slurp:
+    src: "{{ provisionHostSshSshdDropIn }}"
+  become: true
+  no_log: true
+  register: provisionHostSshOriginalDropIn
+  when: provisionHostSshOriginalDropInStat.stat.exists
+
+- name: Apply and verify SSH password-authentication hardening
+  block:
+    - name: Disable password and keyboard-interactive SSH authentication
+      ansible.builtin.copy:
+        dest: "{{ provisionHostSshSshdDropIn }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # Managed by bergantz_galaxy.home.provision_host.
+          PubkeyAuthentication yes
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          ChallengeResponseAuthentication no
+          PermitEmptyPasswords no
+      become: true
+      notify: Reload SSH
+
+    - name: Validate the complete SSH daemon configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sshd
+          - -t
+      become: true
+      changed_when: false
+
+    - name: Read the effective SSH daemon authentication configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sshd
+          - -T
+          - -C
+          - >-
+            user={{ provisionHostSshUser }},host={{ ansible_facts.hostname }},addr=127.0.0.1
+      become: true
+      changed_when: false
+      register: provisionHostSshEffectiveConfig
+
+    - name: Require key-only authentication in the effective configuration
+      ansible.builtin.assert:
+        that:
+          - "'pubkeyauthentication yes' in provisionHostSshEffectiveConfig.stdout_lines"
+          - "'passwordauthentication no' in provisionHostSshEffectiveConfig.stdout_lines"
+          - "'kbdinteractiveauthentication no' in provisionHostSshEffectiveConfig.stdout_lines"
+        fail_msg: >-
+          sshd does not report key-only authentication for
+          {{ provisionHostSshUser }}. Check directives before the Include and
+          earlier files in /etc/ssh/sshd_config.d.
+
+    - name: Apply the pending SSH reload before connection validation
+      ansible.builtin.meta: flush_handlers
+
+    - name: Revalidate a fresh key-only session after SSH reload
+      ansible.builtin.include_tasks: validate_host_ssh_key.yml
+
+  rescue:
+    - name: Restore the previous SSH daemon drop-in
+      ansible.builtin.copy:
+        dest: "{{ provisionHostSshSshdDropIn }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: "{{ provisionHostSshOriginalDropIn.content | b64decode }}"
+      become: true
+      no_log: true
+      when: provisionHostSshOriginalDropInStat.stat.exists
+
+    - name: Remove the new SSH daemon drop-in when none existed before
+      ansible.builtin.file:
+        path: "{{ provisionHostSshSshdDropIn }}"
+        state: absent
+      become: true
+      when: not provisionHostSshOriginalDropInStat.stat.exists
+
+    - name: Validate the restored SSH daemon configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sshd
+          - -t
+      become: true
+      changed_when: false
+
+    - name: Reload the restored SSH daemon configuration
+      ansible.builtin.service:
+        name: ssh
+        state: reloaded
+      become: true
+
+    - name: Report the failed hardening step after rollback
+      ansible.builtin.fail:
+        msg: >-
+          SSH password hardening failed and the previous drop-in was restored.
+          Failed task: {{ ansible_failed_task.name }}.
+          Reason: {{ ansible_failed_result.msg | default('unknown error') }}

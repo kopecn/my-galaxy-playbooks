@@ -65,22 +65,22 @@ directly or by an IDE.
 Install Samba and provision the SMB user on a host, overriding the account name
 and 1Password item per variable (no inventory required — `-i '<host-or-ip>,'` is the
 target host name or IP, the trailing comma making it an inline inventory). `-b`
-escalates privileges on the target, so pass the host's **sudo password** as
-`ansible_become_pass` — this is the login account's sudo password, distinct from
+escalates privileges on the target; the shared SSH role reads the login
+account's sudo password from `user-<short-hostname>`. This remains distinct from
 the Samba password:
 
 ```bash
 ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
-  -e 'ansible_become_pass=<password>' \
+  -e onePasswordVault=Personal-Automation \
   -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - <host-or-ip>'
 ```
 
 To pass a Samba password directly without 1Password, override `sambaPassword`
-instead of `sambaPasswordOpItem` (still alongside the sudo password):
+instead of `sambaPasswordOpItem`:
 
 ```bash
 ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
-  -e 'ansible_become_pass=<password>' \
+  -e onePasswordVault=Personal-Automation \
   -e sambaUsername=fileshare -e sambaPassword='<samba-password>'
 ```
 
@@ -96,7 +96,7 @@ from scratch (`serial: 1` — one host at a time):
 
 ```bash
 ansible-playbook playbooks/samba_uninstall.yml -i '<host-or-ip>,' -b \
-  -e 'ansible_become_pass=<password>'
+  -e onePasswordVault=Personal-Automation
 ```
 
 This purges the `samba`, `samba-common`, and `samba-common-bin` packages
@@ -108,12 +108,12 @@ accounts or home directories; those are OS state, not Samba's, and are left
 intact.
 
 Print Samba configuration and status without changing anything — `diagnose` reads
-`testparm`/`pdbedit`/`smbstatus` as root, so it also needs the sudo password
+`testparm`/`pdbedit`/`smbstatus` as root, using the Login item password
 (`serial: 1` — one host at a time):
 
 ```bash
 ansible-playbook playbooks/samba_diagnose.yml -i '<host-or-ip>,' -b \
-  -e 'ansible_become_pass=<password>'
+  -e onePasswordVault=Personal-Automation
 ```
 
 ## Verification

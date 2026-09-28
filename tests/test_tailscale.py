@@ -12,6 +12,17 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 OPERATIONS = ("diagnose", "down", "install", "status", "uninstall", "up", "update")
 
 
+def _documented_variables():
+    """Return root and composed group properties from the variable schema."""
+    schema_root = REPO_ROOT / ".schema"
+    root = json.loads((schema_root / "ansible-vars.schema.json").read_text())
+    properties = dict(root["properties"])
+    for reference in root["allOf"]:
+        group = json.loads((schema_root / reference["$ref"]).read_text())
+        properties.update(group["properties"])
+    return properties
+
+
 @pytest.mark.parametrize("operation", OPERATIONS)
 def test_tailscale_operation_has_thin_playbook(operation):
     """Each public operation delegates to the Tailscale role."""
@@ -20,6 +31,10 @@ def test_tailscale_operation_has_thin_playbook(operation):
 
     assert len(playbook) == 1
     assert playbook[0]["roles"] == [
+        {
+            "role": "ssh",
+            "sshOperation": "prepare_key_connection",
+        },
         {
             "role": "tailscale",
             "tailscaleOperation": operation,
@@ -37,10 +52,7 @@ def test_tailscale_operation_has_thin_playbook(operation):
 )
 def test_tailscale_cli_variables_are_documented(variable):
     """CLI inputs remain discoverable in the inventory variable schema."""
-    schema_path = REPO_ROOT / ".schema" / "ansible-vars.schema.json"
-    schema = json.loads(schema_path.read_text())
-
-    assert variable in schema["properties"]
+    assert variable in _documented_variables()
 
 
 def test_tailscale_auth_key_is_controller_managed():
@@ -49,9 +61,7 @@ def test_tailscale_auth_key_is_controller_managed():
     role_defaults = yaml.safe_load(
         (REPO_ROOT / "roles" / "tailscale" / "defaults" / "main.yml").read_text()
     )
-    schema = json.loads(
-        (REPO_ROOT / ".schema" / "ansible-vars.schema.json").read_text()
-    )["properties"]
+    schema = _documented_variables()
 
     assert "tailscaleAuthKeyReference" not in tasks
     assert "hostvars['localhost']" not in tasks
@@ -93,17 +103,17 @@ def test_tailscale_status_prints_diagnostics():
     assert tasks.count("ansible.builtin.debug:") == 2
 
 
-def test_become_password_is_inventory_or_cli_driven_not_a_repo_script():
-    """The become password comes from downstream inventory (or -e at run time).
-    This repo ships no op wrapper, no become-password provider script, and no
-    controller-only vars file feeding one."""
+def test_become_password_is_loaded_by_the_shared_ssh_role():
+    """Operational playbooks receive sudo credentials from the host Login item."""
     config = ConfigParser()
     config.read(REPO_ROOT / "ansible.cfg")
+    ssh_tasks = (
+        REPO_ROOT / "roles" / "ssh" / "tasks" / "prepare_connection.yml"
+    ).read_text()
 
-    # ansible.cfg no longer points privilege escalation at a provider script.
     assert "become_password_file" not in config["defaults"]
-    # The op wrapper and the become-password script are gone.
+    assert "ansible_become_password:" in ssh_tasks
+    assert "sshConnectionLoadBecomePassword" in ssh_tasks
     assert not (REPO_ROOT / "scripts" / "with-op").exists()
     assert not (REPO_ROOT / "scripts" / "op-become-password").exists()
-    # The controller-only vars file that fed those scripts is gone.
     assert not (REPO_ROOT / "vars" / "defaults.yml").exists()

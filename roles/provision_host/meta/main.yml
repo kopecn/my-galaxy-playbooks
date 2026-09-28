@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: provision_host
+  author: nbergantz
+  description: Provision per-host SSH keys in 1Password and disable password SSH safely.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - networking
+    - security
+    - ssh
+dependencies: []

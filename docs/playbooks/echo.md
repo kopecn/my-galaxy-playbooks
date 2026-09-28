@@ -23,14 +23,18 @@ agnostic — it declares no support matrix and does not branch on OS.
 
 ## Usage
 
-Echo escalates nothing — it runs as the login user — so no `-b`/`ansible_become_pass` is needed. Target a host with `-i '<host-or-ip>,'` (the trailing comma makes it an inline inventory; replace `<host-or-ip>` with your host name or IP).
+Echo escalates nothing and runs as the login user. The shared SSH role still
+resolves that username and the host key from 1Password. Target a host with
+`-i '<host-or-ip>,'` and supply the vault.
 
 ```bash
 # Against a target host
-ansible-playbook playbooks/echo.yml -i '<host-or-ip>,'
+ansible-playbook playbooks/echo.yml -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
 
 # Overriding the phrase to confirm a downstream override propagates
-ansible-playbook playbooks/echo.yml -i '<host-or-ip>,' -e echo_phrase='override reached me'
+ansible-playbook playbooks/echo.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e echo_phrase='override reached me'
 ```
 
 Expected output shows the same phrase from `Control node echoed:` and from each

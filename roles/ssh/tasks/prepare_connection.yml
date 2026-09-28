@@ -1,0 +1,109 @@
+---
+- name: Freeze the original inventory endpoint for SSH preparation
+  ansible.builtin.set_fact:
+    sshResolvedHost: "{{ sshHost }}"
+    sshResolvedPort: "{{ sshPort | int }}"
+    sshResolvedKeyItemName: "{{ sshKeyItemName }}"
+    sshResolvedLoginItemName: "{{ sshLoginItemName }}"
+    sshConnectionIsLocal: >-
+      {{ (ansible_connection | default('ssh')) == 'local' }}
+
+- name: Gather facts for a local connection
+  ansible.builtin.setup:
+  when:
+    - sshConnectionIsLocal | bool
+    - sshConnectionGatherFacts | bool
+
+- name: Establish an explicit remote SSH connection
+  when: not (sshConnectionIsLocal | bool)
+  block:
+    - name: Validate SSH connection preparation inputs
+      ansible.builtin.assert:
+        that:
+          - sshConnectionCredential in ['key', 'password']
+          - sshResolvedHost | length > 0
+          - sshResolvedPort | int > 0
+          - sshResolvedPort | int <= 65535
+          - sshResolvedLoginItemName | length > 0
+          - sshStrictHostKeyChecking in ['yes', 'accept-new']
+        fail_msg: >-
+          SSH connection preparation requires a host, valid port, host Login
+          item, and supported connection options.
+
+    - name: Require ansible-core 2.19 or newer for in-memory private keys
+      ansible.builtin.assert:
+        that:
+          - ansible_version.full is version('2.19', '>=')
+        fail_msg: >-
+          Key connections require ansible-core 2.19 or newer so the private
+          key can remain in memory under Ansible's managed SSH agent.
+      when: sshConnectionCredential == 'key'
+
+    - name: Prepare controller authentication for 1Password
+      ansible.builtin.include_tasks: controller_auth.yml
+
+    - name: Resolve the host Login item and username
+      ansible.builtin.include_tasks: resolve_login.yml
+
+    - name: Resolve the host SSH Key item
+      ansible.builtin.include_tasks: resolve_key.yml
+      when: sshConnectionCredential == 'key'
+
+    - name: Read the host private key for key authentication
+      ansible.builtin.include_tasks: read_private_key.yml
+      when: sshConnectionCredential == 'key'
+
+    - name: Read the host password when the connection or sudo needs it
+      ansible.builtin.include_tasks: read_password.yml
+      when: >-
+        sshConnectionCredential == 'password'
+        or sshConnectionLoadBecomePassword | bool
+
+    - name: Apply explicit host, port, username, and SSH configuration
+      ansible.builtin.set_fact:
+        ansible_connection: ssh
+        ansible_host: "{{ sshResolvedHost }}"
+        ansible_port: "{{ sshResolvedPort }}"
+        ansible_user: "{{ sshResolvedUser }}"
+        ansible_scp_extra_args: ""
+        ansible_sftp_extra_args: ""
+        ansible_ssh_extra_args: ""
+        ansible_ssh_common_args: >-
+          -F /dev/null
+          -o StrictHostKeyChecking={{ sshStrictHostKeyChecking }}
+          -o UserKnownHostsFile={{ sshConnectionKnownHostsFile }}
+          -o GlobalKnownHostsFile=/dev/null
+          -o ControlMaster=no
+          -o ControlPath=none
+          -o ConnectionAttempts=1
+
+    - name: Apply key-only authentication from 1Password
+      ansible.builtin.set_fact:
+        ansible_private_key: "{{ sshResolvedPrivateKey }}"
+        ansible_ssh_common_args: >-
+          {{ ansible_ssh_common_args }}
+          -o PasswordAuthentication=no
+          -o KbdInteractiveAuthentication=no
+          -o PreferredAuthentications=publickey
+      no_log: true
+      when: sshConnectionCredential == 'key'
+
+    - name: Apply password-only authentication from 1Password
+      ansible.builtin.set_fact:
+        ansible_password: "{{ sshResolvedPassword }}"
+        ansible_ssh_common_args: >-
+          {{ ansible_ssh_common_args }}
+          -o PubkeyAuthentication=no
+          -o PreferredAuthentications=password,keyboard-interactive
+      no_log: true
+      when: sshConnectionCredential == 'password'
+
+    - name: Apply the Login password for privilege escalation
+      ansible.builtin.set_fact:
+        ansible_become_password: "{{ sshResolvedPassword }}"
+      no_log: true
+      when: sshConnectionLoadBecomePassword | bool
+
+    - name: Gather facts over the prepared SSH connection
+      ansible.builtin.setup:
+      when: sshConnectionGatherFacts | bool

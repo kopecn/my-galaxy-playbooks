@@ -1,0 +1,55 @@
+---
+- name: List SSH key items in the target 1Password vault
+  ansible.builtin.command:
+    argv:
+      - op
+      - item
+      - list
+      - --categories=SSH Key
+      - "--vault={{ sshVaultId }}"
+      - --format=json
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ sshOpToken }}"
+  check_mode: false
+  changed_when: false
+  no_log: true
+  register: sshKeyItemListResult
+
+- name: Select the exact host SSH key item
+  ansible.builtin.set_fact:
+    sshMatchingKeyItems: >-
+      {{ (sshKeyItemListResult.stdout | from_json)
+         | selectattr('title', 'equalto', sshResolvedKeyItemName)
+         | list }}
+  no_log: true
+
+- name: Reject ambiguous duplicate SSH key items
+  ansible.builtin.assert:
+    that:
+      - sshMatchingKeyItems | length <= 1
+    fail_msg: >-
+      More than one SSH Key item named {{ sshResolvedKeyItemName }} exists in
+      vault {{ onePasswordVault }}. Keep exactly one before retrying. State:
+      validationError.
+
+- name: Record an unprovisioned host when its SSH key item is absent
+  ansible.builtin.set_fact:
+    sshValidationState: unprovisioned
+  when: sshMatchingKeyItems | length == 0
+
+- name: Fail when the host SSH key item is absent
+  ansible.builtin.fail:
+    msg: >-
+      SSH Key item {{ sshResolvedKeyItemName }} does not exist in vault
+      {{ onePasswordVault }}. Provision the host key before using it. State:
+      unprovisioned.
+  when: sshMatchingKeyItems | length == 0
+
+- name: Remember the matching host SSH key item ID
+  ansible.builtin.set_fact:
+    sshKeyItemId: "{{ sshMatchingKeyItems[0].id }}"
+  no_log: true

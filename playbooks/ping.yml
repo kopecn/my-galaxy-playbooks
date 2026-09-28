@@ -9,9 +9,10 @@
 #
 # Execution behavior:
 # - Runs against all inventory hosts (`hosts: all`)
-# - Processes hosts in batches of 10 (`serial: 10`)
-# - Uses `free` strategy to allow hosts to run tasks independently
+# - Processes hosts in 20 percent batches (`serial: "20%"`)
+# - Uses the linear strategy within each batch
 # - Does not gather facts to reduce overhead (`gather_facts: false`)
+# - Prepares an explicit 1Password-backed SSH connection before remote tasks
 # - Does not escalate privileges (`become: false`)
 #
 # Pre-tasks:
@@ -43,6 +44,10 @@
   # Safer rollout control (adjust based on environment size)
   serial: "20%"
   strategy: linear
+
+  roles:
+    - role: ssh
+      sshOperation: prepare_key_connection
 
   # Optional safety gate (uncomment if you want CI-style strictness)
   # any_errors_fatal: false

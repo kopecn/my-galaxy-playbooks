@@ -43,26 +43,26 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 
 ## Usage
 
-Target a host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP). Only `install` escalates (it apt-installs the `bash`/`curl` prerequisites on Debian); the CLI install step itself, `diagnose`, and `uninstall` all run as the login user, so they take no `-b`/`ansible_become_pass`.
+Target a host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP). The shared SSH role reads the username, key, and sudo password from 1Password before connecting. Only `install` escalates (it apt-installs the `bash`/`curl` prerequisites on Debian); the CLI install step itself, `diagnose`, and `uninstall` all run as the login user.
 
-Install the Claude CLI — `-b` with `ansible_become_pass` supplies the target's sudo password for the Debian prerequisites:
+Install the Claude CLI; `-b` enables sudo and the password comes from `user-<short-hostname>`:
 
 ```bash
-ansible-playbook playbooks/claude_install.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/claude_install.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Print installation diagnostics (`claude --version` and `claude doctor`) without
 changing anything (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/claude_diagnose.yml -i '<host-or-ip>,'
+ansible-playbook playbooks/claude_diagnose.yml -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
 ```
 
 Uninstall the CLI and remove user config — settings, MCP config, and session
 history (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/claude_uninstall.yml -i '<host-or-ip>,'
+ansible-playbook playbooks/claude_uninstall.yml -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
 ```
 
 ## Verification

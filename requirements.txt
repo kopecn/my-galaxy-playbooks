@@ -3,7 +3,9 @@
 # `pip install -r requirements.txt` installs the same set. Keep them in sync.
 
 # Ansible + linting
-ansible>=9.6
+# ansible-core 2.19+ provides in-memory ansible_private_key support and the
+# Ansible-managed ephemeral SSH agent used by every remote playbook.
+ansible>=12.0
 ansible-lint>=24.5
 yamllint
 passlib>=1.7

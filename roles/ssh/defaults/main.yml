@@ -1,0 +1,33 @@
+---
+# Shared SSH inputs. Downstream inventory may override any value.
+onePasswordVault: Personal-Automation
+
+# validate_key is the safe default for the standalone validation entry point.
+sshOperation: validate_key
+sshHost: >-
+  {{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}
+sshPort: >-
+  {{ hostvars[inventory_hostname]['ansible_port'] | default(22) }}
+sshKeyItemName: >-
+  sshkey-{{ (hostvars[inventory_hostname]['hostName'] | default(inventory_hostname)).split('.')[0] }}
+sshLoginItemName: >-
+  user-{{ (hostvars[inventory_hostname]['hostName'] | default(inventory_hostname)).split('.')[0] }}
+sshOpTokenFile: >-
+  {{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token
+
+# Kept as a compatibility alias for existing downstream inventories.
+sshValidationOpTokenFile: "{{ sshOpTokenFile }}"
+sshStrictHostKeyChecking: accept-new
+sshValidationTimeout: 10
+sshValidationExtraArgs: []
+
+# prepare_*_connection establishes every SSH input before the first remote
+# task. Ansible removes DEFAULT_LOCAL_TMP when the playbook process exits.
+sshConnectionKnownHostsFile: >-
+  {{ lookup('ansible.builtin.config', 'DEFAULT_LOCAL_TMP') }}/ssh-known-hosts
+sshConnectionGatherFacts: true
+sshConnectionLoadBecomePassword: true
+
+# Downstream host_vars owns durable state. The role updates this host variable
+# for the current ansible-playbook run.
+sshValidationState: unprovisioned

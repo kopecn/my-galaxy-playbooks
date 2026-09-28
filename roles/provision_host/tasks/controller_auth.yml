@@ -1,0 +1,60 @@
+---
+- name: Confirm the 1Password service-account token exists on the controller
+  ansible.builtin.stat:
+    path: "{{ provisionHostSshOpTokenFile }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  register: provisionHostSshOpTokenFileStat
+
+- name: Fail when the controller service-account token is missing or empty
+  ansible.builtin.assert:
+    that:
+      - provisionHostSshOpTokenFileStat.stat.exists
+      - (provisionHostSshOpTokenFileStat.stat.size | default(0)) > 0
+    fail_msg: >-
+      No usable 1Password service-account token exists at
+      {{ provisionHostSshOpTokenFile }} on the controller.
+
+- name: Ensure the 1Password CLI is available on the controller
+  ansible.builtin.command: op --version
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+
+- name: Load the 1Password service-account token in memory
+  ansible.builtin.set_fact:
+    provisionHostSshOpToken: >-
+      {{ lookup('ansible.builtin.file', provisionHostSshOpTokenFile) | trim }}
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  no_log: true
+
+- name: Resolve the target 1Password vault
+  ansible.builtin.command:
+    argv:
+      - op
+      - vault
+      - get
+      - "{{ onePasswordVault }}"
+      - --format=json
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ provisionHostSshOpToken }}"
+  changed_when: false
+  no_log: true
+  register: provisionHostSshVaultResult
+
+- name: Remember the resolved 1Password vault ID
+  ansible.builtin.set_fact:
+    provisionHostSshVaultId: "{{ (provisionHostSshVaultResult.stdout | from_json).id }}"
+  no_log: true

@@ -1,0 +1,162 @@
+---
+- name: Freeze the original inventory endpoint and initialize validation state
+  ansible.builtin.set_fact:
+    sshResolvedHost: "{{ sshHost }}"
+    sshResolvedPort: "{{ sshPort | int }}"
+    sshResolvedKeyItemName: "{{ sshKeyItemName }}"
+    sshResolvedLoginItemName: "{{ sshLoginItemName }}"
+    sshValidationState: validationError
+
+- name: Validate SSH key validation inputs
+  ansible.builtin.assert:
+    that:
+      - sshResolvedHost | length > 0
+      - sshResolvedPort | int > 0
+      - sshResolvedPort | int <= 65535
+      - sshResolvedKeyItemName | length > 0
+      - sshResolvedLoginItemName | length > 0
+      - sshStrictHostKeyChecking in ['yes', 'accept-new']
+      - sshValidationTimeout | int > 0
+      - sshValidationExtraArgs is sequence
+      - sshValidationExtraArgs is not string
+    fail_msg: >-
+      SSH validation requires a host, valid port, 1Password SSH Key and Login
+      item names, and supported validation options. State: validationError.
+
+- name: Prepare controller authentication for 1Password
+  ansible.builtin.include_tasks: controller_auth.yml
+
+- name: Resolve the exact host SSH Key item
+  ansible.builtin.include_tasks: resolve_key.yml
+
+- name: Resolve the exact host Login item and username
+  ansible.builtin.include_tasks: resolve_login.yml
+
+- name: Validate the exact 1Password SSH key from the controller
+  block:
+    - name: Create an ephemeral controller directory for key validation
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-validate-host-ssh-key-
+      delegate_to: localhost
+      become: false
+      vars:
+        ansible_become: false
+      check_mode: false
+      changed_when: false
+      register: sshValidationTempDirectory
+
+    - name: Fetch the private key temporarily from 1Password
+      ansible.builtin.command:
+        argv:
+          - op
+          - read
+          - --force
+          - --file-mode=0600
+          - "--out-file={{ sshValidationTempDirectory.path }}/id_ssh"
+          - "op://{{ sshVaultId }}/{{ sshKeyItemId }}/private key?ssh-format=openssh"
+      delegate_to: localhost
+      become: false
+      vars:
+        ansible_become: false
+      environment:
+        OP_SERVICE_ACCOUNT_TOKEN: "{{ sshOpToken }}"
+      check_mode: false
+      changed_when: false
+      failed_when: false
+      no_log: true
+      register: sshValidationPrivateKeyResult
+
+    - name: Require the private key to be readable from 1Password
+      ansible.builtin.assert:
+        that:
+          - sshValidationPrivateKeyResult.rc == 0
+        fail_msg: >-
+          1Password item {{ sshResolvedKeyItemName }} exists, but its private
+          key could not be read in OpenSSH format. State: validationError.
+
+    - name: Try the exact key without SSH fallback authentication
+      ansible.builtin.command:
+        argv: >-
+          {{
+            [
+              'ssh',
+              '-F', '/dev/null',
+              '-i', sshValidationTempDirectory.path ~ '/id_ssh',
+              '-l', sshResolvedUser,
+              '-p', sshResolvedPort | string,
+              '-o', 'BatchMode=yes',
+              '-o', 'PasswordAuthentication=no',
+              '-o', 'KbdInteractiveAuthentication=no',
+              '-o', 'PreferredAuthentications=publickey',
+              '-o', 'PubkeyAuthentication=yes',
+              '-o', 'IdentitiesOnly=yes',
+              '-o', 'IdentityAgent=none',
+              '-o', 'ControlMaster=no',
+              '-o', 'ControlPath=none',
+              '-o', 'ConnectionAttempts=1',
+              '-o', 'ConnectTimeout=' ~ (sshValidationTimeout | string),
+              '-o', 'StrictHostKeyChecking=' ~ sshStrictHostKeyChecking,
+              '-o', 'UserKnownHostsFile=' ~ sshConnectionKnownHostsFile,
+              '-o', 'GlobalKnownHostsFile=/dev/null'
+            ]
+            + sshValidationExtraArgs
+            + [sshResolvedHost, 'true']
+          }}
+      delegate_to: localhost
+      become: false
+      vars:
+        ansible_become: false
+      check_mode: false
+      changed_when: false
+      failed_when: false
+      register: sshValidationProbeResult
+
+    - name: Record the SSH key validation result
+      ansible.builtin.set_fact:
+        sshValidationState: >-
+          {{ 'complete' if sshValidationProbeResult.rc == 0
+             else 'validationError' }}
+
+    - name: Explain and fail an unsuccessful SSH key validation
+      ansible.builtin.fail:
+        msg: >-
+          SSH key {{ sshResolvedKeyItemName }} did not authenticate
+          {{ sshResolvedUser }}@{{ sshResolvedHost }}:{{ sshResolvedPort }}.
+          {% if 'Connection refused' in sshValidationProbeResult.stderr %}
+          The endpoint refused the connection; verify the resolved host, port,
+          network path, and sshd listener.
+          {% elif 'Permission denied' in sshValidationProbeResult.stderr %}
+          The endpoint rejected this public key; verify the login user,
+          authorized_keys, and selected 1Password item.
+          {% elif 'Could not resolve hostname' in sshValidationProbeResult.stderr %}
+          The controller could not resolve the validation hostname.
+          {% elif 'Host key verification failed' in sshValidationProbeResult.stderr %}
+          Host-key verification failed; inspect the controller-owned known-hosts
+          state before retrying.
+          {% else %}
+          OpenSSH reported: {{ sshValidationProbeResult.stderr | trim
+                               | default('no diagnostic output', true) }}
+          {% endif %}
+          State: validationError.
+      when: sshValidationProbeResult.rc != 0
+
+    - name: Report successful validation
+      ansible.builtin.debug:
+        msg: >-
+          SSH key {{ sshResolvedKeyItemName }} authenticated
+          {{ sshResolvedUser }}@{{ sshResolvedHost }}:{{ sshResolvedPort }}.
+          State: complete.
+
+  always:
+    - name: Remove the temporary private key and directory
+      ansible.builtin.file:
+        path: "{{ sshValidationTempDirectory.path }}"
+        state: absent
+      delegate_to: localhost
+      become: false
+      vars:
+        ansible_become: false
+      check_mode: false
+      changed_when: false
+      when: sshValidationTempDirectory.path is defined

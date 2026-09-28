@@ -1,0 +1,5 @@
+---
+sshSupportedOperations:
+  - prepare_key_connection
+  - prepare_password_connection
+  - validate_key

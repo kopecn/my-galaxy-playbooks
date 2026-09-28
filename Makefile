@@ -89,7 +89,7 @@ $(VENV_BIN)/pip:
 
 bootstrap: venv ## Install all dev/test dependencies and verify prerequisites
 	@echo "==> Installing Ansible + linting tools..."
-	$(PIP_INSTALL) "ansible>=9.6" "ansible-lint>=24.5" yamllint "passlib>=1.7"
+	$(PIP_INSTALL) "ansible>=12.0" "ansible-lint>=24.5" yamllint "passlib>=1.7"
 	@echo ""
 	@echo "==> Installing test tools..."
 	$(PIP_INSTALL) "pytest>=8.0" "jinja2>=3.1" "pyyaml>=6.0"

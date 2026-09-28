@@ -1,0 +1,8 @@
+---
+- name: Validate the host SSH key stored in 1Password
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: ssh
+      sshOperation: validate_key

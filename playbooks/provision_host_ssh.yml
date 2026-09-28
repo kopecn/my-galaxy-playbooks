@@ -1,0 +1,10 @@
+---
+- name: Provision host SSH key access and disable password authentication
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: ssh
+      sshOperation: prepare_password_connection
+    - role: provision_host
+      provisionHostSshOperation: provision

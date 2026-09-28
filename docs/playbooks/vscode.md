@@ -26,16 +26,16 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 
 ## Usage
 
-Install/update VS Code and sync extensions on a target host. On Debian the apt install escalates, so pass the host's sudo password with `-b -e 'ansible_become_pass=<password>'` (the Homebrew-cask path on macOS escalates nothing, but the flag is harmless there). Target the host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP):
+Install/update VS Code and sync extensions on a target host. On Debian the apt install escalates, so use `-b`; the sudo password is read from `user-<short-hostname>` in 1Password (the Homebrew-cask path on macOS escalates nothing, but the flag is harmless there). Target the host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory:
 
 ```bash
-ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Dry-run before applying (`--check --diff`):
 
 ```bash
-ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>' --check --diff
+ansible-playbook playbooks/vscode.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation --check --diff
 ```
 
 Configure the extension list for a group or host in your downstream inventory's

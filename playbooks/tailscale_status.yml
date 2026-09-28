@@ -1,7 +1,9 @@
 ---
 - name: Read Tailscale status and diagnostics
   hosts: all
-  gather_facts: true
+  gather_facts: false
   roles:
+    - role: ssh
+      sshOperation: prepare_key_connection
     - role: tailscale
       tailscaleOperation: status

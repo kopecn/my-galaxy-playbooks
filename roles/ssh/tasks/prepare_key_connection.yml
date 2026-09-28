@@ -1,0 +1,5 @@
+---
+- name: Prepare a 1Password-backed SSH key connection
+  ansible.builtin.include_tasks: prepare_connection.yml
+  vars:
+    sshConnectionCredential: key

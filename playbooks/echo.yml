@@ -3,4 +3,6 @@
   hosts: all
   gather_facts: false
   roles:
+    - role: ssh
+      sshOperation: prepare_key_connection
     - role: echo

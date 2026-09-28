@@ -1,0 +1,28 @@
+---
+- name: Resolve the required host SSH key item
+  ansible.builtin.include_tasks: require_key.yml
+
+- name: Read the host SSH public key from 1Password
+  ansible.builtin.command:
+    argv:
+      - op
+      - read
+      - "op://{{ provisionHostSshVaultId }}/{{ provisionHostSshItemId }}/public key"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  environment:
+    OP_SERVICE_ACCOUNT_TOKEN: "{{ provisionHostSshOpToken }}"
+  changed_when: false
+  no_log: true
+  register: provisionHostSshPublicKeyResult
+
+- name: Install the host SSH public key for the login user
+  ansible.posix.authorized_key:
+    user: "{{ provisionHostSshUser }}"
+    key: "{{ provisionHostSshPublicKeyResult.stdout | trim }}"
+    state: present
+    exclusive: false
+    manage_dir: true
+  become: true

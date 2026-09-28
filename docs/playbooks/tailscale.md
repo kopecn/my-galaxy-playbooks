@@ -67,36 +67,38 @@ which reads `~/.config/op/op-service-account-token` and resolves the item with
 the `community.general.onepassword` lookup — including when the playbook is
 started directly or by an IDE. A `--check` dry-run does not query 1Password.
 
-Every Tailscale operation escalates on the target, so pass the host's sudo password with `-b -e 'ansible_become_pass=<password>'`. Target the host with `-i '<host-or-ip>,'` — the trailing comma makes it an inline inventory (replace `<host-or-ip>` with your host name or IP).
+Every Tailscale operation escalates on the target, so use `-b`. The shared SSH
+role reads the username, key, and sudo password from 1Password. Target the host
+with `-i '<host-or-ip>,'` and supply the vault.
 
 Connect a host to the tailnet:
 
 ```bash
-ansible-playbook playbooks/tailscale_up.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_up.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Disconnect a host from the tailnet (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/tailscale_down.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_down.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Check connection status and network diagnostics without changing anything:
 
 ```bash
-ansible-playbook playbooks/tailscale_status.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_status.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Print Tailscale preferences (`tailscale debug prefs`) without changing anything:
 
 ```bash
-ansible-playbook playbooks/tailscale_diagnose.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_diagnose.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Update Tailscale to the latest version:
 
 ```bash
-ansible-playbook playbooks/tailscale_update.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_update.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 Pin a version on Debian hosts in your downstream inventory's `host_vars`, e.g.
@@ -109,7 +111,7 @@ tailscaleVersion: "1.102.4"
 Uninstall (runs `serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/tailscale_uninstall.yml -i '<host-or-ip>,' -b -e 'ansible_become_pass=<password>'
+ansible-playbook playbooks/tailscale_uninstall.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
 ```
 
 ## Verification

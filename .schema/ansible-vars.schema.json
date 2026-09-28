@@ -37,6 +37,12 @@
     },
     {
       "$ref": "groups/onepassword-schema.json"
+    },
+    {
+      "$ref": "groups/ssh-schema.json"
+    },
+    {
+      "$ref": "groups/provisionhostssh-schema.json"
     }
   ]
 }

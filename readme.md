@@ -60,12 +60,21 @@ git-ignored `.env` (copy from `.env.example`).
 
 - To run against a host that is not in the inventory, pass it as a single-quoted
   `-i` value with a trailing comma, e.g. `-i 'host-computer-computer,'`.
-- Hosts that require sudo need the become password passed as an extra var, e.g.
-  `-e 'ansible_become_password=<sudo-password>'`.
+- Every remote playbook resolves `user-<short-hostname>` and
+  `sshkey-<short-hostname>` from 1Password before its first connection. The
+  Login item supplies the username and sudo password; the SSH Key item supplies
+  the private key. Local `~/.ssh/config`, identities, agent keys, and known-host
+  files are not used.
+- Initial SSH provisioning uses the Login password. All other operational
+  playbooks use the SSH key. Supply the host and vault; `-u`, `--ask-pass`, and
+  an explicit `ansible_become_password` are unnecessary.
 
 e.g.
 ```bash
-ansible-playbook playbooks/tailscale_install.yml -i 'host-computer-name,' -b -e 'ansible_become_password=<sudo-password>'
+ansible-playbook playbooks/tailscale_install.yml \
+  -i 'host-computer-name,' \
+  -b \
+  -e onePasswordVault=Personal-Automation
 ```
 
 ## Documentation
@@ -85,3 +94,6 @@ supported hosts, variables, and example usage.
 - [Samba](docs/playbooks/samba.md) — `playbooks/samba_*.yml`
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
+- [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
+  - [Validation](docs/playbooks/ssh.md#validation-control-flow) — `playbooks/validate_host_ssh_key.yml`
+  - [Provisioning](docs/playbooks/provision_host_ssh.md) — `playbooks/provision_host_ssh*.yml`
