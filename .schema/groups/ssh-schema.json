@@ -10,6 +10,11 @@
       "default": "sshkey",
       "description": "Prefix used to construct the per-host 1Password SSH Key item name."
     },
+    "sshLoginPrefix": {
+      "type": "string",
+      "default": "user",
+      "description": "Prefix used to construct the per-host 1Password Login item name."
+    },
     "vpnEnable": {
       "type": "boolean",
       "description": "Set true to enable VPN connectivity for this host."
@@ -32,6 +37,9 @@
   "properties": {
     "sshKeyPrefix": {
       "$ref": "#/$defs/sshKeyPrefix"
+    },
+    "sshLoginPrefix": {
+      "$ref": "#/$defs/sshLoginPrefix"
     },
     "vpnEnable": {
       "$ref": "#/$defs/vpnEnable"

@@ -1,6 +1,2 @@
 ---
-onePasswordVault: Personal-Automation
-onePasswordTokenFile: >-
-  {{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token
-sshKeyPrefix: sshkey
 useVpn: false

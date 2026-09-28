@@ -1,0 +1,7 @@
+---
+- name: Resolve the Tailscale auth key from 1Password
+  ansible.builtin.include_role:
+    name: onepassword
+  vars:
+    op_token_file: "{{ onePasswordTokenFile }}"
+    op_queries: "{{ onePasswordTailscaleQueries }}"

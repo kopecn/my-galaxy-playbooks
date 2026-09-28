@@ -3,7 +3,6 @@
   ansible.builtin.include_role:
     name: ssh
   vars:
-    sshOperation: validate_key
     sshHost: "{{ provisionHostSshHost }}"
     sshPort: "{{ provisionHostSshPort }}"
     sshKeyItemName: "{{ provisionHostSshItemName }}"

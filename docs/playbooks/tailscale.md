@@ -62,9 +62,9 @@ directly from the controller's `op` CLI to `tailscale up` over stdin and is
 never written to inventory or disk.
 
 Secret resolution runs through the shared `onepassword` role on the controller,
-which reads `~/.config/op/op-service-account-token` and resolves the item with
-the `community.general.onepassword` lookup — including when the playbook is
-started directly or by an IDE. A `--check` dry-run does not query 1Password.
+which reads `~/.config/op/op-service-account-token`. The
+`1password_tailscale` role owns the exact auth-key query and passes it to that
+executor. A `--check` dry-run does not query 1Password.
 
 Every Tailscale operation escalates on the target, so use `-b`. The shared SSH
 role reads the username, key, and sudo password from 1Password. Target the host

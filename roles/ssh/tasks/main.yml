@@ -2,41 +2,8 @@
 - name: Resolve the SSH route
   ansible.builtin.set_fact:
     sshResolvedHost: >-
-      {%- if useVpn | bool -%}
-      {{ vpnHostname }}.{{ vpnDomain }}
-      {%- elif ',' in inventory_file -%}
-      {{ inventory_hostname }}
-      {%- else -%}
-      {{ hostName }}.local
-      {%- endif -%}
-
-- name: Load the SSH private key from 1Password
-  ansible.builtin.command:
-    argv:
-      - op
-      - read
-      - >-
-        op://{{ onePasswordVault }}/{{ sshKeyPrefix }}-{{
-        (hostName | default(inventory_hostname)).split('.')[0]
-        }}/private key?ssh-format=openssh
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-  environment:
-    OP_SERVICE_ACCOUNT_TOKEN: >-
-      {{ lookup(
-           'ansible.builtin.file',
-           onePasswordTokenFile
-         ) | trim }}
-  changed_when: false
-  register: sshPrivateKeyResult
-  no_log: true
-
-- name: Apply the SSH private key in memory
-  ansible.builtin.set_fact:
-    ansible_private_key: "{{ sshPrivateKeyResult.stdout | trim }}"
-  no_log: true
+      {%- if useVpn | bool -%} {{ vpnHostname }}.{{ vpnDomain }}{%- elif ',' in inventory_file -%} {{ inventory_hostname }}{%- else -%} {{ hostName }}.local{%- endif
+      -%}
 
 - name: Apply the resolved ephemeral SSH route
   ansible.builtin.set_fact:

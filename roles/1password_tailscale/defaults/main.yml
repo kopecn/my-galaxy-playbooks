@@ -1,0 +1,8 @@
+---
+onePasswordVault: Personal-Automation
+onePasswordTokenFile: >-
+  {{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token
+onePasswordTailscaleAPIKey: Tailscale Auth Key - Ansible Provisioning
+onePasswordTailscaleQueries:
+  tailscaleAuthKey: >-
+    op://{{ onePasswordVault }}/{{ onePasswordTailscaleAPIKey }}/credential

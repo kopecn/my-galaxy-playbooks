@@ -56,13 +56,7 @@
 
 - name: Resolve the Tailscale auth key from 1Password on the controller
   ansible.builtin.include_role:
-    name: onepassword
-  vars:
-    op_secrets:
-      tailscaleAuthKey:
-        item: "{{ onePasswordTailscaleAPIKey }}"
-        vault: "{{ onePasswordVault }}"
-        field: credential
+    name: 1password_tailscale
   when:
     - tailscaleNeedsUp
     - not ansible_check_mode

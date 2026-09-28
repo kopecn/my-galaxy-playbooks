@@ -13,14 +13,16 @@ INSTALL = REPO_ROOT / "roles" / "samba" / "tasks" / "install-Debian.yml"
 
 def test_samba_secrets_resolve_through_the_onepassword_role():
     tasks = INSTALL.read_text()
+    query_defaults = (
+        REPO_ROOT / "roles" / "1password_samba" / "defaults" / "main.yml"
+    ).read_text()
 
-    assert "name: onepassword" in tasks
-    # Username and password are requested as op_secrets facts.
-    assert "sambaUsername:" in tasks
-    assert "sambaEffectivePassword:" in tasks
+    assert "name: 1password_samba" in tasks
+    assert "sambaUsername:" in query_defaults
+    assert "sambaEffectivePassword:" in query_defaults
     # Keyed on the documented inputs.
-    assert "{{ sambaPasswordOpItem }}" in tasks
-    assert "{{ onePasswordVault }}" in tasks
+    assert "{{ sambaPasswordOpItem }}" in query_defaults
+    assert "{{ onePasswordVault }}" in query_defaults
 
 
 def test_samba_has_no_wrapper_or_hand_built_op_read():

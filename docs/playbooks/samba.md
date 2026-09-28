@@ -58,9 +58,9 @@ onePasswordVault: your-vault-name
 The password is passed directly from the controller's `op` CLI to `smbpasswd`
 over stdin and is never written to inventory or disk. Secret resolution runs
 through the shared `onepassword` role on the controller, which reads
-`~/.config/op/op-service-account-token` and resolves the item with the
-`community.general.onepassword` lookup, including when the playbook is started
-directly or by an IDE.
+`~/.config/op/op-service-account-token`. The `1password_samba` role owns the
+exact username and password queries and passes them to that executor, including
+when the playbook is started directly or by an IDE.
 
 Install Samba and provision the SMB user on a host, overriding the account name
 and 1Password item per variable (no inventory required — `-i '<host-or-ip>,'` is the

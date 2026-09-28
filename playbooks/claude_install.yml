@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   roles:
+    - role: 1password_ssh_user_pass
     - role: ssh
-      sshOperation: prepare_key_connection
     - role: claude
       claudeOperation: install

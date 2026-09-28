@@ -1,11 +1,12 @@
 # SSH routing
 
-Every remote playbook enters the `ssh` role before its action role. The router
-selects one endpoint and applies it as `ansible_host`.
+Every remote playbook enters `1password_ssh_user_pass`, then `ssh`, before its
+action role. Credential resolution and routing remain separate steps.
 
 ```mermaid
 flowchart TD
-    Start[Playbook starts] --> Flag{useVpn}
+    Start[Playbook starts] --> Credentials[1password_ssh_user_pass loads username, password, and key]
+    Credentials --> Flag{useVpn}
     Flag -->|true| Tail[Use vpnHostname.vpnDomain]
     Flag -->|false| Source{Inventory source}
     Source -->|Inline -i host,| Exact[Use inventory_hostname exactly]
@@ -13,8 +14,7 @@ flowchart TD
     Exact --> Route[Set ansible_host]
     Local --> Route
     Tail --> Route
-    Route --> Key[Load sshKeyPrefix-short-hostname from 1Password]
-    Key --> Ephemeral[Apply ephemeral SSH options]
+    Route --> Ephemeral[Apply ephemeral SSH options]
     Ephemeral --> Action[Run the action role]
 ```
 
@@ -40,14 +40,20 @@ Routing follows this precedence for every host:
 The inventory owns `hostName`, `vpnHostname`, `vpnDomain`, and the
 `useVpn` flag.
 
-## SSH key
+## SSH credentials
 
-The router loads `<sshKeyPrefix>-<short-hostname>` from `onePasswordVault` with
-`op read`. `sshKeyPrefix` defaults to `sshkey`. It requests OpenSSH format and
-assigns the result directly to `ansible_private_key`. The key remains in memory
-and is loaded by Ansible's managed SSH agent.
+The `1password_ssh_user_pass` role loads the SSH username from
+`<sshLoginPrefix>-<short-hostname>/username` and assigns it to `ansible_user`.
+`sshLoginPrefix` defaults to `user`.
 
-The service-account token is read from `onePasswordTokenFile`, which defaults
+The same role loads the Login item's password into `ansible_password` and
+`ansible_become_password`. It loads `<sshKeyPrefix>-<short-hostname>` from
+`onePasswordVault`, requests OpenSSH format, and assigns it directly to
+`ansible_private_key`. All three queries are declared in
+`onePasswordSshUserPassQueries`.
+
+The shared `onepassword` query executor reads its service-account token from
+`onePasswordTokenFile`, which defaults
 to `~/.config/op/op-service-account-token`. The lookup is protected by
 `no_log`.
 
@@ -57,5 +63,5 @@ The router passes `-F /dev/null`, so it does not read `~/.ssh/config`. It uses
 `/dev/null` for user and global known-host files, disables host-key persistence,
 and disables SSH connection sharing and control sockets.
 
-This framework does not resolve the SSH username or sudo password, validate
-reachability, gather facts, or add workflow-specific safety behavior.
+This framework does not validate reachability, gather facts, or add
+workflow-specific safety behavior.

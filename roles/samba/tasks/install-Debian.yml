@@ -15,13 +15,7 @@
 
     - name: Resolve the Samba username on the controller
       ansible.builtin.include_role:
-        name: onepassword
-      vars:
-        op_secrets:
-          sambaUsername:
-            item: "{{ sambaPasswordOpItem }}"
-            vault: "{{ onePasswordVault }}"
-            field: username
+        name: 1password_samba
 
 - name: Validate the Samba account configuration
   ansible.builtin.assert:
@@ -145,13 +139,10 @@
 
         - name: Resolve the Samba password on the controller
           ansible.builtin.include_role:
-            name: onepassword
-          vars:
-            op_secrets:
-              sambaEffectivePassword:
-                item: "{{ sambaPasswordOpItem }}"
-                vault: "{{ onePasswordVault }}"
-                field: password
+            name: 1password_samba
+          when: >-
+            sambaEffectivePassword is not defined
+            or (sambaEffectivePassword | length == 0)
 
     - name: Create the Samba user with the resolved password
       ansible.builtin.command:

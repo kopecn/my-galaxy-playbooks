@@ -28,14 +28,8 @@ def test_operation_has_a_thin_reusable_playbook(operation):
     assert len(playbook) == 1
     assert playbook[0]["serial"] == 1
     assert playbook[0]["roles"] == [
-        {
-            "role": "ssh",
-            "sshOperation": (
-                "prepare_key_connection"
-                if operation == "disable_password"
-                else "prepare_password_connection"
-            ),
-        },
+        {"role": "1password_ssh_user_pass"},
+        {"role": "ssh"},
         {
             "role": "provision_host",
             "provisionHostSshOperation": operation,
