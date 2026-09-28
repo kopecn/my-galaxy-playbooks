@@ -3,9 +3,16 @@
 extends: default
 
 ignore: |
-  galaxy_roles/
+  .ansible/
   .cache/
+  .mypy_cache/
+  .pytest_cache/
+  .venv/
+  collections/
+  env/
+  galaxy_roles/
   tests/output/
+  venv/
 
 rules:
   line-length:
