@@ -36,7 +36,7 @@ lower layers; lower layers SHALL NOT depend on higher layers.
 
 Global configuration is the flags and parameters that describe hosts and select
 features — for example `hostOperatingSystem`, `hostArchitecture`,
-`tailscaleEnable`, `vscodeEnable`.
+`vpnEnable`, `vscodeEnable`.
 
 - This repository is a collection artifact and SHALL NOT carry environment
   inventories. Configuration that describes real hosts — per-environment
@@ -58,7 +58,7 @@ features — for example `hostOperatingSystem`, `hostArchitecture`,
   (see [Variable Schema Organization](#variable-schema-organization)) with a
   description. An undocumented project variable is a defect.
 - Variable names SHALL be flat and camelCase. Variables that belong to a group
-  SHALL be named `<group><parameter>` (e.g. `tailscaleDomain`,
+  SHALL be named `<group><parameter>` (e.g. `vpnDomain`,
   `hostArchitecture`, `onePasswordVault`). Grouping is expressed by the name
   prefix and by file organization, never by nesting variables into a dict.
 

@@ -5,22 +5,9 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
-    "tailscaleEnable": {
-      "type": "boolean",
-      "description": "Set true to enable Tailscale for this host."
-    },
     "tailscaleSSH": {
       "type": "boolean",
       "description": "Set true to enable Tailscale SSH (the --ssh flag) for this host."
-    },
-    "tailscaleDomain": {
-      "type": "string",
-      "default": "tail313959.ts.net",
-      "description": "Tailscale tailnet domain suffix. Combined with tailscaleHostname to form the FQDN used for SSH connectivity."
-    },
-    "tailscaleHostname": {
-      "type": "string",
-      "description": "Per-host Tailscale machine name. Combined with tailscaleDomain to form the SSH target FQDN."
     },
     "tailscaleVersion": {
       "type": "string",
@@ -29,17 +16,8 @@
     }
   },
   "properties": {
-    "tailscaleEnable": {
-      "$ref": "#/$defs/tailscaleEnable"
-    },
     "tailscaleSSH": {
       "$ref": "#/$defs/tailscaleSSH"
-    },
-    "tailscaleDomain": {
-      "$ref": "#/$defs/tailscaleDomain"
-    },
-    "tailscaleHostname": {
-      "$ref": "#/$defs/tailscaleHostname"
     },
     "tailscaleVersion": {
       "$ref": "#/$defs/tailscaleVersion"

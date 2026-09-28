@@ -1,19 +1,49 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "SSH Variables",
-  "description": "Shared SSH capability variables. Names are flat, camelCase, and prefixed with ssh.",
+  "description": "Shared SSH routing variables.",
   "type": "object",
   "additionalProperties": true,
   "$defs": {
-    "useTailscale": {
+    "sshKeyPrefix": {
+      "type": "string",
+      "default": "sshkey",
+      "description": "Prefix used to construct the per-host 1Password SSH Key item name."
+    },
+    "vpnEnable": {
+      "type": "boolean",
+      "description": "Set true to enable VPN connectivity for this host."
+    },
+    "vpnHostname": {
+      "type": "string",
+      "description": "Per-host VPN name combined with vpnDomain for SSH routing."
+    },
+    "useVpn": {
       "type": "boolean",
       "default": false,
-      "description": "Use the Tailscale address for SSH routing."
+      "description": "Use the VPN address for SSH routing."
+    },
+    "vpnDomain": {
+      "type": "string",
+      "default": "tail313959.ts.net",
+      "description": "VPN domain suffix combined with the VPN hostname for SSH routing."
     }
   },
   "properties": {
-    "useTailscale": {
-      "$ref": "#/$defs/useTailscale"
+    "sshKeyPrefix": {
+      "$ref": "#/$defs/sshKeyPrefix"
+    },
+    "vpnEnable": {
+      "$ref": "#/$defs/vpnEnable"
+    },
+    "vpnHostname": {
+      "$ref": "#/$defs/vpnHostname"
+    },
+    "useVpn": {
+      "$ref": "#/$defs/useVpn"
+    },
+    "vpnDomain": {
+      "$ref": "#/$defs/vpnDomain"
     }
   }
 }

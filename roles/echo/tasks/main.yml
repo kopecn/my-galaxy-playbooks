@@ -24,6 +24,7 @@
 - name: Echo phrase on the target host
   ansible.builtin.command:
     cmd: "echo {{ echo_phrase }}"
+  timeout: 10
   register: echoTargetResult
   changed_when: false
 

@@ -42,9 +42,8 @@ the operation with a clear error; other hosts and playbooks continue.
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 
-`tailscaleHostname` and `tailscaleDomain` are declared in the schema but are
-**not yet consumed** by any task in this role — they describe intent that
-isn't wired up yet.
+`vpnHostname` is combined with the SSH router's `vpnDomain` when
+`useVpn` is enabled. The Tailscale role does not select the SSH route.
 
 ## Usage
 
