@@ -3,14 +3,12 @@
 onePasswordVault: Personal-Automation
 
 provisionHostSshUser: >-
-  {{ hostvars[inventory_hostname]['ansible_user']
-     | default(hostvars[inventory_hostname]['hostUserName'] | default('')) }}
+  {{ ansible_user | default(hostUserName | default('')) }}
 provisionHostSshHost: >-
-  {{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}
-provisionHostSshPort: >-
-  {{ hostvars[inventory_hostname]['ansible_port'] | default(22) }}
+  {{ ansible_host | default(inventory_hostname) }}
+provisionHostSshPort: 22
 provisionHostSshItemName: >-
-  sshkey-{{ (hostvars[inventory_hostname]['hostName'] | default(inventory_hostname)).split('.')[0] }}
+  sshkey-{{ (hostName | default(inventory_hostname)).split('.')[0] }}
 provisionHostSshKeyType: ed25519
 provisionHostSshOpTokenFile: "{{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token"
 provisionHostSshSshdDropIn: /etc/ssh/sshd_config.d/00-zero-bringup.conf

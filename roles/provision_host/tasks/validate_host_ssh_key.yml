@@ -7,7 +7,7 @@
     sshPort: "{{ provisionHostSshPort }}"
     sshKeyItemName: "{{ provisionHostSshItemName }}"
     sshLoginItemName: >-
-      user-{{ (hostvars[inventory_hostname]['hostName'] | default(inventory_hostname)).split('.')[0] }}
+      user-{{ (hostName | default(inventory_hostname)).split('.')[0] }}
     sshValidationOpTokenFile: "{{ provisionHostSshOpTokenFile }}"
     sshStrictHostKeyChecking: "{{ provisionHostSshStrictHostKeyChecking }}"
     sshValidationTimeout: "{{ provisionHostSshValidationTimeout }}"

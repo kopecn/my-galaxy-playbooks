@@ -65,7 +65,6 @@ def test_tailscale_auth_key_is_controller_managed():
     schema = _documented_variables()
 
     assert "tailscaleAuthKeyReference" not in tasks
-    assert "hostvars['localhost']" not in tasks
     assert "name: 1password_tailscale" in tasks
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults

@@ -53,8 +53,8 @@ def test_router_preserves_inline_inventory_and_prioritizes_vpn():
 
     assert tasks.index("useVpn | bool") < tasks.index("',' in inventory_file")
     assert "{{ inventory_hostname }}" in tasks
-    assert "{{ hostName }}.local" in tasks
-    assert "{{ vpnHostname }}.{{ vpnDomain }}" in tasks
+    assert "hostName ~ '.local'" in tasks
+    assert "vpnHostname ~ '.' ~ vpnDomain" in tasks
 
 
 def test_router_rejects_ambiguous_bare_inline_targets():
