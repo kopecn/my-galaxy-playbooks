@@ -1,11 +1,11 @@
 # SSH routing
 
-Every remote playbook enters `1password_ssh_user_pass`, then `ssh`, before its
+Every remote playbook enters `onepassword`, then `ssh`, before its
 action role. Credential resolution and routing remain separate steps.
 
 ```mermaid
 flowchart TD
-    Start[Playbook starts] --> Credentials[1password_ssh_user_pass loads username, password, and key]
+    Start[Playbook starts] --> Credentials[onepassword ssh_user_pass task loads username, password, and key]
     Credentials --> Gate{Inline target explicit?}
     Gate -->|bare hostname| Reject[Reject ambiguous target]
     Gate -->|IP or qualified hostname<br/>such as &lt;hostname&gt;.example.com| Flag{useVpn}
@@ -50,7 +50,7 @@ The inventory owns `hostName`, `vpnHostname`, `vpnDomain`, and the
 
 ## SSH credentials
 
-The `1password_ssh_user_pass` role loads the SSH username from
+The `onepassword` role's `ssh_user_pass` task loads the SSH username from
 `<sshLoginPrefix>-<short-hostname>/username` and assigns it to `ansible_user`.
 `sshLoginPrefix` defaults to `user`.
 

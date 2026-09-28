@@ -6,6 +6,8 @@ shared onepassword role rather than a hand-built op read via scripts/with-op.
 
 from pathlib import Path
 
+import yaml
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INSTALL = REPO_ROOT / "roles" / "samba" / "tasks" / "install-Debian.yml"
@@ -14,10 +16,17 @@ INSTALL = REPO_ROOT / "roles" / "samba" / "tasks" / "install-Debian.yml"
 def test_samba_secrets_resolve_through_the_onepassword_role():
     tasks = INSTALL.read_text()
     query_defaults = (
-        REPO_ROOT / "roles" / "1password_samba" / "defaults" / "main.yml"
+        REPO_ROOT / "roles" / "onepassword" / "defaults" / "main.yml"
     ).read_text()
+    playbook = yaml.safe_load(
+        (REPO_ROOT / "playbooks" / "samba_install.yml").read_text()
+    )
 
-    assert "name: 1password_samba" in tasks
+    assert "ansible.builtin.include_role" not in tasks
+    assert playbook[0]["roles"][0]["onePasswordTasks"] == [
+        "ssh_user_pass",
+        "samba",
+    ]
     assert "sambaUsername:" in query_defaults
     assert "sambaEffectivePassword:" in query_defaults
     # Keyed on the documented inputs.

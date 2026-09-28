@@ -30,8 +30,15 @@ def test_tailscale_operation_has_thin_playbook(operation):
     playbook = yaml.safe_load(playbook_path.read_text())
 
     assert len(playbook) == 1
+    onepassword_tasks = ["ssh_user_pass"]
+    if operation == "up":
+        onepassword_tasks.append("tailscale")
+
     assert playbook[0]["roles"] == [
-        {"role": "1password_ssh_user_pass"},
+        {
+            "role": "onepassword",
+            "onePasswordTasks": onepassword_tasks,
+        },
         {"role": "ssh"},
         {
             "role": "tailscale",
@@ -60,12 +67,19 @@ def test_tailscale_auth_key_is_controller_managed():
         (REPO_ROOT / "roles" / "tailscale" / "defaults" / "main.yml").read_text()
     )
     credential_defaults = (
-        REPO_ROOT / "roles" / "1password_tailscale" / "defaults" / "main.yml"
+        REPO_ROOT / "roles" / "onepassword" / "defaults" / "main.yml"
     ).read_text()
     schema = _documented_variables()
+    playbook = yaml.safe_load(
+        (REPO_ROOT / "playbooks" / "tailscale_up.yml").read_text()
+    )
 
     assert "tailscaleAuthKeyReference" not in tasks
-    assert "name: 1password_tailscale" in tasks
+    assert "ansible.builtin.include_role" not in tasks
+    assert playbook[0]["roles"][0]["onePasswordTasks"] == [
+        "ssh_user_pass",
+        "tailscale",
+    ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults
     assert "{{ onePasswordTailscaleAPIKey }}" in credential_defaults
@@ -79,9 +93,11 @@ def test_secret_reads_use_the_onepassword_role_not_a_wrapper():
     wrapper script and no raw token env remain in the consuming role."""
     up_tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
     role_defaults = (
-        REPO_ROOT / "roles" / "1password_tailscale" / "defaults" / "main.yml"
+        REPO_ROOT / "roles" / "onepassword" / "defaults" / "main.yml"
     ).read_text()
-    role_tasks = (REPO_ROOT / "roles" / "onepassword" / "tasks" / "main.yml").read_text()
+    role_tasks = (
+        REPO_ROOT / "roles" / "onepassword" / "tasks" / "read_queries.yml"
+    ).read_text()
     makefile = (REPO_ROOT / "Makefile").read_text()
 
     assert "with-op" not in up_tasks
@@ -108,7 +124,7 @@ def test_become_password_is_loaded_by_the_ssh_credential_role():
     config = ConfigParser()
     config.read(REPO_ROOT / "ansible.cfg")
     credential_tasks = (
-        REPO_ROOT / "roles" / "1password_ssh_user_pass" / "tasks" / "main.yml"
+        REPO_ROOT / "roles" / "onepassword" / "tasks" / "ssh_user_pass.yml"
     ).read_text()
 
     assert "become_password_file" not in config["defaults"]

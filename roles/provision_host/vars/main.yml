@@ -10,9 +10,3 @@ provisionHostSshSupportMatrix:
     - x86_64
     - aarch64
     - armv7l
-
-provisionHostSshSupportedKeyTypes:
-  - ed25519
-  - rsa2048
-  - rsa3072
-  - rsa4096

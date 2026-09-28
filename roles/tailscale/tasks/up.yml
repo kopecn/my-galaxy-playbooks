@@ -54,13 +54,6 @@
     - tailscaleNeedsUp
     - not ansible_check_mode
 
-- name: Resolve the Tailscale auth key from 1Password on the controller
-  ansible.builtin.include_role:
-    name: 1password_tailscale
-  when:
-    - tailscaleNeedsUp
-    - not ansible_check_mode
-
 - name: Connect Tailscale with SSH and accepted routes
   ansible.builtin.command:
     argv:

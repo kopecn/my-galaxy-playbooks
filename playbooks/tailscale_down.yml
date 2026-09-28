@@ -4,7 +4,9 @@
   gather_facts: false
   serial: 1
   roles:
-    - role: 1password_ssh_user_pass
+    - role: onepassword
+      onePasswordTasks:
+        - ssh_user_pass
     - role: ssh
     - role: tailscale
       tailscaleOperation: down

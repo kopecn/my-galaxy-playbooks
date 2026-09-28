@@ -1,9 +1,7 @@
 ---
 - name: Resolve the SSH username, password, and private key from 1Password
-  ansible.builtin.include_role:
-    name: onepassword
+  ansible.builtin.include_tasks: read_queries.yml
   vars:
-    op_token_file: "{{ onePasswordTokenFile }}"
     op_queries: "{{ onePasswordSshUserPassQueries }}"
 
 - name: Apply the SSH password for privilege escalation

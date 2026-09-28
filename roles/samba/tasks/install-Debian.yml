@@ -1,22 +1,4 @@
 ---
-- name: Resolve the Samba username from 1Password on the controller
-  when: sambaUsername is not defined or (sambaUsername | length == 0)
-  block:
-    - name: Validate the controller's 1Password configuration for the Samba username
-      ansible.builtin.assert:
-        that:
-          - onePasswordVault | length > 0
-          - sambaPasswordOpItem is defined
-          - sambaPasswordOpItem | length > 0
-        fail_msg: >-
-          Set sambaUsername directly, or set onePasswordVault (role default or
-          downstream inventory) and sambaPasswordOpItem (per-host inventory) so
-          the Samba username can be read from 1Password for {{ inventory_hostname }}.
-
-    - name: Resolve the Samba username on the controller
-      ansible.builtin.include_role:
-        name: 1password_samba
-
 - name: Validate the Samba account configuration
   ansible.builtin.assert:
     that:
@@ -123,26 +105,15 @@
       no_log: true
       when: sambaPassword is defined and (sambaPassword | length > 0)
 
-    - name: Resolve the Samba password from 1Password on the controller
-      when: sambaPassword is not defined or (sambaPassword | length == 0)
-      block:
-        - name: Validate the controller's 1Password configuration for Samba
-          ansible.builtin.assert:
-            that:
-              - onePasswordVault | length > 0
-              - sambaPasswordOpItem is defined
-              - sambaPasswordOpItem | length > 0
-            fail_msg: >-
-              Set onePasswordVault (role default or downstream inventory) and
-              sambaPasswordOpItem (per-host inventory) so the Samba password can
-              be read from 1Password for {{ inventory_hostname }}.
-
-        - name: Resolve the Samba password on the controller
-          ansible.builtin.include_role:
-            name: 1password_samba
-          when: >-
-            sambaEffectivePassword is not defined
-            or (sambaEffectivePassword | length == 0)
+    - name: Validate the Samba password is available
+      ansible.builtin.assert:
+        that:
+          - sambaEffectivePassword is defined
+          - sambaEffectivePassword | length > 0
+        fail_msg: >-
+          Declare the samba workflow in onePasswordTasks or provide
+          sambaPassword directly.
+      no_log: true
 
     - name: Create the Samba user with the resolved password
       ansible.builtin.command:

@@ -17,14 +17,13 @@
       - provisionHostSshPort | int > 0
       - provisionHostSshPort | int <= 65535
       - provisionHostSshItemName | length > 0
-      - provisionHostSshKeyType in provisionHostSshSupportedKeyTypes
       - provisionHostSshStrictHostKeyChecking in ['yes', 'accept-new']
       - provisionHostSshValidationTimeout | int > 0
       - provisionHostSshValidationExtraArgs is sequence
       - provisionHostSshValidationExtraArgs is not string
     fail_msg: >-
       Set a non-root provisionHostSshUser, a valid host and port, a non-empty
-      item name, and supported key and validation options.
+      item name, and valid connection options.
 
 - name: Normalize the gathered architecture to its canonical name
   ansible.builtin.set_fact:

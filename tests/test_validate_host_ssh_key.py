@@ -8,7 +8,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SSH_ROLE = REPO_ROOT / "roles" / "ssh"
-SSH_CREDENTIAL_ROLE = REPO_ROOT / "roles" / "1password_ssh_user_pass"
+ONEPASSWORD_ROLE = REPO_ROOT / "roles" / "onepassword"
 
 
 def test_validation_playbook_uses_the_shared_credential_and_router_roles():
@@ -20,13 +20,16 @@ def test_validation_playbook_uses_the_shared_credential_and_router_roles():
     assert playbook[0]["gather_facts"] is False
     assert playbook[0]["serial"] == 1
     assert playbook[0]["roles"] == [
-        {"role": "1password_ssh_user_pass"},
+        {
+            "role": "onepassword",
+            "onePasswordTasks": ["ssh_user_pass"],
+        },
         {"role": "ssh"},
     ]
 
 
 def test_onepassword_queries_use_only_the_short_hostname():
-    defaults = (SSH_CREDENTIAL_ROLE / "defaults" / "main.yml").read_text()
+    defaults = (ONEPASSWORD_ROLE / "defaults" / "main.yml").read_text()
 
     assert "sshKeyPrefix" in defaults
     assert "sshLoginPrefix" in defaults
@@ -44,8 +47,14 @@ def test_every_remote_playbook_runs_credentials_then_router():
             for role in play["roles"]
         ]
         assert play["gather_facts"] is False, path.name
-        assert role_names[0] == "1password_ssh_user_pass", path.name
+        assert role_names[0] == "onepassword", path.name
         assert role_names[1] == "ssh", path.name
+        expected_tasks = ["ssh_user_pass"]
+        if path.name == "samba_install.yml":
+            expected_tasks.append("samba")
+        if path.name == "tailscale_up.yml":
+            expected_tasks.append("tailscale")
+        assert play["roles"][0]["onePasswordTasks"] == expected_tasks, path.name
 
 
 def test_router_preserves_inline_inventory_and_prioritizes_vpn():

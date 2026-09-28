@@ -38,13 +38,14 @@
     },
     "provisionHostSshKeyType": {
       "type": "string",
+      "default": "ed25519",
       "enum": [
         "ed25519",
         "rsa2048",
         "rsa3072",
         "rsa4096"
       ],
-      "description": "Key type passed to op item create --ssh-generate-key when the item does not exist. Defaults to ed25519."
+      "description": "Key type passed to op item create --ssh-generate-key when the item does not exist."
     },
     "provisionHostSshOpTokenFile": {
       "type": "string",

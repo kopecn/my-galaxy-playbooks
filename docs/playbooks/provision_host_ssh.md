@@ -107,7 +107,7 @@ inventory. See the
 | `provisionHostSshHost` | `ansible_host`, then `inventory_hostname` | Address used for independent validation. |
 | `provisionHostSshPort` | `ansible_port`, then `22` | SSH validation port and bookmark port. |
 | `provisionHostSshItemName` | `sshkey-<hostname>` | Exact 1Password SSH Key item title. |
-| `provisionHostSshKeyType` | `ed25519` | New-key algorithm; RSA sizes are also accepted. |
+| `provisionHostSshKeyType` | `ed25519` | New-key algorithm. |
 | `provisionHostSshOpTokenFile` | `~/.config/op/op-service-account-token` | Controller service-account token file. |
 | `provisionHostSshSshdDropIn` | `/etc/ssh/sshd_config.d/00-zero-bringup.conf` | Bootstrap drop-in replaced during hardening. |
 | `provisionHostSshStrictHostKeyChecking` | `accept-new` | Pin the first host key for the current run; ephemeral trust resets on the next run. |
