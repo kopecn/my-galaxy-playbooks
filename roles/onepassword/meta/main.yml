@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: onepassword
   author: nbergantz
-  description: Resolve 1Password secrets on the Ansible controller into facts.
+  description: Resolve 1Password secrets on the super agent into facts.
   license: MIT
   min_ansible_version: "2.16"
   platforms:

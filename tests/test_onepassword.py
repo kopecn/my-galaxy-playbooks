@@ -1,4 +1,4 @@
-"""Static contracts for controller-side 1Password query roles."""
+"""Static contracts for super-agent-side 1Password query roles."""
 
 from pathlib import Path
 
@@ -16,7 +16,9 @@ def test_role_resolves_secret_maps_and_exact_queries():
     assert "op_queries" in tasks
     assert "op\n      - read" in tasks
     assert "op_token_file" in defaults
-    assert ".config/op/op-service-account-token" in defaults["onePasswordTokenFile"]
+    assert ".config/op/op-service-account-token" == defaults["onePasswordTokenPath"]
+    assert "superAgentHomeDir" in defaults["onePasswordTokenFile"]
+    assert "onePasswordTokenPath" in defaults["onePasswordTokenFile"]
     assert "lookup('ansible.builtin.file', op_token_file)" in tasks
 
 

@@ -34,8 +34,8 @@ the operation with a clear error; other hosts and playbooks continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `onePasswordVault` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the controller; never read from target inventory. |
-| `onePasswordTailscaleAPIKey` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the controller; never read from target inventory. |
+| `onePasswordVault` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the super agent; never read from target inventory. |
+| `onePasswordTailscaleAPIKey` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the super agent; never read from target inventory. |
 | `tailscaleSSH` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | Enable Tailscale SSH (the `--ssh` flag) on `up`. Defaults to `true`; set `false` to bring the node up without Tailscale SSH. |
 | `tailscaleVersion` | `group_vars`/`host_vars` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS — `update` rejects a pin there. |
 | `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
@@ -47,7 +47,7 @@ Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-va
 
 ## Usage
 
-`up` reads the Tailscale auth key from 1Password on the controller. It does
+`up` reads the Tailscale auth key from 1Password on the super agent. It does
 not read the key or its reference from target-host inventory. Set the vault and
 item names via the role defaults (`roles/tailscale/defaults/main.yml`), a
 downstream inventory, or `-e` at run time:
@@ -58,10 +58,10 @@ onePasswordTailscaleAPIKey: your-item-name
 ```
 
 The key itself is passed
-directly from the controller's `op` CLI to `tailscale up` over stdin and is
+directly from the super agent's `op` CLI to `tailscale up` over stdin and is
 never written to inventory or disk.
 
-Secret resolution runs through the shared `onepassword` role on the controller,
+Secret resolution runs through the shared `onepassword` role on the super agent,
 which reads `~/.config/op/op-service-account-token`. The
 `tailscale` task owns the exact auth-key query. A `--check` dry-run does not
 query 1Password.

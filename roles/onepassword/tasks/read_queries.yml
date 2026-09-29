@@ -7,7 +7,7 @@
     fail_msg: >-
       Include the onepassword role with a populated op_queries map.
 
-- name: Confirm the 1Password service-account token exists on the controller
+- name: Confirm the 1Password service-account token exists on the super agent
   ansible.builtin.stat:
     path: "{{ op_token_file }}"
   delegate_to: localhost
@@ -25,9 +25,9 @@
       - (opTokenFileStat.stat.size | default(0)) > 0
     fail_msg: >-
       No usable 1Password service-account token at {{ op_token_file }} on the
-      controller. Write the service-account token to that file before running.
+      super agent. Write the service-account token to that file before running.
 
-- name: Ensure the 1Password CLI is available on the controller
+- name: Ensure the 1Password CLI is available on the super agent
   ansible.builtin.command: op --version
   delegate_to: localhost
   become: false
@@ -36,7 +36,7 @@
   check_mode: false
   changed_when: false
 
-- name: Read each requested 1Password query on the controller
+- name: Read each requested 1Password query on the super agent
   ansible.builtin.command:
     argv:
       - op

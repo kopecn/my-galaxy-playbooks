@@ -15,7 +15,7 @@
     },
     "sambaPasswordOpItem": {
       "type": "string",
-      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the controller by the onepassword role. Role default (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
+      "description": "1Password item name (within onePasswordVault) whose 'password' field holds the Samba password. Resolved on the super agent by the onepassword role. Role default (empty), overridden per variable or per host/group in a downstream inventory. Varies by machine."
     },
     "sambaPassword": {
       "type": "string",

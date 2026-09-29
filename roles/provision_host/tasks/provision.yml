@@ -1,9 +1,0 @@
----
-- name: Ensure the host key exists in 1Password
-  ansible.builtin.include_tasks: ensure_key.yml
-
-- name: Install the host public key
-  ansible.builtin.include_tasks: install_key.yml
-
-- name: Validate key access and disable password SSH
-  ansible.builtin.include_tasks: disable_password.yml

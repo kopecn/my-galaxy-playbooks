@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-27
-semver: 0.3.0
+last_updated: 2026-09-28
+semver: 0.3.1
 author: Nicholas Bergantz
 scope: project
 ---
@@ -51,7 +51,7 @@ features — for example `hostOperatingSystem`, `hostArchitecture`, `vscodeEnabl
   at [`tests/inventory/hosts.ini`](../../../tests/inventory/hosts.ini)
   (`localhost ansible_connection=local`). It is the default `INVENTORY` and
   `TEST_INVENTORY` for the Makefile, so `make check/run/ping/syntax-check` run
-  locally against the controller with `-e`/`LIMIT` arguments. It is a test
+  locally against the super agent with `-e`/`LIMIT` arguments. It is a test
   fixture, not shipped host data.
 - Every project variable SHALL be documented in the variable schema
   (see [Variable Schema Organization](#variable-schema-organization)) with a

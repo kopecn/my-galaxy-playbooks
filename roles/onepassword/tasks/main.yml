@@ -1,4 +1,13 @@
 ---
+- name: Resolve the super agent's home directory once
+  ansible.builtin.set_fact:
+    superAgentHomeDir: "{{ lookup('ansible.builtin.env', 'HOME') }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  run_once: true
+
 - name: Validate the requested 1Password tasks
   ansible.builtin.assert:
     that:

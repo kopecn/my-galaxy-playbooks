@@ -60,7 +60,7 @@ def test_tailscale_cli_variables_are_documented(variable):
     assert variable in _documented_variables()
 
 
-def test_tailscale_auth_key_is_controller_managed():
+def test_tailscale_auth_key_is_super_agent_managed():
     """The auth key and its reference never come from target inventory."""
     tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
     role_defaults = yaml.safe_load(
@@ -89,7 +89,7 @@ def test_tailscale_auth_key_is_controller_managed():
 
 
 def test_secret_reads_use_the_onepassword_role_not_a_wrapper():
-    """Secret reads resolve through the onepassword role on the controller; no
+    """Secret reads resolve through the onepassword role on the super agent; no
     wrapper script and no raw token env remain in the consuming role."""
     up_tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "up.yml").read_text()
     role_defaults = (

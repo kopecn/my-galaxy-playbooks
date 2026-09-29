@@ -42,14 +42,14 @@
          or tailscaleSshSetting.stdout | trim != (tailscaleSSH | bool | string | lower)
          or tailscaleAcceptRoutesSetting.stdout | trim != 'true' }}
 
-- name: Validate the controller's 1Password configuration
+- name: Validate the super agent's 1Password configuration
   ansible.builtin.assert:
     that:
       - onePasswordVault | length > 0
       - onePasswordTailscaleAPIKey | length > 0
     fail_msg: >-
       Set onePasswordVault and onePasswordTailscaleAPIKey via the role defaults
-      or the downstream inventory so the auth key can be read on the controller.
+      or the downstream inventory so the auth key can be read on the super agent.
   when:
     - tailscaleNeedsUp
     - not ansible_check_mode

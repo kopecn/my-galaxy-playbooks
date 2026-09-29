@@ -29,10 +29,10 @@ continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `sambaUsername` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | SMB/Unix account name to provision. Required for `install`. When unset, it is resolved on the controller from the `username` field of `sambaPasswordOpItem` in 1Password. |
-| `sambaPasswordOpItem` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item name (within `onePasswordVault`) whose `username` and `password` fields hold the Samba account name and password. Resolved on the controller. Empty default forces an explicit override. |
+| `sambaUsername` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | SMB/Unix account name to provision. Required for `install`. When unset, it is resolved on the super agent from the `username` field of `sambaPasswordOpItem` in 1Password. |
+| `sambaPasswordOpItem` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item name (within `onePasswordVault`) whose `username` and `password` fields hold the Samba account name and password. Resolved on the super agent. Empty default forces an explicit override. |
 | `sambaPassword` | Extra var (`-e`), never persisted | Direct password, resolved at run time. Use it to pass a password without 1Password; when unset the password comes from `sambaPasswordOpItem` via 1Password. |
-| `onePasswordVault` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Samba password item. Resolved on the controller; never read from target inventory. |
+| `onePasswordVault` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Samba password item. Resolved on the super agent; never read from target inventory. |
 | `hostOperatingSystem`, `hostArchitecture` | override or `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
@@ -46,7 +46,7 @@ precedence expresses the host↔user many-to-many.
 
 ## Usage
 
-`install` reads the Samba password from 1Password on the controller. It does not
+`install` reads the Samba password from 1Password on the super agent. It does not
 read the password or its reference from target-host inventory. Set the vault name
 via the role default (`roles/samba/defaults/main.yml`), a downstream inventory,
 or `-e` at run time:
@@ -55,9 +55,9 @@ or `-e` at run time:
 onePasswordVault: your-vault-name
 ```
 
-The password is passed directly from the controller's `op` CLI to `smbpasswd`
+The password is passed directly from the super agent's `op` CLI to `smbpasswd`
 over stdin and is never written to inventory or disk. Secret resolution runs
-through the shared `onepassword` role on the controller, which reads
+through the shared `onepassword` role on the super agent, which reads
 `~/.config/op/op-service-account-token`. Its `samba` task owns the exact
 username and password queries, including
 when the playbook is started directly or by an IDE.
@@ -120,7 +120,7 @@ ansible-playbook playbooks/samba_diagnose.yml -i '<host-or-ip>,' -b \
 
 `roles/samba` has a Molecule scenario covering the Debian install path only. The
 scenario supplies `sambaPassword` directly because the container cannot reach
-the controller's 1Password:
+the super agent's 1Password:
 
 ```bash
 make test-molecule-samba

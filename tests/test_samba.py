@@ -1,6 +1,6 @@
-"""Static contract checks for Samba controller-side secret resolution.
+"""Static contract checks for Samba super-agent-side secret resolution.
 
-Both the Samba username and password resolve on the controller through the
+Both the Samba username and password resolve on the super agent through the
 shared onepassword role rather than a hand-built op read via scripts/with-op.
 """
 

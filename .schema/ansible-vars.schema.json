@@ -7,7 +7,7 @@
   "$defs": {
     "echo_phrase": {
       "type": "string",
-      "description": "Phrase the echo role prints on the controller and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
+      "description": "Phrase the echo role prints on the super agent and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
     },
     "env": {
       "type": "string",

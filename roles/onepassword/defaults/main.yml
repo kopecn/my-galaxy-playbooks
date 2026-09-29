@@ -5,8 +5,9 @@ sshKeyPrefix: sshkey
 sshLoginPrefix: user
 onePasswordTailscaleAPIKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
 
-onePasswordTokenFile: >-
-  {{ lookup('ansible.builtin.env', 'HOME') }}/.config/op/op-service-account-token
+onePasswordTokenPath: .config/op/op-service-account-token
+
+onePasswordTokenFile: "{{ superAgentHomeDir }}/{{ onePasswordTokenPath }}"
 
 onePasswordSshUserPassQueries:
   ansible_user: >-

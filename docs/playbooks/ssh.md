@@ -23,7 +23,7 @@ flowchart TD
 ## Inline inventory
 
 An inline host list must provide an explicit address or qualified hostname.
-Single-label names such as `hostname` are rejected because the controller's DNS
+Single-label names such as `hostname` are rejected because the super agent's DNS
 search domains could route them differently. The router does not append,
 remove, or replace any part of an accepted target.
 

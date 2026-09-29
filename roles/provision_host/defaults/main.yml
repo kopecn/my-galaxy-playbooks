@@ -1,4 +1,0 @@
----
-# Lowest-precedence inputs. Override these in the downstream inventory.
-onePasswordVault: Personal-Automation
-onePasswordTailscaleAPIKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
