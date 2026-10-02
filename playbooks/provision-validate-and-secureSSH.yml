@@ -5,4 +5,6 @@
   roles:
     - role: ssh
     - role: ssh_provisioning
-      sshProvisioningOperation: validate
+      sshProvisioningOperations:
+        - validate
+        - disable_password

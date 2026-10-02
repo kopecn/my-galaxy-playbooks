@@ -7,6 +7,11 @@
     fail_msg: >-
       lmStudioOperation must be one of {{ lmStudioSupportedOperations }}.
 
+- name: Gather target platform facts after resolving the SSH route
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+
 - name: Normalize the gathered architecture to its canonical name
   ansible.builtin.set_fact:
     lmStudioArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"

@@ -1,7 +1,7 @@
 ---
 # Gate 3 (validate): prove the key installed by install_key authenticates over
-# SSH. This validates only; it does not disable password access (the lock-down
-# half of gate 3 is not yet wired in).
+# a publickey-only SSH connection. The disable_password operation includes this
+# task file as its mandatory safety gate before changing sshd.
 
 - name: Require the provisioning username
   ansible.builtin.assert:
@@ -40,3 +40,7 @@
 
 - name: Validate that the installed key authenticates
   ansible.builtin.ping:
+
+- name: Mark key-only SSH authentication as validated
+  ansible.builtin.set_fact:
+    sshProvisioningKeyValidated: true

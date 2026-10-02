@@ -81,6 +81,21 @@ first to resolve the route and isolation, then runs its action role. You select
 routing through the invocation and inventory described above — an explicit inline
 `-i '<host-or-ip>,'` target, an inventory file, or `useVpn`.
 
+The role dispatches its ordered `sshOperations` list to matching task files.
+`sshOperations` defaults to `[resolve]`, so existing `role: ssh` entries resolve
+the route without extra configuration. A playbook can also declare the operation
+list explicitly; future composable SSH operations are appended in execution
+order:
+
+```yaml
+- role: ssh
+  sshOperations:
+    - resolve
+```
+
+Each operation lives in `roles/ssh/tasks/<operation>.yml`; `tasks/main.yml`
+validates and dispatches the list.
+
 The operations that build on this router are the host-provisioning playbooks.
 Their runnable happy paths — first-contact connection with run-time credentials,
 key install, and lock-down — live in [[provisioning]], which documents those

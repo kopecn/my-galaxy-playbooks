@@ -1,38 +1,15 @@
 ---
-- name: Reject ambiguous bare inline SSH targets
+- name: Validate the requested SSH operations
   ansible.builtin.assert:
     that:
-      - >-
-        ',' not in (inventory_file | default('', true))
-        or '.' in inventory_hostname
-        or ':' in inventory_hostname
+      - sshOperations is sequence
+      - sshOperations is not string
+      - sshOperations | length > 0
     fail_msg: >-
-      Inline inventory target '{{ inventory_hostname }}' is ambiguous. Supply
-      an IPv4 address, IPv6 address, .local hostname, VPN hostname, or other
-      fully qualified DNS hostname.
+      Declare sshOperations as a non-empty list in the playbook role entry.
 
-- name: Resolve the SSH route
-  ansible.builtin.set_fact:
-    sshResolvedHost: >-
-      {{
-        vpnHostname ~ '.' ~ vpnDomain
-        if useVpn | bool
-        else inventory_hostname
-        if ',' in inventory_file
-        else hostName ~ '.local'
-      }}
-
-- name: Apply the resolved ephemeral SSH route
-  ansible.builtin.set_fact:
-    ansible_host: "{{ sshResolvedHost }}"
-    ansible_ssh_common_args: >-
-      -F /dev/null
-      -o UserKnownHostsFile=/dev/null
-      -o GlobalKnownHostsFile=/dev/null
-      -o StrictHostKeyChecking=no
-      -o ControlMaster=no
-      -o ControlPath=none
-
-- name: Report the resolved SSH route
-  ansible.builtin.debug:
-    msg: "SSH route: {{ inventory_hostname }} -> {{ sshResolvedHost }}"
+- name: Run the explicitly requested SSH operations
+  ansible.builtin.include_tasks: "{{ sshOperation }}.yml"
+  loop: "{{ sshOperations }}"
+  loop_control:
+    loop_var: sshOperation

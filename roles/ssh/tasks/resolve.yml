@@ -1,0 +1,38 @@
+---
+- name: Reject ambiguous bare inline SSH targets
+  ansible.builtin.assert:
+    that:
+      - >-
+        ',' not in (inventory_file | default('', true))
+        or '.' in inventory_hostname
+        or ':' in inventory_hostname
+    fail_msg: >-
+      Inline inventory target '{{ inventory_hostname }}' is ambiguous. Supply
+      an IPv4 address, IPv6 address, .local hostname, VPN hostname, or other
+      fully qualified DNS hostname.
+
+- name: Resolve the SSH route
+  ansible.builtin.set_fact:
+    sshResolvedHost: >-
+      {{
+        vpnHostname ~ '.' ~ vpnDomain
+        if useVpn | bool
+        else inventory_hostname
+        if ',' in inventory_file
+        else hostName ~ '.local'
+      }}
+
+- name: Apply the resolved ephemeral SSH route
+  ansible.builtin.set_fact:
+    ansible_host: "{{ sshResolvedHost }}"
+    ansible_ssh_common_args: >-
+      -F /dev/null
+      -o UserKnownHostsFile=/dev/null
+      -o GlobalKnownHostsFile=/dev/null
+      -o StrictHostKeyChecking=no
+      -o ControlMaster=no
+      -o ControlPath=none
+
+- name: Report the resolved SSH route
+  ansible.builtin.debug:
+    msg: "SSH route: {{ inventory_hostname }} -> {{ sshResolvedHost }}"

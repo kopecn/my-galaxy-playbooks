@@ -1,15 +1,29 @@
 ---
-# Dispatch to the requested provisioning operation. Each gate lives in its own
-# task file: connect.yml (gate 1), install.yml (gate 2), validate.yml (gate 3).
+# Dispatch the requested provisioning operations in order. Each gate lives in its own
+# task file: connect.yml (gate 1), install_key.yml (gate 2), validate.yml
+# (gate 3 validation), or disable_password.yml (gate 3 lock-down).
 
-- name: Validate the requested SSH provisioning operation
+- name: Validate the requested SSH provisioning operations
   ansible.builtin.assert:
     that:
-      - sshProvisioningOperation is defined
-      - sshProvisioningOperation in sshProvisioningOperations
+      - sshProvisioningOperations is sequence
+      - sshProvisioningOperations is not string
+      - sshProvisioningOperations | length > 0
+      - >-
+        sshProvisioningOperations
+        | difference(sshProvisioningSupportedOperations)
+        | length == 0
     fail_msg: >-
-      sshProvisioningOperation must be one of
-      {{ sshProvisioningOperations }}.
+      Declare sshProvisioningOperations as a non-empty list containing only
+      {{ sshProvisioningSupportedOperations }}.
 
-- name: Run the requested SSH provisioning operation
+- name: Initialize the SSH provisioning safety gates
+  ansible.builtin.set_fact:
+    sshProvisioningConnectionValidated: false
+    sshProvisioningKeyValidated: false
+
+- name: Run the explicitly requested SSH provisioning operations
   ansible.builtin.include_tasks: "{{ sshProvisioningOperation }}.yml"
+  loop: "{{ sshProvisioningOperations }}"
+  loop_control:
+    loop_var: sshProvisioningOperation

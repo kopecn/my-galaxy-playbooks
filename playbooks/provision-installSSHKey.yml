@@ -5,4 +5,6 @@
   roles:
     - role: ssh
     - role: ssh_provisioning
-      sshProvisioningOperation: install_key
+      sshProvisioningOperations:
+        - connect
+        - install_key

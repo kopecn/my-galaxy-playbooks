@@ -5,6 +5,21 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
+    "sshProvisioningOperations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "connect",
+          "install_key",
+          "validate",
+          "disable_password"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Ordered SSH provisioning operation workflows to run. The role executes each matching tasks/<operation>.yml file in list order."
+    },
     "sshProvisioningUsername": {
       "type": "string",
       "description": "SSH username used to connect to a host that is being provisioned. Supplied at run time on the command line (-e sshProvisioningUsername=...); never persisted."
@@ -12,14 +27,33 @@
     "sshProvisioningPassword": {
       "type": "string",
       "description": "SSH password used to connect to a host that is being provisioned. Supplied at run time on the command line (-e sshProvisioningPassword=...); never persisted."
+    },
+    "sshFileName": {
+      "type": "string",
+      "default": "common-ssh-key",
+      "description": "Basename of the local SSH keypair generated or validated by the ssh_provisioning role."
+    },
+    "sshKeyOverwrite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Replace an existing local SSH keypair with the configured sshFileName when true."
     }
   },
   "properties": {
+    "sshProvisioningOperations": {
+      "$ref": "#/$defs/sshProvisioningOperations"
+    },
     "sshProvisioningUsername": {
       "$ref": "#/$defs/sshProvisioningUsername"
     },
     "sshProvisioningPassword": {
       "$ref": "#/$defs/sshProvisioningPassword"
+    },
+    "sshFileName": {
+      "$ref": "#/$defs/sshFileName"
+    },
+    "sshKeyOverwrite": {
+      "$ref": "#/$defs/sshKeyOverwrite"
     }
   }
 }

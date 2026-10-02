@@ -39,7 +39,7 @@ def test_every_remote_playbook_runs_credentials_then_router():
 
 
 def test_router_preserves_inline_inventory_and_prioritizes_vpn():
-    tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+    tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
     assert tasks.index("useVpn | bool") < tasks.index("',' in inventory_file")
     assert "{{ inventory_hostname }}" in tasks
@@ -48,7 +48,7 @@ def test_router_preserves_inline_inventory_and_prioritizes_vpn():
 
 
 def test_router_rejects_ambiguous_bare_inline_targets():
-    tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+    tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
     assert "Reject ambiguous bare inline SSH targets" in tasks
     assert "or '.' in inventory_hostname" in tasks
@@ -57,13 +57,24 @@ def test_router_rejects_ambiguous_bare_inline_targets():
 
 
 def test_router_ignores_dot_ssh_config_and_control_sockets():
-    tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+    tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
     assert "-F /dev/null" in tasks
     assert "UserKnownHostsFile=/dev/null" in tasks
     assert "GlobalKnownHostsFile=/dev/null" in tasks
     assert "ControlMaster=no" in tasks
     assert "ControlPath=none" in tasks
+
+
+def test_router_dispatches_ordered_operations_with_resolve_as_default():
+    tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+    defaults = yaml.safe_load((SSH_ROLE / "defaults" / "main.yml").read_text())
+
+    assert defaults["sshOperations"] == ["resolve"]
+    assert 'include_tasks: "{{ sshOperation }}.yml"' in tasks
+    assert 'loop: "{{ sshOperations }}"' in tasks
+    assert "loop_var: sshOperation" in tasks
+    assert (SSH_ROLE / "tasks" / "resolve.yml").is_file()
 
 
 def test_all_ssh_role_defaults_are_in_the_ssh_schema():

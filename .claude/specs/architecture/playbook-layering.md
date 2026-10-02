@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-28
-semver: 0.3.1
+last_updated: 2026-10-02
+semver: 0.4.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -113,6 +113,35 @@ to branch on operating system or architecture.
   run, and other operations against the same host and other hosts SHALL continue.
   (See [Failure Isolation](#failure-isolation).)
 
+### Sequential operation routing
+
+When one role invocation can compose multiple ordered sub-operations, the role
+SHALL use list-based task dispatch:
+
+- Each operation SHALL live in `roles/<role>/tasks/<operation>.yml` and contain
+  the implementation for that operation.
+- The requested operations SHALL be a flat, plural, camelCase list named
+  `<role>Operations`. List order is execution order and is part of the role's
+  public interface.
+- `roles/<role>/tasks/main.yml` SHALL perform only shared setup, validate that
+  `<role>Operations` is a non-empty sequence and not a string, and dispatch the
+  operation files with `ansible.builtin.include_tasks` in a `loop`.
+- The dispatch loop SHALL set an explicit singular
+  `loop_control.loop_var` (`<role>Operation`) so included tasks do not depend on
+  or collide with Ansible's generic `item` variable.
+- When every invocation requires a canonical baseline operation, the role SHALL
+  declare that operation as the ordered list default in
+  `roles/<role>/defaults/main.yml`. Otherwise, the invoking playbook SHALL pass
+  the non-empty operation list in its role entry.
+- The list variable and its allowed operation names SHALL be documented in the
+  role's companion variable schema and toolset documentation.
+
+This pattern is for composing operations in one role invocation. A role whose
+operations are mutually exclusive SHALL keep a singular `<role>Operation`
+selector and direct include; application installer roles follow the stricter
+dispatch contract in
+[`application-installer-roles.md`](application-installer-roles.md).
+
 ## Layer 3 — Playbooks
 
 Playbooks declare intent and nothing more.
@@ -166,6 +195,8 @@ Conformance is observable:
 - Every role that supports more than one platform declares its supported
   `(operatingSystem × architecture)` set and validates declared OS/arch against
   gathered facts.
+- Every role that composes multiple operations in one invocation uses an ordered
+  plural `<role>Operations` list and an explicit singular dispatch loop variable.
 - All variable names are camelCase.
 - An operation targeting an unsupported `(operatingSystem × architecture)` errors
   for that operation while the rest of the run completes.

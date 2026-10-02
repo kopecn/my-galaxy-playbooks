@@ -3,11 +3,13 @@ galaxy_info:
   role_name: ssh_provisioning
   author: nbergantz
   description: >-
-    Host provisioning gates, dispatched by sshProvisioningOperation: connect
+    Host provisioning gates, dispatched in sshProvisioningOperations order:
+    connect
     (prove the host accepts the command-line username/password), install_key
     (generate an ed25519 keypair, push the public key to authorized_keys, move
-    the keypair into the control node's ~/.ssh), and validate (prove the
-    installed key authenticates over a publickey-only connection).
+    the keypair into the control node's ~/.ssh), validate (prove the installed
+    key authenticates over a publickey-only connection), and disable_password
+    (revalidate the key, then disable SSH password authentication safely).
   license: MIT
   min_ansible_version: "2.16"
   platforms:

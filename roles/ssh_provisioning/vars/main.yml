@@ -1,0 +1,7 @@
+---
+# Supported operation names match the gates in docs/playbooks/provisioning.md.
+sshProvisioningSupportedOperations:
+  - connect
+  - install_key
+  - validate
+  - disable_password

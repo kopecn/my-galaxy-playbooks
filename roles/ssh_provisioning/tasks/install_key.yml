@@ -1,12 +1,16 @@
 ---
 # Gate 2 (install key): reuse an existing local key by default, or generate an
 # ed25519 keypair in a temp dir when no key exists (or sshKeyOverwrite is true).
-# Push the selected public key to the host's authorized_keys. Runs the connect
-# gate first to bind credentials and prove the host is reachable. (Storing the
-# key in 1Password is not yet wired in.)
+# Push the selected public key to the host's authorized_keys. The ordered
+# operation dispatcher requires the connect gate to pass first. (Storing the key
+# in 1Password is not yet wired in.)
 
-- name: Run the connect gate before installing the key
-  ansible.builtin.include_tasks: connect.yml
+- name: Require a validated provisioning connection before installing the key
+  ansible.builtin.assert:
+    that:
+      - sshProvisioningConnectionValidated | bool
+    fail_msg: >-
+      Run connect before install_key in sshProvisioningOperations.
 
 - name: Ensure the local ~/.ssh directory exists
   ansible.builtin.file:

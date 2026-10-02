@@ -24,3 +24,7 @@
 
 - name: Prove the host accepts the provisioning credentials
   ansible.builtin.ping:
+
+- name: Mark the provisioning connection as validated
+  ansible.builtin.set_fact:
+    sshProvisioningConnectionValidated: true

@@ -5,6 +5,21 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
+    "sshOperations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "resolve"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "default": [
+        "resolve"
+      ],
+      "description": "Ordered SSH operation workflows to run. The role executes each matching tasks/<operation>.yml file in list order."
+    },
     "sshKeyPrefix": {
       "type": "string",
       "default": "sshkey",
@@ -31,6 +46,9 @@
     }
   },
   "properties": {
+    "sshOperations": {
+      "$ref": "#/$defs/sshOperations"
+    },
     "sshKeyPrefix": {
       "$ref": "#/$defs/sshKeyPrefix"
     },

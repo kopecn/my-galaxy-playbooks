@@ -1,10 +1,8 @@
 ---
-# Supported ssh_provisioning operations; main.yml dispatches to <operation>.yml.
-# Names match the gates in docs/playbooks/provisioning.md.
-sshProvisioningOperations:
-  - connect
-  - install_key
-  - validate
+# Ordered operation workflows requested by the invoking playbook. There is no
+# implicit provisioning operation because each workflow has different safety
+# and credential requirements.
+sshProvisioningOperations: []
 
 # Basename for the generated/validated SSH keypair (private = <sshFileName>,
 # public = <sshFileName>.pub). Lowest-precedence default; override at the
