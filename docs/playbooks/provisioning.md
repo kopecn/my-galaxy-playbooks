@@ -55,7 +55,7 @@ playbooks run with `gather_facts: false`.
 | Playbook | Gate | Implemented today |
 | --- | --- | --- |
 | `playbooks/provision-installSSHKey.yml` | 1–2 (connect + install key) | Routes to the host, binds the run-time username/password, generates an `ed25519` keypair in a temp dir, pushes the public key to the host's `authorized_keys` (`ansible.posix.authorized_key`), then moves the keypair into the control node's `~/.ssh/` as `{{ sshFileName }}` (default `common-ssh-key`). **1Password storage (gate 2's final step) is still pending.** |
-| `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | **Stub** — the play declares no tasks. |
+| `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | Validation **implemented**: connects as `provisioning_username` using the installed `~/.ssh/{{ sshFileName }}` over a publickey-only connection and proves it authenticates (`ansible.builtin.ping`). The lock-down step (disable password SSH) is **not yet wired in**. |
 
 ## Usage
 
@@ -79,6 +79,17 @@ public key to the host user's `authorized_keys`, and on success moves the keypai
 into the control node's `~/.ssh/` (`0600` private, `0644` public), overwriting any
 existing files of those names. Storing the key in 1Password is still pending.
 
-**Gate 3 — validate and lock down.** No happy path yet;
-`provision-validate-and-secureSSH.yml` is a stub and runs no tasks. This section
-will document its invocation once the gate is implemented.
+**Gate 3 — validate.** Prove the key installed in gate 2 logs in. The playbook
+connects as `provisioning_username` using `~/.ssh/{{ sshFileName }}` and forces a
+publickey-only connection (`PreferredAuthentications=publickey`,
+`PasswordAuthentication=no`, `BatchMode=yes`), so a passing `ping` means the key
+itself authenticated — not a password fallback:
+
+```bash
+ansible-playbook playbooks/provision-validate-and-secureSSH.yml -i '<host-or-ip>,' \
+  -e provisioning_username=<user> [-e sshFileName=<name>]
+```
+
+Use the same `sshFileName` you installed with (default `common-ssh-key`). No
+password is needed or used. The lock-down step (disabling password SSH) is not
+yet implemented.

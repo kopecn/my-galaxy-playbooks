@@ -1,0 +1,76 @@
+---
+# Gate 2 (install key): generate an ed25519 keypair in a temp dir, push its
+# public key to the host's authorized_keys, then move the keypair into the
+# control node's ~/.ssh. Runs the connect gate first to bind credentials and
+# prove the host is reachable. (Storing the key in 1Password is not yet wired in.)
+
+- name: Run the connect gate before installing the key
+  ansible.builtin.include_tasks: connect.yml
+
+- name: Create a temporary directory for the generated keypair
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: ssh-provisioning
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  register: sshKeyTmp
+
+- name: Generate the SSH keypair in the temporary directory
+  ansible.builtin.command:
+    argv:
+      - ssh-keygen
+      - -t
+      - ed25519
+      - -N
+      - ""
+      - -C
+      - "{{ sshFileName }}"
+      - -f
+      - "{{ sshKeyTmp.path }}/{{ sshFileName }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: true
+
+- name: Push the public key to the host's authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ provisioning_username }}"
+    state: present
+    key: "{{ lookup('file', sshKeyTmp.path ~ '/' ~ sshFileName ~ '.pub') }}"
+
+- name: Ensure the local ~/.ssh directory exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.ssh"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Move the generated keypair into ~/.ssh, overwriting any existing files
+  ansible.builtin.copy:
+    src: "{{ sshKeyTmp.path }}/{{ item.name }}"
+    dest: "{{ lookup('env', 'HOME') }}/.ssh/{{ item.name }}"
+    mode: "{{ item.mode }}"
+    remote_src: true
+    force: true
+  loop:
+    - { name: "{{ sshFileName }}", mode: "0600" }
+    - { name: "{{ sshFileName }}.pub", mode: "0644" }
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Remove the temporary keypair directory
+  ansible.builtin.file:
+    path: "{{ sshKeyTmp.path }}"
+    state: absent
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false

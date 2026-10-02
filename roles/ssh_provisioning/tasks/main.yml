@@ -1,91 +1,15 @@
 ---
-# Provisioning gate 1: connect with the run-time username and password.
-# Routing comes from the `ssh` role; credentials come from the command line
-# (-e provisioning_username=... -e provisioning_password=...), not 1Password.
+# Dispatch to the requested provisioning operation. Each gate lives in its own
+# task file: connect.yml (gate 1), install.yml (gate 2), validate.yml (gate 3).
 
-- name: Require the provisioning username and password
+- name: Validate the requested SSH provisioning operation
   ansible.builtin.assert:
     that:
-      - provisioning_username is defined
-      - provisioning_username | length > 0
-      - provisioning_password is defined
-      - provisioning_password | length > 0
+      - sshProvisioningOperation is defined
+      - sshProvisioningOperation in sshProvisioningOperations
     fail_msg: >-
-      Pass -e provisioning_username=... and -e provisioning_password=... on the
-      command line.
-  no_log: true
+      sshProvisioningOperation must be one of
+      {{ sshProvisioningOperations }}.
 
-- name: Bind the provisioning credentials to the SSH connection
-  ansible.builtin.set_fact:
-    ansible_user: "{{ provisioning_username }}"
-    ansible_password: "{{ provisioning_password }}"
-    ansible_become_password: "{{ provisioning_password }}"
-  no_log: true
-
-- name: Create a temporary directory for the generated keypair
-  ansible.builtin.tempfile:
-    state: directory
-    suffix: ssh-provisioning
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-  register: sshKeyTmp
-
-- name: Generate the SSH keypair in the temporary directory
-  ansible.builtin.command:
-    argv:
-      - ssh-keygen
-      - -t
-      - ed25519
-      - -N
-      - ""
-      - -C
-      - "{{ sshFileName }}"
-      - -f
-      - "{{ sshKeyTmp.path }}/{{ sshFileName }}"
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-  changed_when: true
-
-- name: Push the public key to the host's authorized_keys
-  ansible.posix.authorized_key:
-    user: "{{ provisioning_username }}"
-    state: present
-    key: "{{ lookup('file', sshKeyTmp.path ~ '/' ~ sshFileName ~ '.pub') }}"
-
-- name: Ensure the local ~/.ssh directory exists
-  ansible.builtin.file:
-    path: "{{ lookup('env', 'HOME') }}/.ssh"
-    state: directory
-    mode: "0700"
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-
-- name: Move the generated keypair into ~/.ssh, overwriting any existing files
-  ansible.builtin.copy:
-    src: "{{ sshKeyTmp.path }}/{{ item.name }}"
-    dest: "{{ lookup('env', 'HOME') }}/.ssh/{{ item.name }}"
-    mode: "{{ item.mode }}"
-    remote_src: true
-    force: true
-  loop:
-    - { name: "{{ sshFileName }}", mode: "0600" }
-    - { name: "{{ sshFileName }}.pub", mode: "0644" }
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-
-- name: Remove the temporary keypair directory
-  ansible.builtin.file:
-    path: "{{ sshKeyTmp.path }}"
-    state: absent
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
+- name: Run the requested SSH provisioning operation
+  ansible.builtin.include_tasks: "{{ sshProvisioningOperation }}.yml"

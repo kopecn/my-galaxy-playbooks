@@ -1,5 +1,12 @@
 ---
-# Basename for the generated SSH keypair (private = <sshFileName>, public =
-# <sshFileName>.pub). Lowest-precedence default; override at the playbook call
-# with -e sshFileName=...
+# Supported ssh_provisioning operations; main.yml dispatches to <operation>.yml.
+# Names match the gates in docs/playbooks/provisioning.md.
+sshProvisioningOperations:
+  - connect
+  - install_key
+  - validate
+
+# Basename for the generated/validated SSH keypair (private = <sshFileName>,
+# public = <sshFileName>.pub). Lowest-precedence default; override at the
+# playbook call with -e sshFileName=...
 sshFileName: common-ssh-key

@@ -3,10 +3,11 @@ galaxy_info:
   role_name: ssh_provisioning
   author: nbergantz
   description: >-
-    Bind the command-line provisioning_username and provisioning_password to the
-    SSH connection, generate an ed25519 keypair in a temporary directory, push
-    the public key to the host's authorized_keys, and move the keypair into the
-    control node's ~/.ssh (provisioning gate 2).
+    Host provisioning gates, dispatched by sshProvisioningOperation: connect
+    (prove the host accepts the command-line username/password), install_key
+    (generate an ed25519 keypair, push the public key to authorized_keys, move
+    the keypair into the control node's ~/.ssh), and validate (prove the
+    installed key authenticates over a publickey-only connection).
   license: MIT
   min_ansible_version: "2.16"
   platforms:
