@@ -10,3 +10,7 @@ sshProvisioningOperations:
 # public = <sshFileName>.pub). Lowest-precedence default; override at the
 # playbook call with -e sshFileName=...
 sshFileName: common-ssh-key
+
+# Preserve an existing local private key with the same sshFileName by default.
+# Set to true to generate a new keypair and replace the existing files.
+sshKeyOverwrite: false

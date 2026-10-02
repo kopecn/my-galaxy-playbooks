@@ -1,11 +1,57 @@
 ---
-# Gate 2 (install key): generate an ed25519 keypair in a temp dir, push its
-# public key to the host's authorized_keys, then move the keypair into the
-# control node's ~/.ssh. Runs the connect gate first to bind credentials and
-# prove the host is reachable. (Storing the key in 1Password is not yet wired in.)
+# Gate 2 (install key): reuse an existing local key by default, or generate an
+# ed25519 keypair in a temp dir when no key exists (or sshKeyOverwrite is true).
+# Push the selected public key to the host's authorized_keys. Runs the connect
+# gate first to bind credentials and prove the host is reachable. (Storing the
+# key in 1Password is not yet wired in.)
 
 - name: Run the connect gate before installing the key
   ansible.builtin.include_tasks: connect.yml
+
+- name: Ensure the local ~/.ssh directory exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.ssh"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Check whether the local private key already exists
+  ansible.builtin.stat:
+    path: "{{ lookup('env', 'HOME') }}/.ssh/{{ sshFileName }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  register: sshExistingKey
+
+- name: Read the public key from the existing private key
+  ansible.builtin.command:
+    argv:
+      - ssh-keygen
+      - -y
+      - -f
+      - "{{ lookup('env', 'HOME') }}/.ssh/{{ sshFileName }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  register: sshExistingPublicKey
+  when:
+    - sshExistingKey.stat.exists
+    - not (sshKeyOverwrite | bool)
+
+- name: Reuse the existing public key in the host's authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ provisioning_username }}"
+    state: present
+    key: "{{ sshExistingPublicKey.stdout }}"
+  when:
+    - sshExistingKey.stat.exists
+    - not (sshKeyOverwrite | bool)
 
 - name: Create a temporary directory for the generated keypair
   ansible.builtin.tempfile:
@@ -16,6 +62,7 @@
   vars:
     ansible_become: false
   register: sshKeyTmp
+  when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists
 
 - name: Generate the SSH keypair in the temporary directory
   ansible.builtin.command:
@@ -34,24 +81,16 @@
   vars:
     ansible_become: false
   changed_when: true
+  when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists
 
-- name: Push the public key to the host's authorized_keys
+- name: Push the generated public key to the host's authorized_keys
   ansible.posix.authorized_key:
     user: "{{ provisioning_username }}"
     state: present
     key: "{{ lookup('file', sshKeyTmp.path ~ '/' ~ sshFileName ~ '.pub') }}"
+  when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists
 
-- name: Ensure the local ~/.ssh directory exists
-  ansible.builtin.file:
-    path: "{{ lookup('env', 'HOME') }}/.ssh"
-    state: directory
-    mode: "0700"
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-
-- name: Move the generated keypair into ~/.ssh, overwriting any existing files
+- name: Move the generated keypair into ~/.ssh
   ansible.builtin.copy:
     src: "{{ sshKeyTmp.path }}/{{ item.name }}"
     dest: "{{ lookup('env', 'HOME') }}/.ssh/{{ item.name }}"
@@ -65,6 +104,7 @@
   become: false
   vars:
     ansible_become: false
+  when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists
 
 - name: Remove the temporary keypair directory
   ansible.builtin.file:
@@ -74,3 +114,4 @@
   become: false
   vars:
     ansible_become: false
+  when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists
