@@ -17,6 +17,8 @@ venv/
 env/
 __pycache__/
 *.py[cod]
+.mypy_cache/
+.pytest_cache/
 
 # Ansible artifacts
 *.retry

@@ -4,7 +4,9 @@ galaxy_info:
   author: nbergantz
   description: >-
     Bind the command-line provisioning_username and provisioning_password to the
-    SSH connection and prove the host accepts them (provisioning gate 1).
+    SSH connection, generate an ed25519 keypair in a temporary directory, push
+    the public key to the host's authorized_keys, and move the keypair into the
+    control node's ~/.ssh (provisioning gate 2).
   license: MIT
   min_ansible_version: "2.16"
   platforms:

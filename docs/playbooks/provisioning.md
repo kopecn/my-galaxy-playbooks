@@ -54,7 +54,7 @@ playbooks run with `gather_facts: false`.
 
 | Playbook | Gate | Implemented today |
 | --- | --- | --- |
-| `playbooks/provision-installSSHKey.yml` | 1 (connect) | Routes to the host, binds the run-time username/password, and proves the host accepts them (`ansible.builtin.ping`). Gate 2 (generate/push/store the key) is **not yet wired in**, despite the playbook name. |
+| `playbooks/provision-installSSHKey.yml` | 1–2 (connect + install key) | Routes to the host, binds the run-time username/password, generates an `ed25519` keypair in a temp dir, pushes the public key to the host's `authorized_keys` (`ansible.posix.authorized_key`), then moves the keypair into the control node's `~/.ssh/` as `{{ sshFileName }}` (default `common-ssh-key`). **1Password storage (gate 2's final step) is still pending.** |
 | `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | **Stub** — the play declares no tasks. |
 
 ## Usage
@@ -64,16 +64,20 @@ qualified hostname; bare single-label names are rejected by the router). The
 provisioning credentials are passed with `no_log` and never written to inventory
 or disk.
 
-**Gate 1 — connect.** Confirm a freshly imaged host answers over SSH with the
-username and password it was built with:
+**Gates 1–2 — connect and install the key.** Reach a freshly imaged host with the
+username and password it was built with, then generate and install a key:
 
 ```bash
 ansible-playbook playbooks/provision-installSSHKey.yml -i '<host-or-ip>,' \
-  -e provisioning_username=<user> -e provisioning_password=<password>
+  -e provisioning_username=<user> -e provisioning_password=<password> \
+  [-e sshFileName=<name>]
 ```
 
-The run succeeds when the ping returns `pong`. No key is installed yet — gate 2 is
-pending.
+`sshFileName` (default `common-ssh-key`) sets the keypair basename. The run
+generates `<sshFileName>` / `<sshFileName>.pub` in a temporary directory, adds the
+public key to the host user's `authorized_keys`, and on success moves the keypair
+into the control node's `~/.ssh/` (`0600` private, `0644` public), overwriting any
+existing files of those names. Storing the key in 1Password is still pending.
 
 **Gate 3 — validate and lock down.** No happy path yet;
 `provision-validate-and-secureSSH.yml` is a stub and runs no tasks. This section

@@ -1,0 +1,5 @@
+---
+# Basename for the generated SSH keypair (private = <sshFileName>, public =
+# <sshFileName>.pub). Lowest-precedence default; override at the playbook call
+# with -e sshFileName=...
+sshFileName: common-ssh-key
