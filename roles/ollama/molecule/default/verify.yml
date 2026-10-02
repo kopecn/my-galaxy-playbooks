@@ -1,0 +1,52 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Stat the installed Ollama binary
+      ansible.builtin.stat:
+        path: /usr/local/bin/ollama
+        follow: true
+      register: ollamaBinaryStat
+
+    - name: Confirm the Ollama binary is installed and executable
+      ansible.builtin.assert:
+        that:
+          - ollamaBinaryStat.stat.exists
+          - ollamaBinaryStat.stat.executable
+        fail_msg: "/usr/local/bin/ollama is missing or not executable."
+
+    - name: Query the Ollama version
+      ansible.builtin.command: /usr/local/bin/ollama --version
+      changed_when: false
+      register: ollamaVersionOutput
+
+    - name: Confirm the Ollama CLI reports a version
+      ansible.builtin.assert:
+        that:
+          - ollamaVersionOutput.stdout_lines | length > 0
+        fail_msg: "ollama --version returned no output."
+
+    - name: Confirm the Ollama service is running and enabled
+      ansible.builtin.systemd_service:
+        name: ollama
+      register: ollamaService
+
+    - name: Assert the Ollama service state
+      ansible.builtin.assert:
+        that:
+          - ollamaService.status.ActiveState == 'active'
+          - ollamaService.status.UnitFileState == 'enabled'
+        fail_msg: "The ollama service is not running and enabled."
+
+    - name: Read the rules UFW has recorded
+      ansible.builtin.command: ufw show added
+      changed_when: false
+      become: true
+      register: ollamaUfwAdded
+
+    - name: Confirm the Ollama API port is allowed through UFW
+      ansible.builtin.assert:
+        that:
+          - "'11434' in ollamaUfwAdded.stdout"
+        fail_msg: "UFW has no rule for the Ollama API port 11434."

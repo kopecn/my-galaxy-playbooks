@@ -1,0 +1,8 @@
+---
+- name: Ensure LM Studio is absent (Homebrew cask)
+  community.general.homebrew_cask:
+    name: lm-studio
+    state: absent
+  become: false
+  vars:
+    ansible_become: false

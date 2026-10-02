@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ollama Variables",
+  "description": "Ollama group: local-LLM server provisioning parameters. Variable names are camelCase and prefixed with the group token 'ollama'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "ollamaPort": {
+      "type": "string",
+      "default": "11434",
+      "description": "TCP port the Ollama API server listens on. The ollama role opens this port in the host firewall (UFW on Linux). Role default in roles/ollama/defaults/main.yml; override per host/group or with -e ollamaPort=...."
+    }
+  },
+  "properties": {
+    "ollamaPort": { "$ref": "#/$defs/ollamaPort" }
+  }
+}

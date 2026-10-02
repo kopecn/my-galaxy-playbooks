@@ -1,0 +1,48 @@
+---
+- name: Validate the requested LM Studio operation
+  ansible.builtin.assert:
+    that:
+      - lmStudioOperation is defined
+      - lmStudioOperation in lmStudioSupportedOperations
+    fail_msg: >-
+      lmStudioOperation must be one of {{ lmStudioSupportedOperations }}.
+
+- name: Normalize the gathered architecture to its canonical name
+  ansible.builtin.set_fact:
+    lmStudioArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
+
+- name: Validate declared hostOperatingSystem against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostOperatingSystem == ansible_facts.os_family
+    fail_msg: >-
+      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
+      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
+  when: hostOperatingSystem is defined
+
+- name: Validate declared hostArchitecture against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostArchitecture == lmStudioArch
+    fail_msg: >-
+      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
+      gathered architecture ({{ lmStudioArch }}) on {{ inventory_hostname }}.
+  when: hostArchitecture is defined
+
+- name: Resolve the effective OS family and architecture for dispatch
+  ansible.builtin.set_fact:
+    lmStudioOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
+    lmStudioEffectiveArch: "{{ hostArchitecture | default(lmStudioArch) }}"
+
+- name: Fail this operation when the host platform is unsupported
+  ansible.builtin.fail:
+    msg: >-
+      The lm_studio role cannot {{ lmStudioOperation }} LM Studio on
+      {{ lmStudioOsFamily }} / {{ lmStudioEffectiveArch }} ({{ inventory_hostname }}).
+      Supported combinations: {{ lmStudioSupportMatrix }}.
+  when: >-
+    lmStudioOsFamily not in lmStudioSupportMatrix
+    or lmStudioEffectiveArch not in lmStudioSupportMatrix[lmStudioOsFamily]
+
+- name: Run the requested LM Studio operation
+  ansible.builtin.include_tasks: "{{ lmStudioOperation }}.yml"

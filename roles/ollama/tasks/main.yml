@@ -1,0 +1,48 @@
+---
+- name: Validate the requested Ollama operation
+  ansible.builtin.assert:
+    that:
+      - ollamaOperation is defined
+      - ollamaOperation in ollamaSupportedOperations
+    fail_msg: >-
+      ollamaOperation must be one of {{ ollamaSupportedOperations }}.
+
+- name: Normalize the gathered architecture to its canonical name
+  ansible.builtin.set_fact:
+    ollamaArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
+
+- name: Validate declared hostOperatingSystem against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostOperatingSystem == ansible_facts.os_family
+    fail_msg: >-
+      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
+      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
+  when: hostOperatingSystem is defined
+
+- name: Validate declared hostArchitecture against gathered facts
+  ansible.builtin.assert:
+    that:
+      - hostArchitecture == ollamaArch
+    fail_msg: >-
+      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
+      gathered architecture ({{ ollamaArch }}) on {{ inventory_hostname }}.
+  when: hostArchitecture is defined
+
+- name: Resolve the effective OS family and architecture for dispatch
+  ansible.builtin.set_fact:
+    ollamaOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
+    ollamaEffectiveArch: "{{ hostArchitecture | default(ollamaArch) }}"
+
+- name: Fail this operation when the host platform is unsupported
+  ansible.builtin.fail:
+    msg: >-
+      The ollama role cannot {{ ollamaOperation }} Ollama on
+      {{ ollamaOsFamily }} / {{ ollamaEffectiveArch }} ({{ inventory_hostname }}).
+      Supported combinations: {{ ollamaSupportMatrix }}.
+  when: >-
+    ollamaOsFamily not in ollamaSupportMatrix
+    or ollamaEffectiveArch not in ollamaSupportMatrix[ollamaOsFamily]
+
+- name: Run the requested Ollama operation
+  ansible.builtin.include_tasks: "{{ ollamaOperation }}.yml"

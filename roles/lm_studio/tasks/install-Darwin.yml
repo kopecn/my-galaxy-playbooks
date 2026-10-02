@@ -1,0 +1,16 @@
+---
+# Homebrew must never run as root — override any inherited become: true.
+- name: Ensure Homebrew is available
+  ansible.builtin.command: brew --version
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+
+- name: Ensure LM Studio is present (Homebrew cask)
+  community.general.homebrew_cask:
+    name: lm-studio
+    state: present
+  become: false
+  vars:
+    ansible_become: false

@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: firewall
+  author: nbergantz
+  description: >-
+    Open or remove a service port in the host firewall. Linux uses UFW when it is
+    present; macOS is a no-op because its application firewall is managed manually.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - networking
+    - firewall
+dependencies: []

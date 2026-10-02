@@ -1,0 +1,4 @@
+---
+- name: Install LM Studio on macOS
+  ansible.builtin.include_tasks: install-Darwin.yml
+  when: lmStudioOsFamily == 'Darwin'

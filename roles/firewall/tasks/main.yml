@@ -1,0 +1,16 @@
+---
+# Reusable firewall utility. Opens (or removes) a service port on Linux via UFW.
+# macOS has no port-based step here — its application firewall is managed
+# manually — so a Darwin caller no-ops. Invoked with include_role, passing
+# firewallOsFamily plus the port/comment/state to apply.
+- name: Validate the firewall request
+  ansible.builtin.assert:
+    that:
+      - firewallOsFamily is defined
+      - firewallPort is defined
+    fail_msg: >-
+      The firewall role requires firewallOsFamily and firewallPort.
+
+- name: Apply the firewall rule on Debian-family Linux
+  ansible.builtin.include_tasks: Debian.yml
+  when: firewallOsFamily == 'Debian'

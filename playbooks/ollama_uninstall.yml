@@ -1,0 +1,12 @@
+---
+- name: Uninstall Ollama
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: onepassword
+      onePasswordTasks:
+        - ssh_user_pass
+    - role: ssh
+    - role: ollama
+      ollamaOperation: uninstall

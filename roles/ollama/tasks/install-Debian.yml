@@ -1,0 +1,30 @@
+---
+- name: Ensure the installer's prerequisites are present
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+- name: Install Ollama via the official Linux installer
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -fsSL https://ollama.com/install.sh | sh
+    creates: /usr/local/bin/ollama
+    executable: /bin/bash
+  become: true
+
+- name: Check whether the Ollama binary is present
+  ansible.builtin.stat:
+    path: /usr/local/bin/ollama
+  register: ollamaBinary
+
+- name: Ensure the Ollama service is enabled and running
+  ansible.builtin.service:
+    name: ollama
+    enabled: true
+    state: started
+  become: true
+  when: not ansible_check_mode or ollamaBinary.stat.exists

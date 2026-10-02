@@ -1,0 +1,14 @@
+---
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Apply the service-port rule through UFW when UFW is present
+  community.general.ufw:
+    rule: allow
+    port: "{{ firewallPort }}"
+    proto: "{{ firewallProto | default('tcp') }}"
+    comment: "{{ firewallComment | default(omit) }}"
+    delete: "{{ (firewallState | default('present')) == 'absent' }}"
+  become: true
+  when: "'ufw' in ansible_facts.packages"

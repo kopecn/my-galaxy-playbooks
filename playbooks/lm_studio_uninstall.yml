@@ -1,0 +1,12 @@
+---
+- name: Uninstall LM Studio
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: onepassword
+      onePasswordTasks:
+        - ssh_user_pass
+    - role: ssh
+    - role: lm_studio
+      lmStudioOperation: uninstall

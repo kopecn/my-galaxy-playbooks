@@ -93,6 +93,8 @@ supported hosts, variables, and example usage.
 - [Tailscale](docs/playbooks/tailscale.md) — `playbooks/tailscale_*.yml`
 - [Samba](docs/playbooks/samba.md) — `playbooks/samba_*.yml`
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
+- [Ollama](docs/playbooks/ollama.md) — `playbooks/ollama_*.yml`
+- [LM Studio](docs/playbooks/lm_studio.md) — `playbooks/lm_studio_*.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
 - [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
   - [Provisioning](docs/playbooks/provisioning.md) — `playbooks/provision_host_ssh*.yml`

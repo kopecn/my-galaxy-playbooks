@@ -16,6 +16,10 @@ first-party roles, Molecule role tests, and CI
 - [Playbook Documentation](specs/architecture/playbook-documentation.md) — every
   toolset must have a `docs/playbooks/<toolset>.md` page and a `readme.md`
   pointer, updated in the same change that alters the toolset.
+- [Application Installer Roles](specs/architecture/application-installer-roles.md) —
+  the minimal template an application installer follows: `install`/`uninstall`/
+  `diagnose` dispatch, per-OS branching, firewall via the shared `firewall` role,
+  thin playbooks, schema, docs, and Molecule tests.
 
 ## Commands
 

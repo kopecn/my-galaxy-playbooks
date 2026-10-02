@@ -1,0 +1,21 @@
+---
+- name: Stop and disable the Ollama service
+  ansible.builtin.service:
+    name: ollama
+    enabled: false
+    state: stopped
+  become: true
+  failed_when: false
+
+- name: Remove the Ollama systemd unit
+  ansible.builtin.file:
+    path: /etc/systemd/system/ollama.service
+    state: absent
+  become: true
+  notify: Reload systemd daemon
+
+- name: Remove the Ollama binary
+  ansible.builtin.file:
+    path: /usr/local/bin/ollama
+    state: absent
+  become: true

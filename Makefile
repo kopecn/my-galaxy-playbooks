@@ -9,7 +9,7 @@ SHELL := /bin/bash
 .PHONY: help bootstrap venv \
         lint syntax-check check ping \
         test test-all test-static test-unit \
-        test-molecule test-molecule-claude test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
+        test-molecule test-molecule-claude test-molecule-ollama test-molecule-samba test-molecule-tailscale test-molecule-vscode check-docker \
         open-github
 
 # MARK: - Configuration
@@ -153,10 +153,13 @@ test-static: lint syntax-check ## All static analysis (lint + syntax-check)
 test-unit: ## Run pytest template and contract tests
 	pytest tests/ -v -p no:cacheprovider
 
-test-molecule: test-molecule-claude test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
+test-molecule: test-molecule-claude test-molecule-ollama test-molecule-samba test-molecule-tailscale test-molecule-vscode ## All Molecule tests
 
 test-molecule-claude: check-docker ## Molecule test: claude role (Ubuntu install path only)
 	cd roles/claude && molecule test
+
+test-molecule-ollama: check-docker ## Molecule test: ollama role (Ubuntu install path only)
+	cd roles/ollama && molecule test
 
 test-molecule-samba: check-docker ## Molecule test: samba role (Ubuntu install path only)
 	cd roles/samba && molecule test

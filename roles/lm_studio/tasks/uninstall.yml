@@ -1,0 +1,4 @@
+---
+- name: Uninstall LM Studio on macOS
+  ansible.builtin.include_tasks: uninstall-Darwin.yml
+  when: lmStudioOsFamily == 'Darwin'

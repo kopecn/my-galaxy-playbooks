@@ -1,0 +1,23 @@
+---
+- name: Ensure Homebrew is available
+  ansible.builtin.command: brew --version
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+
+- name: Ensure the Ollama formula is installed
+  community.general.homebrew:
+    name: ollama
+    state: present
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Ensure the Ollama service is running
+  community.general.homebrew_services:
+    name: ollama
+    state: present
+  become: false
+  vars:
+    ansible_become: false

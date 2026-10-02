@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: lm_studio
+  author: nbergantz
+  description: >-
+    Install, uninstall, and diagnose LM Studio on macOS via its Homebrew cask.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+  galaxy_tags:
+    - ai
+    - llm
+    - lmstudio
+dependencies: []

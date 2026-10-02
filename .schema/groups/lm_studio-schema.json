@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LM Studio Variables",
+  "description": "LM Studio group: local-LLM desktop/server provisioning parameters. Variable names are camelCase and prefixed with the group token 'lmStudio'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "lmStudioPort": {
+      "type": "string",
+      "default": "1234",
+      "description": "TCP port the LM Studio server listens on. Enabling the server, LAN serving, and the macOS application-firewall allowance are manual steps (see docs/playbooks/lm_studio.md). Role default in roles/lm_studio/defaults/main.yml; override per host/group or with -e lmStudioPort=...."
+    }
+  },
+  "properties": {
+    "lmStudioPort": { "$ref": "#/$defs/lmStudioPort" }
+  }
+}

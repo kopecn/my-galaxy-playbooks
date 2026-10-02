@@ -1,0 +1,17 @@
+---
+- name: Uninstall Ollama on macOS
+  ansible.builtin.include_tasks: uninstall-Darwin.yml
+  when: ollamaOsFamily == 'Darwin'
+
+- name: Uninstall Ollama on Debian-family Linux
+  ansible.builtin.include_tasks: uninstall-Debian.yml
+  when: ollamaOsFamily == 'Debian'
+
+- name: Remove the Ollama API port from the firewall
+  ansible.builtin.include_role:
+    name: firewall
+  vars:
+    firewallOsFamily: "{{ ollamaOsFamily }}"
+    firewallPort: "{{ ollamaPort }}"
+    firewallComment: "Ollama API"
+    firewallState: absent

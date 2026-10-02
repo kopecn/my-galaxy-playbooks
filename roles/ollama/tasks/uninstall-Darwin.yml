@@ -1,0 +1,26 @@
+---
+- name: Check whether the Ollama formula is installed
+  ansible.builtin.command: brew list --formula ollama
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  failed_when: false
+  register: ollamaBrewPackage
+
+- name: Stop and unregister the Ollama service
+  community.general.homebrew_services:
+    name: ollama
+    state: absent
+  become: false
+  vars:
+    ansible_become: false
+  when: ollamaBrewPackage.rc == 0
+
+- name: Ensure the Ollama formula is absent
+  community.general.homebrew:
+    name: ollama
+    state: absent
+  become: false
+  vars:
+    ansible_become: false

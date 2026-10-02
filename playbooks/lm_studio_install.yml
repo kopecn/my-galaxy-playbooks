@@ -1,0 +1,11 @@
+---
+- name: Install LM Studio
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: onepassword
+      onePasswordTasks:
+        - ssh_user_pass
+    - role: ssh
+    - role: lm_studio
+      lmStudioOperation: install

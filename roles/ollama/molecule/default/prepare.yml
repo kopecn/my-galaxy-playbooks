@@ -1,0 +1,13 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure the apt cache is populated and UFW is installed
+      # UFW is installed so the firewall role's rule path is exercised; the role
+      # no-ops where UFW is absent, so this makes the Molecule run assert on it.
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+        update_cache: true
+      become: true

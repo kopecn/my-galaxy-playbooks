@@ -43,6 +43,12 @@
     },
     {
       "$ref": "groups/provisionhostssh-schema.json"
+    },
+    {
+      "$ref": "groups/ollama-schema.json"
+    },
+    {
+      "$ref": "groups/lm_studio-schema.json"
     }
   ]
 }

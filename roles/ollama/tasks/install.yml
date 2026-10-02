@@ -1,0 +1,16 @@
+---
+- name: Install Ollama on macOS
+  ansible.builtin.include_tasks: install-Darwin.yml
+  when: ollamaOsFamily == 'Darwin'
+
+- name: Install Ollama on Debian-family Linux
+  ansible.builtin.include_tasks: install-Debian.yml
+  when: ollamaOsFamily == 'Debian'
+
+- name: Open the Ollama API port in the firewall
+  ansible.builtin.include_role:
+    name: firewall
+  vars:
+    firewallOsFamily: "{{ ollamaOsFamily }}"
+    firewallPort: "{{ ollamaPort }}"
+    firewallComment: "Ollama API"
