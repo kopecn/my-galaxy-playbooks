@@ -2,5 +2,8 @@
 sshOperations:
   - resolve
 
+sshOperationChoices:
+  - resolve
+
 useVpn: false
 vpnDomain: "tail313959.ts.net"
