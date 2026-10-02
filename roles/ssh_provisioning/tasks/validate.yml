@@ -6,10 +6,10 @@
 - name: Require the provisioning username
   ansible.builtin.assert:
     that:
-      - provisioning_username is defined
-      - provisioning_username | length > 0
+      - sshProvisioningUsername is defined
+      - sshProvisioningUsername | length > 0
     fail_msg: >-
-      Pass -e provisioning_username=... (the account whose key was installed).
+      Pass -e sshProvisioningUsername=... (the account whose key was installed).
 
 - name: Locate the installed private key on the control node
   ansible.builtin.stat:
@@ -30,7 +30,7 @@
 
 - name: Bind the installed key to the SSH connection (publickey only)
   ansible.builtin.set_fact:
-    ansible_user: "{{ provisioning_username }}"
+    ansible_user: "{{ sshProvisioningUsername }}"
     ansible_ssh_private_key_file: "{{ lookup('env', 'HOME') }}/.ssh/{{ sshFileName }}"
     ansible_ssh_extra_args: >-
       -o PreferredAuthentications=publickey

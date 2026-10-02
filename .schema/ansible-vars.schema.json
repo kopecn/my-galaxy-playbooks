@@ -42,7 +42,7 @@
       "$ref": "groups/ssh-schema.json"
     },
     {
-      "$ref": "groups/provisionhostssh-schema.json"
+      "$ref": "groups/sshprovisioning-schema.json"
     },
     {
       "$ref": "groups/ollama-schema.json"

@@ -46,7 +46,7 @@
 
 - name: Reuse the existing public key in the host's authorized_keys
   ansible.posix.authorized_key:
-    user: "{{ provisioning_username }}"
+    user: "{{ sshProvisioningUsername }}"
     state: present
     key: "{{ sshExistingPublicKey.stdout }}"
   when:
@@ -85,7 +85,7 @@
 
 - name: Push the generated public key to the host's authorized_keys
   ansible.posix.authorized_key:
-    user: "{{ provisioning_username }}"
+    user: "{{ sshProvisioningUsername }}"
     state: present
     key: "{{ lookup('file', sshKeyTmp.path ~ '/' ~ sshFileName ~ '.pub') }}"
   when: (sshKeyOverwrite | bool) or not sshExistingKey.stat.exists

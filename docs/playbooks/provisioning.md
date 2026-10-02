@@ -48,14 +48,14 @@ Password access is only disabled after the key is proven to work, so a failure a
 
 Provisioning reuses the shared SSH router (routing and isolation) described in
 [`ssh.md`](ssh.md), but takes its SSH credentials from the command line
-(`-e provisioning_username=... -e provisioning_password=...`), **not** from
+(`-e sshProvisioningUsername=... -e sshProvisioningPassword=...`), **not** from
 1Password — a host being provisioned has no 1Password Login item or key yet. Both
 playbooks run with `gather_facts: false`.
 
 | Playbook | Gate | Implemented today |
 | --- | --- | --- |
 | `playbooks/provision-installSSHKey.yml` | 1–2 (connect + install key) | Routes to the host, binds the run-time username/password, generates an `ed25519` keypair in a temp dir, pushes the public key to the host's `authorized_keys` (`ansible.posix.authorized_key`), then moves the keypair into the control node's `~/.ssh/` as `{{ sshFileName }}` (default `common-ssh-key`). **1Password storage (gate 2's final step) is still pending.** |
-| `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | Validation **implemented**: connects as `provisioning_username` using the installed `~/.ssh/{{ sshFileName }}` over a publickey-only connection and proves it authenticates (`ansible.builtin.ping`). The lock-down step (disable password SSH) is **not yet wired in**. |
+| `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | Validation **implemented**: connects as `sshProvisioningUsername` using the installed `~/.ssh/{{ sshFileName }}` over a publickey-only connection and proves it authenticates (`ansible.builtin.ping`). The lock-down step (disable password SSH) is **not yet wired in**. |
 
 ## Usage
 
@@ -69,7 +69,7 @@ username and password it was built with, then generate and install a key:
 
 ```bash
 ansible-playbook playbooks/provision-installSSHKey.yml -i '<host-or-ip>,' \
-  -e provisioning_username=<user> -e provisioning_password=<password> \
+  -e sshProvisioningUsername=<user> -e sshProvisioningPassword=<password> \
   [-e sshFileName=<name>]
 ```
 
@@ -80,14 +80,14 @@ into the control node's `~/.ssh/` (`0600` private, `0644` public), overwriting a
 existing files of those names. Storing the key in 1Password is still pending.
 
 **Gate 3 — validate.** Prove the key installed in gate 2 logs in. The playbook
-connects as `provisioning_username` using `~/.ssh/{{ sshFileName }}` and forces a
+connects as `sshProvisioningUsername` using `~/.ssh/{{ sshFileName }}` and forces a
 publickey-only connection (`PreferredAuthentications=publickey`,
 `PasswordAuthentication=no`, `BatchMode=yes`), so a passing `ping` means the key
 itself authenticated — not a password fallback:
 
 ```bash
 ansible-playbook playbooks/provision-validate-and-secureSSH.yml -i '<host-or-ip>,' \
-  -e provisioning_username=<user> [-e sshFileName=<name>]
+  -e sshProvisioningUsername=<user> [-e sshFileName=<name>]
 ```
 
 Use the same `sshFileName` you installed with (default `common-ssh-key`). No

@@ -1,25 +1,25 @@
 ---
 # Gate 1 (connect): connect over SSH with the run-time username and password and
 # prove the host accepts them. Credentials come from the command line
-# (-e provisioning_username=... -e provisioning_password=...), not 1Password.
+# (-e sshProvisioningUsername=... -e sshProvisioningPassword=...), not 1Password.
 
 - name: Require the provisioning username and password
   ansible.builtin.assert:
     that:
-      - provisioning_username is defined
-      - provisioning_username | length > 0
-      - provisioning_password is defined
-      - provisioning_password | length > 0
+      - sshProvisioningUsername is defined
+      - sshProvisioningUsername | length > 0
+      - sshProvisioningPassword is defined
+      - sshProvisioningPassword | length > 0
     fail_msg: >-
-      Pass -e provisioning_username=... and -e provisioning_password=... on the
+      Pass -e sshProvisioningUsername=... and -e sshProvisioningPassword=... on the
       command line.
   no_log: true
 
 - name: Bind the provisioning credentials to the SSH connection
   ansible.builtin.set_fact:
-    ansible_user: "{{ provisioning_username }}"
-    ansible_password: "{{ provisioning_password }}"
-    ansible_become_password: "{{ provisioning_password }}"
+    ansible_user: "{{ sshProvisioningUsername }}"
+    ansible_password: "{{ sshProvisioningPassword }}"
+    ansible_become_password: "{{ sshProvisioningPassword }}"
   no_log: true
 
 - name: Prove the host accepts the provisioning credentials
