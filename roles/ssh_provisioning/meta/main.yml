@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: ssh_provisioning
+  author: nbergantz
+  description: >-
+    Bind the command-line provisioning_username and provisioning_password to the
+    SSH connection and prove the host accepts them (provisioning gate 1).
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "9"
+  galaxy_tags:
+    - ssh
+    - provisioning
+dependencies: []

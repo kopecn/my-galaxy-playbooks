@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-09-25
-semver: 0.0.2
+last_updated: 2026-10-01
+semver: 0.0.3
 author: Nicholas Bergantz
 scope: project
 ---
@@ -50,9 +50,22 @@ role source:
   is set and its purpose, with a link to
   [`.schema/ansible-vars.schema.json`](../../../.schema/ansible-vars.schema.json)
   for full descriptions.
-- **Usage** — at least one runnable invocation example.
+- **Usage** — a runnable happy-path invocation for **every** operation the
+  toolset exposes, not just one. Each example shows the normal, successful call
+  (target, required credentials/flags, and any `-e` overrides) and states what a
+  successful run produces. An operation that is a stub or not yet implemented is
+  named as such instead of being given a fabricated example.
 - **Verification** — how the toolset is tested (its Molecule scenario, and any
   paths verified manually).
+
+## Reference template
+
+[`docs/playbooks/tailscale.md`](../../../docs/playbooks/tailscale.md) is the
+canonical template for a complete toolset page. A new or updated page SHALL follow
+its structure and depth — in particular its per-operation playbook table and its
+**Usage** section, which gives one happy-path command per operation. Match that
+page's level of detail unless the toolset genuinely has fewer operations or
+variables.
 
 ## Compliance Criteria
 

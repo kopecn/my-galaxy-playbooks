@@ -43,3 +43,38 @@ flowchart TD
 | 3. Validate and lock down | Prove the new key works, then turn off password access | Key login succeeds, then password login is disabled |
 
 Password access is only disabled after the key is proven to work, so a failure at any gate leaves the host reachable.
+
+## Playbooks
+
+Provisioning reuses the shared SSH router (routing and isolation) described in
+[`ssh.md`](ssh.md), but takes its SSH credentials from the command line
+(`-e provisioning_username=... -e provisioning_password=...`), **not** from
+1Password — a host being provisioned has no 1Password Login item or key yet. Both
+playbooks run with `gather_facts: false`.
+
+| Playbook | Gate | Implemented today |
+| --- | --- | --- |
+| `playbooks/provision-installSSHKey.yml` | 1 (connect) | Routes to the host, binds the run-time username/password, and proves the host accepts them (`ansible.builtin.ping`). Gate 2 (generate/push/store the key) is **not yet wired in**, despite the playbook name. |
+| `playbooks/provision-validate-and-secureSSH.yml` | 3 (validate and lock down) | **Stub** — the play declares no tasks. |
+
+## Usage
+
+Target the host with an explicit inline inventory, `-i '<host-or-ip>,'` (an IP or
+qualified hostname; bare single-label names are rejected by the router). The
+provisioning credentials are passed with `no_log` and never written to inventory
+or disk.
+
+**Gate 1 — connect.** Confirm a freshly imaged host answers over SSH with the
+username and password it was built with:
+
+```bash
+ansible-playbook playbooks/provision-installSSHKey.yml -i '<host-or-ip>,' \
+  -e provisioning_username=<user> -e provisioning_password=<password>
+```
+
+The run succeeds when the ping returns `pong`. No key is installed yet — gate 2 is
+pending.
+
+**Gate 3 — validate and lock down.** No happy path yet;
+`provision-validate-and-secureSSH.yml` is a stub and runs no tasks. This section
+will document its invocation once the gate is implemented.

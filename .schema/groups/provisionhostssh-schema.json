@@ -3,5 +3,23 @@
   "title": "Host SSH Provisioning Variables",
   "description": "Variables for the provision_host role's SSH provisioning operations. Names are flat, camelCase, and prefixed with provisionHostSsh.",
   "type": "object",
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "provisioning_username": {
+      "type": "string",
+      "description": "SSH username used to connect to a host that is being provisioned. Supplied at run time on the command line (-e provisioning_username=...); never persisted."
+    },
+    "provisioning_password": {
+      "type": "string",
+      "description": "SSH password used to connect to a host that is being provisioned. Supplied at run time on the command line (-e provisioning_password=...); never persisted."
+    }
+  },
+  "properties": {
+    "provisioning_username": {
+      "$ref": "#/$defs/provisioning_username"
+    },
+    "provisioning_password": {
+      "$ref": "#/$defs/provisioning_password"
+    }
+  }
 }

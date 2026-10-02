@@ -73,3 +73,15 @@ and disables SSH connection sharing and control sockets.
 
 This framework does not validate reachability, gather facts, or add
 workflow-specific safety behavior.
+
+## Usage
+
+The `ssh` router is not invoked on its own. Every remote playbook applies it
+first to resolve the route and isolation, then runs its action role. You select
+routing through the invocation and inventory described above — an explicit inline
+`-i '<host-or-ip>,'` target, an inventory file, or `useVpn`.
+
+The operations that build on this router are the host-provisioning playbooks.
+Their runnable happy paths — first-contact connection with run-time credentials,
+key install, and lock-down — live in [[provisioning]], which documents those
+operations and what each one does today.

@@ -1,0 +1,4 @@
+---
+- name: Provision validate and secure SSH
+  hosts: all
+  gather_facts: false
