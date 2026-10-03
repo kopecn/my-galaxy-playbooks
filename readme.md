@@ -60,12 +60,12 @@ git-ignored `.env` (copy from `.env.example`).
 ## Usage notes
 
 - To run against a host that is not in the inventory, pass it as a single-quoted
-  `-i` value with a trailing comma, e.g. `-i 'host-computer-computer,'`.
+  `-i` value with a trailing comma, e.g. `-i 'host.example.com,'`.
 - Every remote playbook resolves `user-<short-hostname>` and
   `sshkey-<short-hostname>` from 1Password before its first connection. The
   Login item supplies the username and sudo password; the SSH Key item supplies
   the private key. Local `~/.ssh/config`, identities, agent keys, and known-host
-  files are not used.
+  files are not read or persisted by the routing role.
 - Initial SSH provisioning uses the Login password. All other operational
   playbooks use the SSH key. Supply the host and vault; `-u`, `--ask-pass`, and
   an explicit `ansible_become_password` are unnecessary.
@@ -73,9 +73,9 @@ git-ignored `.env` (copy from `.env.example`).
 e.g.
 ```bash
 ansible-playbook playbooks/tailscale.yml \
-  -i 'host-computer-name,' \
+  -i '<target>,' \
   -b \
-  -e onePasswordVault=Personal-Automation \
+  -e onePasswordVault='<vault>' \
   -e '{"tailscaleOperations":["install"]}'
 ```
 
@@ -99,4 +99,6 @@ supported hosts, variables, and example usage.
 - [LM Studio](docs/playbooks/lm_studio.md) — `playbooks/lm_studio.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
 - [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
-  - [Provisioning](docs/playbooks/provisioning.md) — `playbooks/provision_host_ssh*.yml`
+  - [Provisioning](docs/playbooks/provisioning.md) — `playbooks/provision-full.yml`,
+    `playbooks/provision-installSSHKey.yml`, and
+    `playbooks/provision-validate-and-secureSSH.yml`

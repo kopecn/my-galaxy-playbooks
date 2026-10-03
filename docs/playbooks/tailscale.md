@@ -1,138 +1,143 @@
 # Tailscale
 
-Installs, connects, disconnects, updates, uninstalls, and reports status and
-diagnostics for Tailscale. See [`roles/tailscale`](../../roles/tailscale) and the
-[Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
-for the layering this role follows.
+## Scope
 
-The single thin playbook `playbooks/tailscale.yml` accepts an ordered,
-non-empty `tailscaleOperations` array at `ansible-playbook` runtime. The role
-validates every value before running the requested operations in array order.
+[`playbooks/tailscale.yml`](../../playbooks/tailscale.yml) and
+[`roles/tailscale`](../../roles/tailscale) manage Tailscale through the
+ordered, non-empty `tailscaleOperations` array. Array order is execution order.
 
 | Operation | Result |
 | --- | --- |
-| `install` | Install Tailscale |
-| `up` | Connect to the tailnet |
-| `down` | Disconnect from the tailnet |
-| `status` | Print connection and network diagnostics |
-| `diagnose` | Print `tailscale debug prefs` |
-| `update` | Update Tailscale |
-| `uninstall` | Uninstall Tailscale |
+| `install` | Install Tailscale and verify its version. |
+| `up` | Ensure installation, converge connection settings, and verify the backend is running. |
+| `down` | Disconnect when needed and verify the backend is no longer running. |
+| `status` | Print connection status and network diagnostics. |
+| `diagnose` | Print Tailscale preferences. |
+| `update` | Ensure installation and update to latest or a supported Debian version pin. |
+| `uninstall` | Stop and remove Tailscale. |
 
-## Supported hosts
+The Tailscale role does not select the SSH route; [the SSH domain](ssh.md) owns
+that decision.
+
+### Supported Hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `arm64` |
-| Debian | `x86_64`, `aarch64`, `armv7l` |
+| `Darwin` | `x86_64`, `arm64` |
+| `Debian` | `x86_64`, `aarch64`, `armv7l` |
 
-Install channel per OS family: Homebrew formula on Darwin, the official
-`tailscale.com/install.sh` script on Debian. A host outside this matrix fails
-the requested operation list with a clear error; other hosts and playbooks
-continue.
+The values match Ansible facts exactly. Darwin uses Homebrew; Debian uses the
+official installer. Unsupported combinations fail before dispatch.
 
-## Variables
+## Goal
 
-| Variable | Where set | Purpose |
-| --- | --- | --- |
-| `tailscaleOperations` | Required `-e` argument; empty role default | Ordered, non-empty array of operations. Valid values are listed above. |
-| `onePasswordVault` | `roles/onepassword/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the super agent; never read from target inventory. |
-| `tailscaleAuthKeyItem` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password item ID containing the Tailscale auth key. IDs avoid invalid title characters such as commas in `op://` references. The resolved `tailscaleAuthKey` exists only in memory on the super agent. |
-| `tailscaleSSH` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | Enable Tailscale SSH (the `--ssh` flag) on `up`. Defaults to `false`. |
-| `tailscaleVersion` | `group_vars`/`host_vars` or `-e` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS. |
+Use this domain to install and lifecycle-manage Tailscale, converge a host's
+tailnet connection, or collect status and preference diagnostics.
 
-Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
-
-`vpnHostname` is combined with the SSH router's `vpnDomain` when `useVpn` is
-enabled. The Tailscale role does not select the SSH route.
-
-## Usage
-
-Pass the operation array as JSON so the CLI preserves its array type. Every
-operation escalates on the target, so use `-b`. Target the host with
-`-i '<host-or-ip>,'` and supply the vault:
+## Invocation
 
 ```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"tailscaleOperations":["install"]}'
-```
-
-On success, Tailscale is installed. Connect the host to the tailnet:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"tailscaleOperations":["up"]}'
-```
-
-For `up`, the playbook adds the `tailscale` query to the shared `onepassword`
-role. The auth key passes directly from the super agent's `op` CLI to
-`tailscale up` over stdin and is never written to inventory or disk. A
-`--check` dry-run does not query the key. If the item title differs from the
-role default, pass the non-secret item ID separately, for example
-`-e tailscaleAuthKeyItem='your-item-id'`; `tailscaleAuthKey` is reserved for the
-resolved in-memory secret and is not a user input.
-
-Disconnect the host:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"tailscaleOperations":["down"]}'
-```
-
-Print connection status and network diagnostics without changing the host:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"tailscaleOperations":["status"]}'
 ```
 
-Print Tailscale preferences without changing the host:
+## Architecture
+
+```mermaid
+flowchart LR
+    CLI[ansible-playbook] --> PB[playbooks/tailscale.yml]
+    PB --> OP[onepassword role]
+    PB --> SSH[ssh role]
+    PB --> ROLE[tailscale role]
+    OP --> VAULT[Secret service]
+    ROLE --> SERVICE[Tailscale service and CLI]
+    SSH --> HOST[Managed host]
+    SERVICE --> HOST
+    HOST --> TAILNET[Tailnet]
+```
+
+## Workflow
+
+```mermaid
+flowchart TD
+    Start[Resolve SSH credentials and Tailscale auth key] --> Route[Resolve SSH route]
+    Route --> Facts[Gather minimum platform facts]
+    Facts --> Supported{Supported OS and architecture?}
+    Supported -->|no| Stop[Fail before dispatch]
+    Supported -->|yes| Loop[Run operations in array order]
+    Loop --> Install[install]
+    Loop --> Up[up: install, compare settings, connect, verify]
+    Loop --> Down[down: inspect, disconnect, verify]
+    Loop --> Read[status or diagnose: read and print]
+    Loop --> Update[update: install then update]
+    Loop --> Remove[uninstall]
+```
+
+## Variables
+
+Put shared non-secret coordinates in downstream `group_vars/`, host-specific
+settings in `host_vars/`, and operation arrays or one-time version pins in
+runtime `-e`. The resolved authentication key is sensitive, memory-only, and
+is not a user-configurable variable.
+
+| Variable | Type | Source | Default / required | Purpose |
+| --- | --- | --- | --- | --- |
+| `tailscaleOperations` | `array[enum]`: `diagnose`, `down`, `install`, `status`, `uninstall`, `up`, `update` | Runtime `-e` | Required; role default is `[]` | Ordered operations to execute. |
+| `tailscaleAuthKeyItem` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Non-secret item ID. The public playbook resolves its auth key for every normal invocation; `up` consumes it. |
+| `tailscaleSSH` | `bool` | Role default, `group_vars`, `host_vars`, or runtime `-e` | `false` | Enables Tailscale SSH during `up`. |
+| `tailscaleVersion` | version `string` | `group_vars`, `host_vars`, or runtime `-e` | Omitted means latest | Debian update pin; at least `1.36.0`; pinning is rejected on Darwin. |
+| `onePasswordVault` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Vault coordinate used on the control node. |
+
+See the [variable schema](../../.schema/ansible-vars.schema.json).
+
+## Usage
+
+All operations require privilege escalation. Run individual operations by
+changing only the array value:
 
 ```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e '{"tailscaleOperations":["install"]}'
+
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e '{"tailscaleOperations":["up"]}'
+
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e '{"tailscaleOperations":["down"]}'
+
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e '{"tailscaleOperations":["status"]}'
+
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"tailscaleOperations":["diagnose"]}'
-```
 
-Update to the latest version:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"tailscaleOperations":["update"]}'
-```
 
-To pin Debian, also pass a version, for example
-`-e tailscaleVersion=1.102.4`. Uninstall Tailscale:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/tailscale.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"tailscaleOperations":["uninstall"]}'
 ```
 
-Multiple operations run in the supplied order. For example, this installs and
-then connects the host in one serial play:
-
-```bash
-ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"tailscaleOperations":["install","up"]}'
-```
-
-An omitted, empty, scalar, or unknown `tailscaleOperations` value fails with a
-message listing the supported operations.
+For a Debian pin, add `-e tailscaleVersion='<version>'`. A composition such as
+`["install","up","status"]` runs in that exact order. The current public
+playbook requests the Tailscale auth key for every normal invocation, even
+though only `up` consumes it; check mode skips that auth-key read.
 
 ## Verification
 
-`roles/tailscale` has a Molecule scenario covering the Debian install path
-only. The `up`, `down`, `status`, `diagnose`, `update`, `uninstall`,
-ordered multi-operation, and Darwin paths require manual verification:
-
-```bash
-make test-molecule-tailscale
-```
+- [Installer contract tests](../../tests/test_application_installers.py) and
+  [Tailscale contract tests](../../tests/test_tailscale.py) verify operation
+  dispatch, secret ownership, schemas, and diagnostic tasks.
+- [Molecule scenario](../../roles/tailscale/molecule/default) covers the Debian
+  install path: `make test-molecule-tailscale`.
+- No Tailscale e2e HIL procedure exists under [`hil-test/`](../../hil-test); live
+  tailnet operations, update, uninstall, ordered compositions, and Darwin remain
+  an explicit verification gap.

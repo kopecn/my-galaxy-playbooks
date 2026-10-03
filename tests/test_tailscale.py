@@ -36,8 +36,7 @@ def test_tailscale_has_one_operation_driven_playbook():
         "ssh",
         "tailscale",
     ]
-    assert "tailscaleOperations" in roles[1]["onePasswordTasks"]
-    assert "'up' in tailscaleOperations" in roles[1]["onePasswordTasks"]
+    assert roles[1]["onePasswordTasks"] == ["ssh_user_pass", "tailscale"]
     assert set((REPO_ROOT / "playbooks").glob("tailscale_*.yml")) == set()
 
 
@@ -92,8 +91,9 @@ def test_tailscale_auth_key_is_super_agent_managed():
 
     assert "tailscaleAuthKeyReference" not in tasks
     assert "ansible.builtin.include_role" not in tasks
-    assert "['ssh_user_pass', 'tailscale']" in playbook[0]["roles"][1][
-        "onePasswordTasks"
+    assert playbook[0]["roles"][1]["onePasswordTasks"] == [
+        "ssh_user_pass",
+        "tailscale",
     ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults

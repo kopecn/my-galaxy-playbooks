@@ -1,4 +1,21 @@
-# Testing with Molecule
+# Testing
+
+This repository uses three distinct verification layers: fast static and
+contract tests, container-based Molecule scenarios, and live hardware-in-the-loop
+(HIL) procedures. Do not describe one layer as another; each proves different
+behavior.
+
+## Fast checks
+
+```bash
+make test
+```
+
+This runs YAML and Ansible linting, syntax-checks every playbook, and executes
+the Python contract tests under [`tests/`](../tests). It does not connect to a
+managed host and is not an e2e test.
+
+## Molecule
 
 Roles are tested with [Molecule](https://ansible.readthedocs.io/projects/molecule/)
 using the Docker driver. Tests are written test-first: define the expected
@@ -87,3 +104,37 @@ Then:
   no external mocks.
 - Assert observable outcomes (file exists, service running, content correct),
   not implementation details.
+
+## Hardware-in-the-loop testing
+
+HIL procedures execute playbooks against real supported hardware and validate
+behavior that static tests or Linux containers cannot prove. The canonical HIL
+index is [`hil-test/readme.md`](../hil-test/readme.md); each procedure and its
+scripts live directly below [`hil-test/`](../hil-test).
+
+The currently documented procedure is the
+[`provisioning-ssh` e2e workflow](../hil-test/provisioning-ssh/readme.md). It
+uses these target-side preparation scripts:
+
+- [`enable-user-ssh.sh`](../hil-test/provisioning-ssh/enable-user-ssh.sh)
+  returns SSH configuration and the test account to the documented bootstrap
+  state.
+- [`reload-user-ssh.sh`](../hil-test/provisioning-ssh/reload-user-ssh.sh)
+  reloads the SSH daemon and reports its state.
+
+Follow the procedure page in order. Its preparation is destructive to the test
+account's SSH material and therefore belongs only on an explicitly designated
+HIL target. A successful run must satisfy the procedure's stated gates and final
+state; merely completing an Ansible syntax check, static contract test, or
+Molecule scenario is not an HIL pass.
+
+Every new HIL workflow SHALL:
+
+1. live under `hil-test/<domain>/` with a `readme.md`;
+2. document scope, prerequisites, destructive effects, sanitized invocation,
+   gates, success criteria, and recovery;
+3. link its scripts using repository-relative paths;
+4. use placeholders rather than real hostnames, usernames, passwords, key
+   names, vaults, or secret identifiers; and
+5. be linked from [`hil-test/readme.md`](../hil-test/readme.md) and the domain's
+   `docs/playbooks/<domain>.md` Verification section.

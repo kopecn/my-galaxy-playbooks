@@ -1,135 +1,128 @@
 # Samba
 
-Installs Samba (SMB) with required transport encryption and a provisioned SMB
-user account, and prints diagnostics. See [`roles/samba`](../../roles/samba)
-and the [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
-for the layering this role follows.
+## Scope
 
-The single thin playbook `playbooks/samba.yml` accepts an ordered, non-empty
-`sambaOperations` array at runtime and dispatches each operation in order:
+[`playbooks/samba.yml`](../../playbooks/samba.yml) and
+[`roles/samba`](../../roles/samba) manage an encrypted Samba service and SMB
+account through the ordered, non-empty `sambaOperations` array.
 
 | Operation | Result |
 | --- | --- |
-| `install` | Install packages, require SMB encryption, and provision the SMB user |
-| `uninstall` | Purge Samba, configuration, and passdb |
-| `diagnose` | Print `testparm`, `pdbedit`, and `smbstatus` output |
+| `install` | Install Samba, require SMB encryption, enable services, allow SMB through UFW when present, and provision one SMB user. |
+| `diagnose` | Print validated configuration, passdb users, and server status. |
+| `uninstall` | Purge Samba packages, configuration, caches, logs, and passdb state; Unix users and home directories remain. |
 
-## Supported hosts
+### Supported Hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Debian | `x86_64`, `aarch64`, `armv7l` |
+| `Debian` | `x86_64`, `aarch64`, `armv7l` |
 
-Debian-family only: Samba is installed from the `samba` + `samba-common-bin` apt
-packages. macOS ships its own SMB server and is not covered — a host outside
-this matrix fails the operation with a clear error; other hosts and playbooks
-continue.
+The values match Ansible facts exactly. Unsupported combinations fail before
+dispatch.
+
+## Goal
+
+Use this domain to establish or remove a Debian Samba service with encrypted SMB
+transport and a runtime-resolved account credential, or to inspect its effective
+state.
+
+## Invocation
+
+```bash
+ansible-playbook playbooks/samba.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e sambaPasswordOpItem='<secret-item>' \
+  -e '{"sambaOperations":["install"]}'
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    CLI[ansible-playbook] --> PB[playbooks/samba.yml]
+    PB --> OP[onepassword role]
+    PB --> SSH[ssh role]
+    PB --> ROLE[samba role]
+    OP --> VAULT[Secret service]
+    ROLE --> FW[UFW when present]
+    SSH --> HOST[Managed Debian host]
+    ROLE --> HOST
+```
+
+## Workflow
+
+```mermaid
+flowchart TD
+    Start[Resolve SSH and Samba credentials] --> Route[Resolve SSH route]
+    Route --> Facts[Gather minimum platform facts]
+    Facts --> Supported{Debian and supported architecture?}
+    Supported -->|no| Stop[Fail before dispatch]
+    Supported -->|yes| Loop[Run operations in array order]
+    Loop --> Install[install: packages, encryption, services, firewall]
+    Install --> Account{SMB account already present?}
+    Account -->|no| Secret[Resolve password and create passdb entry]
+    Account -->|yes| Keep[Keep existing password]
+    Loop --> Diagnose[diagnose: testparm, pdbedit, smbstatus]
+    Loop --> Remove[uninstall: purge package and Samba state]
+```
 
 ## Variables
 
-| Variable | Where set | Purpose |
-| --- | --- | --- |
-| `sambaOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
-| `sambaUsername` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | SMB/Unix account name to provision. Required for `install`. When unset, it is resolved on the super agent from the `username` field of `sambaPasswordOpItem` in 1Password. |
-| `sambaPasswordOpItem` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item name (within `onePasswordVault`) whose `username` and `password` fields hold the Samba account name and password. Resolved on the super agent. Empty default forces an explicit override. |
-| `sambaPassword` | Extra var (`-e`), never persisted | Direct password, resolved at run time. Use it to pass a password without 1Password; when unset the password comes from `sambaPasswordOpItem` via 1Password. |
-| `onePasswordVault` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Samba password item. Resolved on the super agent; never read from target inventory. |
+Put shared non-secret configuration in downstream `group_vars/` and
+machine-specific account coordinates in `host_vars/`. Prefer the secret
+resolver for passwords; a direct runtime password is sensitive and SHALL never
+be committed to inventory or documentation.
 
-Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
+| Variable | Type | Source | Default / required | Purpose |
+| --- | --- | --- | --- | --- |
+| `sambaOperations` | `array[enum]`: `diagnose`, `install`, `uninstall` | Runtime `-e` | Required; role default is `[]` | Ordered operations to execute. |
+| `sambaUsername` | `string` | Secret resolver, `group_vars`, `host_vars`, or runtime `-e` | Empty; required for `install` directly or through the secret item | Unix/SMB account to provision. |
+| `sambaPasswordOpItem` | `string` | `group_vars`, `host_vars`, or runtime `-e` | Empty; required by the public playbook | Non-secret secret-item coordinate resolved for every public-playbook invocation. |
+| `sambaPassword` | sensitive `string` | Runtime `-e` only | Optional role-level override | Direct SMB password; never persisted. The public playbook still performs its configured Samba secret query first. |
+| `onePasswordVault` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Vault coordinate used on the control node. |
 
-The account name and password vary by machine. Because this repository is public
-it hosts no inventory, so supply them either as per-variable overrides at run
-time (`-e sambaUsername=... -e sambaPasswordOpItem=...`) or from a downstream
-galaxy repo's inventory. A user shared across many hosts belongs in that repo's
-`group_vars`; a host's own users belong in its `host_vars` — Ansible's variable
-precedence expresses the host↔user many-to-many.
+See the [variable schema](../../.schema/ansible-vars.schema.json).
 
 ## Usage
 
-`install` reads the Samba password from 1Password on the super agent. It does not
-read the password or its reference from target-host inventory. Set the vault name
-via the role default (`roles/samba/defaults/main.yml`), a downstream inventory,
-or `-e` at run time:
-
-```yaml
-onePasswordVault: your-vault-name
-```
-
-The password is passed directly from the super agent's `op` CLI to `smbpasswd`
-over stdin and is never written to inventory or disk. Secret resolution runs
-through the shared `onepassword` role on the super agent, which reads
-`~/.config/op/op-service-account-token`. Its `samba` task owns the exact
-username and password queries, including
-when the playbook is started directly or by an IDE.
-
-Install Samba and provision the SMB user on a host, overriding the account name
-and 1Password item per variable (no inventory required — `-i '<host-or-ip>,'` is the
-target host name or IP, the trailing comma making it an inline inventory). `-b`
-escalates privileges on the target; the shared SSH role reads the login
-account's sudo password from `user-<short-hostname>`. This remains distinct from
-the Samba password:
+Install with credentials resolved from the secret service:
 
 ```bash
-ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"sambaOperations":["install"]}' \
-  -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - <host-or-ip>'
+ansible-playbook playbooks/samba.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e sambaPasswordOpItem='<secret-item>' \
+  -e '{"sambaOperations":["install"]}'
 ```
 
-To pass a Samba password directly without 1Password, override `sambaPassword`
-instead of `sambaPasswordOpItem`:
+The role can accept `sambaPassword` directly, but the current public playbook
+always runs the Samba 1Password query before the role. A direct password does
+not bypass that prerequisite when invoking `playbooks/samba.yml`.
+
+Diagnose or uninstall:
 
 ```bash
-ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"sambaOperations":["install"]}' \
-  -e sambaUsername=fileshare -e sambaPassword='<samba-password>'
-```
+ansible-playbook playbooks/samba.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e sambaPasswordOpItem='<secret-item>' \
+  -e '{"sambaOperations":["diagnose"]}'
 
-A downstream galaxy repo can set the same variables per host in its
-`host_vars`/`group_vars` instead of passing them on the command line.
-
-The SMB password is set only when the user is absent from the Samba passdb, so
-re-runs are idempotent. Rotating an existing user's password is not performed by
-`install`.
-
-Fully remove Samba from a host — a clean teardown so a later `install` starts
-from scratch (`serial: 1` — one host at a time):
-
-```bash
-ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/samba.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e sambaPasswordOpItem='<secret-item>' \
   -e '{"sambaOperations":["uninstall"]}'
 ```
 
-This purges the `samba`, `samba-common`, and `samba-common-bin` packages
-(`samba-common` owns the default config and state dirs, so purging it lets a
-later install restore them) and removes Samba's config and state —
-`/etc/samba`, `/var/lib/samba` (the passdb, so **all** SMB users),
-`/var/cache/samba`, `/var/log/samba`, `/run/samba`. It does **not** delete Unix
-accounts or home directories; those are OS state, not Samba's, and are left
-intact.
-
-Print Samba configuration and status without changing anything — `diagnose` reads
-`testparm`/`pdbedit`/`smbstatus` as root, using the Login item password
-(`serial: 1` — one host at a time):
-
-```bash
-ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
-  -e '{"sambaOperations":["diagnose"]}'
-```
-
-Multiple values run in order, for example
-`-e '{"sambaOperations":["install","diagnose"]}'`. The playbook requests the
-Samba 1Password fields whenever the array contains `install`.
+Multiple values, such as `["install","diagnose"]`, run in order. Installation
+does not rotate an existing passdb user's password.
 
 ## Verification
 
-`roles/samba` has a Molecule scenario covering the Debian install path only. The
-scenario supplies `sambaPassword` directly because the container cannot reach
-the super agent's 1Password:
-
-```bash
-make test-molecule-samba
-```
+- [Installer contract tests](../../tests/test_application_installers.py) verify
+  operation dispatch, platform facts, schemas, and layering.
+- [Samba contract tests](../../tests/test_samba.py) verify secret-resolution
+  ownership.
+- [Molecule scenario](../../roles/samba/molecule/default) covers the Debian
+  install path with a direct test credential: `make test-molecule-samba`.
+- No Samba e2e HIL procedure exists under [`hil-test/`](../../hil-test); live secret
+  resolution, diagnose, and destructive uninstall remain an explicit gap.

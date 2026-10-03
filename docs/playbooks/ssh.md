@@ -1,116 +1,118 @@
 # SSH routing
 
-Every remote playbook enters `onepassword`, then `ssh`, before its
-action role. Credential resolution and routing remain separate steps.
+## Scope
+
+[`roles/ssh`](../../roles/ssh) validates explicit inline targets and resolves
+the address used by remote playbooks. Its ordered `sshOperations` array
+currently supports one operation:
+
+| Operation | Result |
+| --- | --- |
+| `resolve` | Select the VPN, exact inline, or inventory-derived local route and set ephemeral SSH options. |
+
+Credential lookup belongs to [`roles/onepassword`](../../roles/onepassword);
+reachability checks, fact gathering, and workflow safety gates belong to the
+calling domain.
+
+### Supported Hosts
+
+The router is platform-independent and gathers no managed-host facts. It can
+route to any target supported by Ansible's SSH connection plugin. An ambiguous
+single-label inline target fails before a remote connection is attempted.
+
+## Goal
+
+Include this role when a remote playbook needs one deterministic SSH endpoint
+without relying on the controller's SSH configuration or persistent known-host
+files.
 
 ## Invocation
 
-in your role/playbook include:
+In a playbook:
+
+```yaml
+roles:
+  - role: ssh
 ```
-  roles:
-    ...
-    - role: ssh
-    ...
+
+## Architecture
+
+```mermaid
+flowchart LR
+    PB[Remote playbook] --> OP[onepassword role]
+    PB --> SSH[ssh role]
+    PB --> ACTION[Action role]
+    OP --> VAULT[Secret service]
+    SSH --> VARS[ansible_host and SSH arguments]
+    VARS --> HOST[Managed host]
+    ACTION --> HOST
 ```
 
 ## Workflow
 
 ```mermaid
 flowchart TD
-    Start[Playbook starts] --> Credentials[onepassword ssh_user_pass task loads username, password, and key]
-    Credentials --> Gate{Inline target explicit?}
-    Gate -->|bare hostname| Reject[Reject ambiguous target]
-    Gate -->|IP or qualified hostname<br/>such as &lt;hostname&gt;.example.com| Flag{useVpn}
-    Flag -->|true| Tail[Use vpnHostname.vpnDomain]
-    Flag -->|false| Source{Inventory source}
-    Source -->|Inline -i &lt;hostname&gt;.example.com,| Exact[Use &lt;hostname&gt;.example.com exactly]
-    Source -->|Inventory file| Local[Use hostName.local]
-    Exact --> Route[Set ansible_host]
-    Local --> Route
-    Tail --> Route
-    Route --> Ephemeral[Apply ephemeral SSH options]
-    Ephemeral --> Action[Run the action role]
+    Start[Validate sshOperations and inline target] --> Explicit{Inline target explicit?}
+    Explicit -->|bare single label| Reject[Fail before connection]
+    Explicit -->|valid or inventory file| VPN{useVpn?}
+    VPN -->|yes| Tail[Combine vpnHostname and vpnDomain]
+    VPN -->|no, inline| Exact[Use inline target exactly]
+    VPN -->|no, inventory| Local[Combine hostName and .local]
+    Tail --> Bind[Set ansible_host]
+    Exact --> Bind
+    Local --> Bind
+    Bind --> Isolate[Ignore controller SSH config and known-host files]
+    Isolate --> Action[Calling role establishes connection]
 ```
 
-## Inline inventory
+## Variables
 
-An inline host list must provide an explicit address or qualified hostname.
-Single-label names such as `hostname` are rejected because the super agent's DNS
-search domains could route them differently. The router does not append,
-remove, or replace any part of an accepted target.
+Put environment-wide route suffixes and prefixes in downstream `group_vars/`;
+put `hostName`, `vpnHostname`, and per-host route choices in `host_vars/`.
+Use runtime `-e` only for one-run overrides. Secret values are resolved by the
+onepassword role and do not belong in inventory.
 
-| Invocation | SSH endpoint |
-| --- | --- |
-| `-i '192.0.2.10,'` | `192.0.2.10` |
-| `-i '2001:db8::10,'` | `2001:db8::10` |
-| `-i 'hostname.local,'` | `hostname.local` |
-| `-i 'hostname.tail313959.ts.net,'` | `hostname.tail313959.ts.net` |
-| `-i 'hostname.example.com,'` | `hostname.example.com` |
+| Variable | Type | Source | Default / required | Purpose |
+| --- | --- | --- | --- | --- |
+| `sshOperations` | `array[enum]`: `resolve` | Role default or playbook role argument | `["resolve"]` | Ordered router operations. |
+| `hostName` | `string` | `host_vars` or `group_vars` | Required for inventory-file local routing | Base hostname used to build `<host>.local`. |
+| `useVpn` | `bool` | Role default, `group_vars`, `host_vars`, or runtime `-e` | `false` | Select the VPN route. |
+| `vpnHostname` | `string` | `host_vars` | Required when `useVpn=true` | Host portion of the VPN address. |
+| `vpnDomain` | `string` | Role default or downstream inventory | Configured default is redacted | VPN suffix combined with `vpnHostname`. |
+| `sshLoginPrefix` | `string` | Shared role default or downstream inventory | `user` | Prefix used to locate the per-host Login item. |
+| `sshKeyPrefix` | `string` | Shared role default or downstream inventory | `sshkey` | Prefix used to locate the per-host SSH key item. |
+| `onePasswordVault` | `string` | Shared role default, inventory, or runtime `-e` | Configured default is redacted | Vault coordinate for SSH credential resolution. |
 
-`-i 'hostname,'` fails before a remote connection is attempted.
-
-## Inventory file
-
-Routing follows this precedence for every host:
-
-- `useVpn: true` selects `vpnHostname.vpnDomain` first.
-- Otherwise, an accepted inline `-i` target is used exactly.
-- Otherwise, a host loaded from an inventory file selects `hostName.local`.
-
-The inventory owns `hostName`, `vpnHostname`, `vpnDomain`, and the
-`useVpn` flag.
-
-## SSH credentials
-
-The `onepassword` role's `ssh_user_pass` task loads the SSH username from
-`<sshLoginPrefix>-<short-hostname>/username` and assigns it to `ansible_user`.
-`sshLoginPrefix` defaults to `user`.
-
-The same role loads the Login item's password into `ansible_password` and
-`ansible_become_password`. It loads `<sshKeyPrefix>-<short-hostname>` from
-`onePasswordVault`, requests OpenSSH format, and assigns it directly to
-`ansible_private_key`. All three queries are declared in
-`onePasswordSshUserPassQueries`.
-
-The shared `onepassword` query executor reads its service-account token from
-`opServiceAccountTokenFullPath`, which defaults
-to `~/.config/op/op-service-account-token`. The lookup is protected by
-`no_log`. If a query fails, the role reports only the unresolved logical field
-name (`ansible_user`, `ansible_password`, or `ansible_private_key`); secret
-references and values remain redacted.
-
-## SSH isolation
-
-The router passes `-F /dev/null`, so it does not read `~/.ssh/config`. It uses
-`/dev/null` for user and global known-host files, disables host-key persistence,
-and disables SSH connection sharing and control sockets.
-
-This framework does not validate reachability, gather facts, or add
-workflow-specific safety behavior.
+See the [variable schema](../../.schema/ansible-vars.schema.json).
 
 ## Usage
 
-The `ssh` router is not invoked on its own. Every remote playbook applies it
-first to resolve the route and isolation, then runs its action role. You select
-routing through the invocation and inventory described above — an explicit inline
-`-i '<host-or-ip>,'` target, an inventory file, or `useVpn`.
-
-The role dispatches its ordered `sshOperations` list to matching task files.
-`sshOperations` defaults to `[resolve]`, so existing `role: ssh` entries resolve
-the route without extra configuration. A playbook can also declare the operation
-list explicitly; future composable SSH operations are appended in execution
-order:
+The role is normally preceded by `onepassword` and followed by an action role:
 
 ```yaml
-- role: ssh
-  sshOperations:
-    - resolve
+roles:
+  - role: onepassword
+    onePasswordTasks:
+      - ssh_user_pass
+  - role: ssh
+  - role: <action-role>
 ```
 
-Each operation lives in `roles/ssh/tasks/<operation>.yml`; `tasks/main.yml`
-validates and dispatches the list.
+Routing precedence is VPN first, then an exact accepted inline target, then
+`hostName.local` for inventory-file hosts. Valid sanitized inline examples are
+`-i '192.0.2.10,'`, `-i '2001:db8::10,'`, and
+`-i 'host.example.com,'`. The ambiguous `-i 'host,'` form is rejected.
 
-The operations that build on this router are the host-provisioning playbooks.
-Their runnable happy paths — first-contact connection with run-time credentials,
-key install, and lock-down — live in [[provisioning]], which documents those
-operations and what each one does today.
+The role supplies `-F /dev/null`, uses `/dev/null` for user and global
+known-host files, and disables strict host-key checking. SSH multiplexing remains
+governed by [`ansible.cfg`](../../ansible.cfg); this role does not disable it.
+
+## Verification
+
+- [SSH contract tests](../../tests/test_validate_host_ssh_key.py) verify role
+  ordering, target rejection, routing precedence, isolation options, operation
+  dispatch, and schema coverage.
+- SSH routing has no standalone Molecule scenario.
+- The [SSH provisioning HIL procedure](../../hil-test/provisioning-ssh/readme.md)
+  exercises this router as part of a live end-to-end workflow; it is not a
+  standalone test of every routing branch.

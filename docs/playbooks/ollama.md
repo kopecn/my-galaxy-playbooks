@@ -1,87 +1,113 @@
 # Ollama
 
-Installs, uninstalls, and diagnoses the [Ollama](https://ollama.com) local-LLM
-server, and opens its API port in the host firewall. See
-[`roles/ollama`](../../roles/ollama) and the
-[Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
-for the layering this role follows.
+## Scope
 
-The single thin playbook `playbooks/ollama.yml` accepts an ordered, non-empty
-`ollamaOperations` array at runtime and dispatches each operation in order:
+[`playbooks/ollama.yml`](../../playbooks/ollama.yml) and
+[`roles/ollama`](../../roles/ollama) manage the Ollama server through the
+ordered, non-empty `ollamaOperations` array.
 
 | Operation | Result |
 | --- | --- |
-| `install` | Install Ollama and open its API firewall port |
-| `diagnose` | Print `ollama --version` and `ollama list` |
-| `uninstall` | Uninstall Ollama and remove its firewall rule |
+| `install` | Install Ollama, start its service, and open its configured API port where UFW is present. |
+| `diagnose` | Print the Ollama version and locally available models. |
+| `uninstall` | Remove Ollama and its managed firewall rule. |
 
-## Supported hosts
+Binding Ollama beyond localhost is outside this domain.
+
+### Supported Hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `arm64` |
-| Debian | `x86_64`, `aarch64` |
+| `Darwin` | `x86_64`, `arm64` |
+| `Debian` | `x86_64`, `aarch64` |
 
-Install channel per OS family: the official `ollama.com/install.sh` script on
-Debian (installs `/usr/local/bin/ollama` and the `ollama` systemd service), the
-Homebrew formula + `brew services` on Darwin. A host outside this matrix fails the
-operation with a clear error; other hosts and playbooks continue.
+The values match Ansible facts exactly. Unsupported combinations fail before
+dispatch. Darwin uses Homebrew; Debian uses Ollama's native Linux installer.
+
+## Goal
+
+Use this domain to install, inspect, or remove a locally hosted Ollama runtime
+and keep its managed firewall rule synchronized with the installation.
+
+## Invocation
+
+```bash
+ansible-playbook playbooks/ollama.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
+  -e '{"ollamaOperations":["install"]}'
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    CLI[ansible-playbook] --> PB[playbooks/ollama.yml]
+    PB --> OP[onepassword role]
+    PB --> SSH[ssh role]
+    PB --> ROLE[ollama role]
+    OP --> VAULT[Secret service]
+    ROLE --> FW[firewall role]
+    SSH --> HOST[Managed host]
+    ROLE --> HOST
+    FW --> HOST
+```
+
+## Workflow
+
+```mermaid
+flowchart TD
+    Start[Validate ollamaOperations] --> Creds[Resolve SSH credentials]
+    Creds --> Route[Resolve SSH route]
+    Route --> Facts[Gather minimum platform facts]
+    Facts --> Supported{Supported OS and architecture?}
+    Supported -->|no| Stop[Fail before dispatch]
+    Supported -->|yes| Loop[Run operations in array order]
+    Loop --> Install[install: package and service]
+    Install --> Open[Allow ollamaPort where UFW exists]
+    Loop --> Diagnose[diagnose: version and model list]
+    Loop --> Remove[uninstall: package and service removal]
+    Remove --> Close[Remove managed firewall rule]
+```
 
 ## Variables
 
-| Variable | Where set | Purpose |
-| --- | --- | --- |
-| `ollamaOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
-| `ollamaPort` | Role default (`roles/ollama/defaults/main.yml`), overridden by downstream inventory or `-e` | TCP port the Ollama API listens on and that the firewall rule opens. Defaults to `11434`. |
+Put environment-wide values in downstream `group_vars/`, host-specific values
+in `host_vars/`, and operation arrays in runtime `-e`.
 
-Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
+| Variable | Type | Source | Default / required | Purpose |
+| --- | --- | --- | --- | --- |
+| `ollamaOperations` | `array[enum]`: `diagnose`, `install`, `uninstall` | Runtime `-e` | Required; role default is `[]` | Ordered operations to execute. |
+| `ollamaPort` | `string` | Role default, inventory, or runtime `-e` | `11434` | API port managed in the Linux firewall. |
+| `onePasswordVault` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Coordinate for shared SSH credential resolution. |
 
-## Firewall and serving
-
-`install` opens `ollamaPort` through the host firewall via the shared
-[`firewall`](../../roles/firewall) role: on Linux it adds a UFW `allow` rule when
-UFW is present (no-op otherwise); macOS is a no-op, as its application firewall is
-managed manually. `uninstall` removes the same rule.
-
-Opening the port only makes Ollama reachable once it also binds beyond localhost.
-By default Ollama listens on `127.0.0.1:11434`. Binding it to the LAN
-(`OLLAMA_HOST=0.0.0.0:11434` in the systemd unit on Linux, or via `launchctl
-setenv` on macOS) is a deliberate manual step and is out of this role's scope.
+See the [variable schema](../../.schema/ansible-vars.schema.json).
 
 ## Usage
 
 ```bash
-ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/ollama.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"ollamaOperations":["install"]}'
-```
 
-Diagnose without changing the host:
-
-```bash
-ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/ollama.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"ollamaOperations":["diagnose"]}'
-```
 
-Uninstall Ollama:
-
-```bash
-ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation \
+ansible-playbook playbooks/ollama.yml -i '<target>,' -b \
+  -e onePasswordVault='<vault>' \
   -e '{"ollamaOperations":["uninstall"]}'
 ```
 
-Multiple values run in order, for example
-`-e '{"ollamaOperations":["install","diagnose"]}'`.
+Multiple values, such as `["install","diagnose"]`, run in order. Opening the
+firewall does not change Ollama's default loopback binding; configure external
+binding separately if required.
 
 ## Verification
 
-```bash
-make test-molecule-ollama
-```
-
-The Molecule scenario exercises the Debian install path only (Docker has no macOS
-image): it asserts the binary installs, `ollama --version` responds, the service
-is running and enabled, and the UFW rule for `11434` is present. The macOS path is
-verified manually on a Darwin host.
+- [Installer contract tests](../../tests/test_application_installers.py) verify
+  operation dispatch, platform facts, schemas, and layering.
+- [Molecule scenario](../../roles/ollama/molecule/default) covers Debian
+  installation, service state, CLI response, and the UFW rule:
+  `make test-molecule-ollama`.
+- No Ollama e2e HIL procedure exists under [`hil-test/`](../../hil-test); Darwin and
+  live uninstall/diagnose workflows remain an explicit verification gap.
