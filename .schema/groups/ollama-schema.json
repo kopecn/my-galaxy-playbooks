@@ -5,6 +5,15 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
+    "ollamaOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": ["diagnose", "install", "uninstall"]
+      },
+      "description": "Ordered, non-empty list of Ollama operations to run. Supply at ansible-playbook runtime with -e."
+    },
     "ollamaPort": {
       "type": "string",
       "default": "11434",
@@ -12,6 +21,7 @@
     }
   },
   "properties": {
+    "ollamaOperations": { "$ref": "#/$defs/ollamaOperations" },
     "ollamaPort": { "$ref": "#/$defs/ollamaPort" }
   }
 }

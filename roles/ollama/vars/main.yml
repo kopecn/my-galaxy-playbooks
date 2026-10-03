@@ -1,4 +1,5 @@
 ---
+# Public operation names accepted by ollamaOperations.
 ollamaSupportedOperations:
   - diagnose
   - install
@@ -7,7 +8,7 @@ ollamaSupportedOperations:
 ollamaSupportMatrix:
   Darwin:
     - x86_64
-    - aarch64
+    - arm64
   Debian:
     - x86_64
     - aarch64

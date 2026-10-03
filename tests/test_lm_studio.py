@@ -2,36 +2,10 @@
 
 from pathlib import Path
 
-import pytest
 import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OPERATIONS = ("diagnose", "install", "uninstall")
-
-
-@pytest.mark.parametrize("operation", OPERATIONS)
-def test_lm_studio_operation_has_thin_playbook(operation):
-    """Each public operation resolves SSH before invoking the LM Studio role."""
-    playbook_path = REPO_ROOT / "playbooks" / f"lm_studio_{operation}.yml"
-    playbook = yaml.safe_load(playbook_path.read_text())
-
-    assert len(playbook) == 1
-    assert playbook[0]["gather_facts"] is False
-    assert playbook[0]["roles"] == [
-        {"role": "set_facts"},
-        {
-            "role": "onepassword",
-            "onePasswordTasks": ["ssh_user_pass"],
-        },
-        {"role": "ssh"},
-        {
-            "role": "lm_studio",
-            "lmStudioOperation": operation,
-        },
-    ]
-
-
 def test_lm_studio_gathers_platform_facts_after_ssh_setup():
     """The role gathers facts once credentials and the SSH route are available."""
     tasks_path = REPO_ROOT / "roles" / "lm_studio" / "tasks" / "main.yml"

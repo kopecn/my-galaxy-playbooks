@@ -22,6 +22,9 @@
       "$ref": "groups/vscode-schema.json"
     },
     {
+      "$ref": "groups/claude-schema.json"
+    },
+    {
       "$ref": "groups/tailscale-schema.json"
     },
     {

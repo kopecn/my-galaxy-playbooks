@@ -8,6 +8,7 @@
   become: true
   roles:
     - role: samba
-      sambaOperation: install
+      sambaOperations:
+        - install
       sambaUsername: smbtest
       sambaPassword: "Molecule-Test-Passw0rd!"

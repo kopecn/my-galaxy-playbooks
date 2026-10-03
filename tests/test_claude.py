@@ -3,35 +3,10 @@
 import json
 from pathlib import Path
 
-import pytest
 import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OPERATIONS = ("diagnose", "install", "uninstall")
-
-
-@pytest.mark.parametrize("operation", OPERATIONS)
-def test_claude_operation_has_thin_playbook(operation):
-    """Each public operation delegates to the Claude role."""
-    playbook_path = REPO_ROOT / "playbooks" / f"claude_{operation}.yml"
-    playbook = yaml.safe_load(playbook_path.read_text())
-
-    assert len(playbook) == 1
-    assert playbook[0]["roles"] == [
-        {"role": "set_facts"},
-        {
-            "role": "onepassword",
-            "onePasswordTasks": ["ssh_user_pass"],
-        },
-        {"role": "ssh"},
-        {
-            "role": "claude",
-            "claudeOperation": operation,
-        },
-    ]
-
-
 def test_uninstall_always_removes_user_config():
     """Uninstall purges user config unconditionally — no gating variable."""
     tasks = yaml.safe_load(

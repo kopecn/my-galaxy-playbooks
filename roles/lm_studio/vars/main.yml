@@ -1,4 +1,5 @@
 ---
+# Public operation names accepted by lmStudioOperations.
 lmStudioSupportedOperations:
   - diagnose
   - install
@@ -7,4 +8,4 @@ lmStudioSupportedOperations:
 lmStudioSupportMatrix:
   Darwin:
     - x86_64
-    - aarch64
+    - arm64

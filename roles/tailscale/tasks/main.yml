@@ -14,42 +14,22 @@
       {{ tailscaleSupportedOperations }}.
     quiet: true
 
-- name: Normalize the gathered architecture to its canonical name
-  ansible.builtin.set_fact:
-    tailscaleArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
-
-- name: Validate declared hostOperatingSystem against gathered facts
-  ansible.builtin.assert:
-    that:
-      - hostOperatingSystem == ansible_facts.os_family
-    fail_msg: >-
-      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
-      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
-  when: hostOperatingSystem is defined
-
-- name: Validate declared hostArchitecture against gathered facts
-  ansible.builtin.assert:
-    that:
-      - hostArchitecture == tailscaleArch
-    fail_msg: >-
-      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
-      gathered architecture ({{ tailscaleArch }}) on {{ inventory_hostname }}.
-  when: hostArchitecture is defined
-
-- name: Resolve the effective OS family and architecture for dispatch
-  ansible.builtin.set_fact:
-    tailscaleOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
-    tailscaleEffectiveArch: "{{ hostArchitecture | default(tailscaleArch) }}"
+- name: Gather the target platform facts after resolving the SSH route
+  ansible.builtin.setup:
+    gather_subset:
+      - min
 
 - name: Fail this operation when the host platform is unsupported
   ansible.builtin.fail:
     msg: >-
       The tailscale role cannot run {{ tailscaleOperations }} on
-      {{ tailscaleOsFamily }} / {{ tailscaleEffectiveArch }} ({{ inventory_hostname }}).
+      {{ ansible_facts.os_family }} / {{ ansible_facts.architecture }}
+      ({{ inventory_hostname }}).
       Supported combinations: {{ tailscaleSupportMatrix }}.
   when: >-
-    tailscaleOsFamily not in tailscaleSupportMatrix
-    or tailscaleEffectiveArch not in tailscaleSupportMatrix[tailscaleOsFamily]
+    ansible_facts.os_family not in tailscaleSupportMatrix
+    or ansible_facts.architecture
+    not in tailscaleSupportMatrix[ansible_facts.os_family]
 
 - name: Run the explicitly requested Tailscale operations
   ansible.builtin.include_tasks: "{{ tailscaleOperation }}.yml"

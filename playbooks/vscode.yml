@@ -1,10 +1,8 @@
 ---
-# Installs VS Code and its extensions. Targets whatever inventory/host you run
-# it against, e.g.:
-#   make LIMIT=local PLAYBOOK=playbooks/vscode.yml run
-- name: Install and configure VS Code
+- name: Run VS Code operations
   hosts: all
   gather_facts: false
+  serial: 1
   roles:
     - role: set_facts
     - role: onepassword

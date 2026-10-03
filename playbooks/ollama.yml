@@ -1,5 +1,5 @@
 ---
-- name: Uninstall LM Studio
+- name: Run Ollama operations
   hosts: all
   gather_facts: false
   serial: 1
@@ -9,5 +9,4 @@
       onePasswordTasks:
         - ssh_user_pass
     - role: ssh
-    - role: lm_studio
-      lmStudioOperation: uninstall
+    - role: ollama

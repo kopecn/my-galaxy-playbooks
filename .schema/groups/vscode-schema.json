@@ -5,6 +5,15 @@
   "type": "object",
   "additionalProperties": true,
   "$defs": {
+    "vscodeOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": ["install"]
+      },
+      "description": "Ordered, non-empty list of VS Code operations to run. The currently supported operation is install; supply it at ansible-playbook runtime with -e."
+    },
     "vscodeExtensions": {
       "type": "array",
       "items": {
@@ -15,6 +24,9 @@
     }
   },
   "properties": {
+    "vscodeOperations": {
+      "$ref": "#/$defs/vscodeOperations"
+    },
     "vscodeExtensions": {
       "$ref": "#/$defs/vscodeExtensions"
     }

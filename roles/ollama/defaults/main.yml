@@ -1,5 +1,7 @@
 ---
 # Lowest-precedence, user-overridable variables.
+ollamaOperations: []
+
 # Port the Ollama API server listens on (default 11434). The ollama role opens
 # this port in the host firewall (UFW on Linux). Binding Ollama beyond localhost
 # so the open port is reachable is a manual step — see docs/playbooks/ollama.md.

@@ -4,6 +4,7 @@
 # user. onePasswordVault is the non-secret vault name; the username and password
 # are resolved from sambaPasswordOpItem's username/password fields at run time
 # (sambaUsername set directly takes precedence over the 1Password lookup).
+sambaOperations: []
 onePasswordVault: Personal-Automation
 sambaUsername: ""
 sambaPasswordOpItem: ""

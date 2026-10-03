@@ -6,20 +6,20 @@ server, and opens its API port in the host firewall. See
 [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
 for the layering this role follows.
 
-One thin playbook per operation, all dispatching into the same role via
-`ollamaOperation`:
+The single thin playbook `playbooks/ollama.yml` accepts an ordered, non-empty
+`ollamaOperations` array at runtime and dispatches each operation in order:
 
-| Playbook | Operation |
+| Operation | Result |
 | --- | --- |
-| `playbooks/ollama_install.yml` | `install` |
-| `playbooks/ollama_diagnose.yml` | `diagnose` — print `ollama --version` and `ollama list` |
-| `playbooks/ollama_uninstall.yml` | `uninstall` |
+| `install` | Install Ollama and open its API firewall port |
+| `diagnose` | Print `ollama --version` and `ollama list` |
+| `uninstall` | Uninstall Ollama and remove its firewall rule |
 
 ## Supported hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `aarch64` |
+| Darwin | `x86_64`, `arm64` |
 | Debian | `x86_64`, `aarch64` |
 
 Install channel per OS family: the official `ollama.com/install.sh` script on
@@ -31,8 +31,8 @@ operation with a clear error; other hosts and playbooks continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
+| `ollamaOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
 | `ollamaPort` | Role default (`roles/ollama/defaults/main.yml`), overridden by downstream inventory or `-e` | TCP port the Ollama API listens on and that the firewall rule opens. Defaults to `11434`. |
-| `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 
@@ -51,12 +51,29 @@ setenv` on macOS) is a deliberate manual step and is out of this role's scope.
 ## Usage
 
 ```bash
-ansible-playbook playbooks/ollama_install.yml \
-  -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"ollamaOperations":["install"]}'
 ```
 
-Swap `ollama_install.yml` for `ollama_diagnose.yml` or `ollama_uninstall.yml` to
-run the other operations.
+Diagnose without changing the host:
+
+```bash
+ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"ollamaOperations":["diagnose"]}'
+```
+
+Uninstall Ollama:
+
+```bash
+ansible-playbook playbooks/ollama.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"ollamaOperations":["uninstall"]}'
+```
+
+Multiple values run in order, for example
+`-e '{"ollamaOperations":["install","diagnose"]}'`.
 
 ## Verification
 

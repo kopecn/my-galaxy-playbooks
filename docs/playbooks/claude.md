@@ -5,20 +5,20 @@ CLI. See [`roles/claude`](../../roles/claude) and the
 [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
 for the layering this role follows.
 
-One thin playbook per operation, all dispatching into the same role via
-`claudeOperation`:
+The single thin playbook `playbooks/claude.yml` accepts an ordered, non-empty
+`claudeOperations` array at runtime and dispatches each operation in order:
 
-| Playbook | Operation |
+| Operation | Result |
 | --- | --- |
-| `playbooks/claude_install.yml` | `install` |
-| `playbooks/claude_diagnose.yml` | `diagnose` — print `claude --version` and `claude doctor` |
-| `playbooks/claude_uninstall.yml` | `uninstall` |
+| `install` | Install Claude Code |
+| `diagnose` | Print `claude --version` and `claude doctor` |
+| `uninstall` | Uninstall Claude Code and remove user configuration |
 
 ## Supported hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `aarch64` |
+| Darwin | `x86_64`, `arm64` |
 | Debian | `x86_64`, `aarch64` |
 
 Install channel: Anthropic's native installer script
@@ -33,7 +33,7 @@ Windows is not yet supported by this role.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
-| `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
+| `claudeOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
 
 `uninstall` always removes user config (`~/.claude` and `~/.claude.json`) along
 with the CLI itself — settings, MCP configuration, and session history do not
@@ -48,22 +48,31 @@ Target a host with `-i '<host-or-ip>,'` — the trailing comma makes it an inlin
 Install the Claude CLI; `-b` enables sudo and the password comes from `user-<short-hostname>`:
 
 ```bash
-ansible-playbook playbooks/claude_install.yml -i '<host-or-ip>,' -b -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/claude.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"claudeOperations":["install"]}'
 ```
 
 Print installation diagnostics (`claude --version` and `claude doctor`) without
 changing anything (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/claude_diagnose.yml -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/claude.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"claudeOperations":["diagnose"]}'
 ```
 
 Uninstall the CLI and remove user config — settings, MCP config, and session
 history (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/claude_uninstall.yml -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/claude.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"claudeOperations":["uninstall"]}'
 ```
+
+Pass multiple values to compose a workflow; for example,
+`-e '{"claudeOperations":["install","diagnose"]}'` installs and then verifies.
 
 ## Verification
 

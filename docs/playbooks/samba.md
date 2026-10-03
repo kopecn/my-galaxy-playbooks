@@ -5,14 +5,14 @@ user account, and prints diagnostics. See [`roles/samba`](../../roles/samba)
 and the [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
 for the layering this role follows.
 
-One thin playbook per operation, all dispatching into the same role via
-`sambaOperation`:
+The single thin playbook `playbooks/samba.yml` accepts an ordered, non-empty
+`sambaOperations` array at runtime and dispatches each operation in order:
 
-| Playbook | Operation |
+| Operation | Result |
 | --- | --- |
-| `playbooks/samba_install.yml` | `install` — packages, `smb encrypt = required`, SMB user |
-| `playbooks/samba_uninstall.yml` | `uninstall` — full teardown: purge Samba, config, and passdb |
-| `playbooks/samba_diagnose.yml` | `diagnose` — print `testparm`, `pdbedit`, `smbstatus` |
+| `install` | Install packages, require SMB encryption, and provision the SMB user |
+| `uninstall` | Purge Samba, configuration, and passdb |
+| `diagnose` | Print `testparm`, `pdbedit`, and `smbstatus` output |
 
 ## Supported hosts
 
@@ -29,11 +29,11 @@ continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
+| `sambaOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
 | `sambaUsername` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | SMB/Unix account name to provision. Required for `install`. When unset, it is resolved on the super agent from the `username` field of `sambaPasswordOpItem` in 1Password. |
 | `sambaPasswordOpItem` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item name (within `onePasswordVault`) whose `username` and `password` fields hold the Samba account name and password. Resolved on the super agent. Empty default forces an explicit override. |
 | `sambaPassword` | Extra var (`-e`), never persisted | Direct password, resolved at run time. Use it to pass a password without 1Password; when unset the password comes from `sambaPasswordOpItem` via 1Password. |
 | `onePasswordVault` | Role default (`roles/samba/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Samba password item. Resolved on the super agent; never read from target inventory. |
-| `hostOperatingSystem`, `hostArchitecture` | override or `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 
@@ -70,8 +70,9 @@ account's sudo password from `user-<short-hostname>`. This remains distinct from
 the Samba password:
 
 ```bash
-ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
+ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
   -e onePasswordVault=Personal-Automation \
+  -e '{"sambaOperations":["install"]}' \
   -e sambaUsername=fileshare -e sambaPasswordOpItem='Samba fileshare - <host-or-ip>'
 ```
 
@@ -79,8 +80,9 @@ To pass a Samba password directly without 1Password, override `sambaPassword`
 instead of `sambaPasswordOpItem`:
 
 ```bash
-ansible-playbook playbooks/samba_install.yml -i '<host-or-ip>,' -b \
+ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
   -e onePasswordVault=Personal-Automation \
+  -e '{"sambaOperations":["install"]}' \
   -e sambaUsername=fileshare -e sambaPassword='<samba-password>'
 ```
 
@@ -95,8 +97,9 @@ Fully remove Samba from a host — a clean teardown so a later `install` starts
 from scratch (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/samba_uninstall.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"sambaOperations":["uninstall"]}'
 ```
 
 This purges the `samba`, `samba-common`, and `samba-common-bin` packages
@@ -112,9 +115,14 @@ Print Samba configuration and status without changing anything — `diagnose` re
 (`serial: 1` — one host at a time):
 
 ```bash
-ansible-playbook playbooks/samba_diagnose.yml -i '<host-or-ip>,' -b \
-  -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/samba.yml -i '<host-or-ip>,' -b \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"sambaOperations":["diagnose"]}'
 ```
+
+Multiple values run in order, for example
+`-e '{"sambaOperations":["install","diagnose"]}'`. The playbook requests the
+Samba 1Password fields whenever the array contains `install`.
 
 ## Verification
 

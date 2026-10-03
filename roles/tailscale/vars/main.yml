@@ -12,7 +12,7 @@ tailscaleSupportedOperations:
 tailscaleSupportMatrix:
   Darwin:
     - x86_64
-    - aarch64
+    - arm64
   Debian:
     - x86_64
     - aarch64

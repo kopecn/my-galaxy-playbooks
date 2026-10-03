@@ -1,5 +1,7 @@
 ---
 # Lowest-precedence, user-overridable variables.
+lmStudioOperations: []
+
 # Port the LM Studio server listens on (default 1234). Enabling the LM Studio
 # server, serving it on the LAN, and allowing it through the macOS application
 # firewall are manual steps — see docs/playbooks/lm_studio.md.

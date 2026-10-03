@@ -1,5 +1,5 @@
 ---
-- name: Diagnose Ollama
+- name: Run Claude Code operations
   hosts: all
   gather_facts: false
   serial: 1
@@ -9,5 +9,4 @@
       onePasswordTasks:
         - ssh_user_pass
     - role: ssh
-    - role: ollama
-      ollamaOperation: diagnose
+    - role: claude

@@ -9,7 +9,7 @@
       - curl
     state: present
   become: true
-  when: claudeOsFamily == 'Debian'
+  when: ansible_facts.os_family == 'Debian'
 
 - name: Install Claude Code via the native installer
   ansible.builtin.shell:

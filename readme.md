@@ -35,12 +35,13 @@ flowchart TD
 The [Playbook Layering spec](.claude/specs/architecture/playbook-layering.md) is
 the authoritative, must-follow contract. In short: playbooks declare intent and
 never branch on OS/arch; roles are the only layer that branches on OS ×
-architecture, declare their supported combinations, validate declared
-`hostOperatingSystem`/`hostArchitecture` against gathered facts, and error
-non-fatally on an unsupported host; global config (per-environment `group_vars`,
+architecture, declare their supported combinations, validate gathered Ansible
+fact values against those combinations, and error non-fatally on an
+unsupported host; global config (per-environment `group_vars`,
 per-host `host_vars`) is supplied by the downstream consumer's inventory, and
-role `defaults/` provide the self-contained fallbacks. Variable names are
-camelCase and every variable is documented in
+role `defaults/` provide the self-contained fallbacks. Platform dispatch uses
+Ansible's gathered `os_family` and `architecture` facts directly. Variable names
+are camelCase and every variable is documented in
 [`.schema/ansible-vars.schema.json`](.schema/ansible-vars.schema.json).
 
 ## Quickstart
@@ -92,10 +93,10 @@ supported hosts, variables, and example usage.
 
 - [VS Code](docs/playbooks/vscode.md) — `playbooks/vscode.yml`
 - [Tailscale](docs/playbooks/tailscale.md) — `playbooks/tailscale.yml`
-- [Samba](docs/playbooks/samba.md) — `playbooks/samba_*.yml`
-- [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
-- [Ollama](docs/playbooks/ollama.md) — `playbooks/ollama_*.yml`
-- [LM Studio](docs/playbooks/lm_studio.md) — `playbooks/lm_studio_*.yml`
+- [Samba](docs/playbooks/samba.md) — `playbooks/samba.yml`
+- [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude.yml`
+- [Ollama](docs/playbooks/ollama.md) — `playbooks/ollama.yml`
+- [LM Studio](docs/playbooks/lm_studio.md) — `playbooks/lm_studio.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
 - [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
   - [Provisioning](docs/playbooks/provisioning.md) — `playbooks/provision_host_ssh*.yml`

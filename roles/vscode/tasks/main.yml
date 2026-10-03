@@ -2,56 +2,40 @@
 # Cross-platform VS Code install, dispatched on the host's OS family and
 # architecture. See .claude/specs/architecture/playbook-layering.md.
 
-- name: Normalize the gathered architecture to its canonical name
-  ansible.builtin.set_fact:
-    vscodeArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
-
-- name: Validate declared hostOperatingSystem against gathered facts
+- name: Validate the requested VS Code operations
   ansible.builtin.assert:
     that:
-      - hostOperatingSystem == ansible_facts.os_family
+      - vscodeOperations is sequence
+      - vscodeOperations is not string
+      - vscodeOperations | length > 0
+      - >-
+        vscodeOperations
+        | difference(vscodeSupportedOperations)
+        | length == 0
     fail_msg: >-
-      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
-      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
-    success_msg: "Declared hostOperatingSystem matches gathered facts."
-  when: hostOperatingSystem is defined
+      Declare vscodeOperations as a non-empty list containing only
+      {{ vscodeSupportedOperations }}.
+    quiet: true
 
-- name: Validate declared hostArchitecture against gathered facts
-  ansible.builtin.assert:
-    that:
-      - hostArchitecture == vscodeArch
-    fail_msg: >-
-      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
-      gathered architecture ({{ vscodeArch }}) on {{ inventory_hostname }}.
-    success_msg: "Declared hostArchitecture matches gathered facts."
-  when: hostArchitecture is defined
-
-- name: Resolve the effective OS family and architecture for dispatch
-  ansible.builtin.set_fact:
-    vscodeOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
-    vscodeEffectiveArch: "{{ hostArchitecture | default(vscodeArch) }}"
+- name: Gather the target platform facts after resolving the SSH route
+  ansible.builtin.setup:
+    gather_subset:
+      - min
 
 - name: Fail this operation when the host OS family and architecture are unsupported
   ansible.builtin.fail:
     msg: >-
-      The vscode role does not support installing VS Code on
-      {{ vscodeOsFamily }} / {{ vscodeEffectiveArch }} ({{ inventory_hostname }}).
+      The vscode role cannot run {{ vscodeOperations }} on
+      {{ ansible_facts.os_family }} / {{ ansible_facts.architecture }}
+      ({{ inventory_hostname }}).
       Supported combinations: {{ vscodeSupportMatrix }}.
   when: >-
-    vscodeOsFamily not in vscodeSupportMatrix
-    or vscodeEffectiveArch not in vscodeSupportMatrix[vscodeOsFamily]
+    ansible_facts.os_family not in vscodeSupportMatrix
+    or ansible_facts.architecture
+    not in vscodeSupportMatrix[ansible_facts.os_family]
 
-- name: Install VS Code via Homebrew
-  ansible.builtin.include_tasks: Darwin.yml
-  when: vscodeOsFamily == 'Darwin'
-
-- name: Install VS Code via apt
-  ansible.builtin.include_tasks: Debian.yml
-  when: vscodeOsFamily == 'Debian'
-
-- name: Validate the VS Code install
-  ansible.builtin.include_tasks: validate.yml
-
-- name: Sync VS Code extensions
-  ansible.builtin.include_tasks: extensions.yml
-  when: vscodeExtensions | length > 0
+- name: Run the explicitly requested VS Code operations
+  ansible.builtin.include_tasks: "{{ vscodeOperation }}.yml"
+  loop: "{{ vscodeOperations }}"
+  loop_control:
+    loop_var: vscodeOperation

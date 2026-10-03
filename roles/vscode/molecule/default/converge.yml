@@ -5,3 +5,5 @@
   become: true
   roles:
     - role: vscode
+      vscodeOperations:
+        - install

@@ -20,7 +20,7 @@ authoritative; the summary here orients where things live:
   agnostic — no OS/arch branching.
 - **Roles** implement intent and are the only layer that branches on OS ×
   architecture. A role declares its supported `(OS × arch)` set, validates the
-  declared `hostOperatingSystem`/`hostArchitecture` against gathered facts, and
+  use gathered `ansible_facts.os_family`/`ansible_facts.architecture`, and
   errors — without aborting the run — when a combination is unsupported.
 - **Global configuration** supplies flags and parameters describing hosts. This
   collection ships none: per-environment `group_vars` and per-host `host_vars`

@@ -19,13 +19,15 @@ def test_samba_secrets_resolve_through_the_onepassword_role():
         REPO_ROOT / "roles" / "onepassword" / "defaults" / "main.yml"
     ).read_text()
     playbook = yaml.safe_load(
-        (REPO_ROOT / "playbooks" / "samba_install.yml").read_text()
+        (REPO_ROOT / "playbooks" / "samba.yml").read_text()
     )
 
     assert "ansible.builtin.include_role" not in tasks
-    assert playbook[0]["roles"][1]["onePasswordTasks"] == [
-        "ssh_user_pass",
-        "samba",
+    assert "['ssh_user_pass', 'samba']" in playbook[0]["roles"][1][
+        "onePasswordTasks"
+    ]
+    assert "'install' in sambaOperations" in playbook[0]["roles"][1][
+        "onePasswordTasks"
     ]
     assert "sambaUsername:" in query_defaults
     assert "sambaEffectivePassword:" in query_defaults

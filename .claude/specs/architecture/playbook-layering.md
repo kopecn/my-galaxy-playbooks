@@ -1,6 +1,6 @@
 ---
 last_updated: 2026-10-03
-semver: 0.4.1
+semver: 0.5.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -34,8 +34,8 @@ lower layers; lower layers SHALL NOT depend on higher layers.
 
 ## Layer 1 — Global Configuration & Variables
 
-Global configuration is the flags and parameters that describe hosts and select
-features — for example `hostOperatingSystem`, `hostArchitecture`, `vscodeEnable`.
+Global configuration is the flags and parameters that identify hosts and select
+features — for example `hostName`, `useVpn`, and `vscodeExtensions`.
 
 - This repository is a collection artifact and SHALL NOT carry environment
   inventories. Configuration that describes real hosts — per-environment
@@ -57,8 +57,8 @@ features — for example `hostOperatingSystem`, `hostArchitecture`, `vscodeEnabl
   (see [Variable Schema Organization](#variable-schema-organization)) with a
   description. An undocumented project variable is a defect.
 - Variable names SHALL be flat and camelCase. Variables that belong to a group
-  SHALL be named `<group><parameter>` (e.g. `vpnDomain`,
-  `hostArchitecture`, `onePasswordVault`). Grouping is expressed by the name
+  SHALL be named `<group><parameter>` (e.g. `vpnDomain`, `hostName`,
+  `onePasswordVault`). Grouping is expressed by the name
   prefix and by file organization, never by nesting variables into a dict.
 
 ### Variable Schema Organization
@@ -101,11 +101,11 @@ to branch on operating system or architecture.
 
 - Each role SHALL declare the set of `(operatingSystem × architecture)`
   combinations it supports.
-- Dispatch SHALL be driven by the declared `hostOperatingSystem` and
-  `hostArchitecture` variables, and those declared values SHALL be validated
-  against the host's gathered facts (`ansible_facts.os_family`,
-  `ansible_facts.architecture`) before any implementation runs. A mismatch
-  between declared and discovered values is an error.
+- Dispatch SHALL use `ansible_facts.os_family` and
+  `ansible_facts.architecture` directly. Roles SHALL gather the required facts
+  after credentials and the SSH route are resolved; they SHALL NOT introduce
+  inventory declarations, normalized aliases, or role-local copies of platform
+  facts.
 - When a role has no implementation for the host's `(operatingSystem ×
   architecture)`, it SHALL raise a clear, actionable error naming the operation,
   the host, and the unsupported combination.
@@ -193,8 +193,8 @@ Conformance is observable:
 - Every variable defined in `roles/*/defaults` is present in
   `.schema/ansible-vars.schema.json`.
 - Every role that supports more than one platform declares its supported
-  `(operatingSystem × architecture)` set and validates declared OS/arch against
-  gathered facts.
+  `(operatingSystem × architecture)` set using exact Ansible fact values and
+  dispatches directly from gathered facts.
 - Every role that composes multiple operations in one invocation uses an ordered
   plural `<role>Operations` list and an explicit singular dispatch loop variable.
 - All variable names are camelCase.

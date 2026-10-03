@@ -1,48 +1,35 @@
 ---
-- name: Validate the requested Samba operation
+- name: Validate the requested Samba operations
   ansible.builtin.assert:
     that:
-      - sambaOperation is defined
-      - sambaOperation in sambaSupportedOperations
+      - sambaOperations is sequence
+      - sambaOperations is not string
+      - sambaOperations | length > 0
+      - sambaOperations | difference(sambaSupportedOperations) | length == 0
     fail_msg: >-
-      sambaOperation must be one of {{ sambaSupportedOperations }}.
+      Declare sambaOperations as a non-empty list containing only
+      {{ sambaSupportedOperations }}.
+    quiet: true
 
-- name: Normalize the gathered architecture to its canonical name
-  ansible.builtin.set_fact:
-    sambaArch: "{{ 'aarch64' if ansible_facts.architecture == 'arm64' else ansible_facts.architecture }}"
-
-- name: Validate declared hostOperatingSystem against gathered facts
-  ansible.builtin.assert:
-    that:
-      - hostOperatingSystem == ansible_facts.os_family
-    fail_msg: >-
-      Declared hostOperatingSystem ({{ hostOperatingSystem }}) does not match the
-      gathered os_family ({{ ansible_facts.os_family }}) on {{ inventory_hostname }}.
-  when: hostOperatingSystem is defined
-
-- name: Validate declared hostArchitecture against gathered facts
-  ansible.builtin.assert:
-    that:
-      - hostArchitecture == sambaArch
-    fail_msg: >-
-      Declared hostArchitecture ({{ hostArchitecture }}) does not match the
-      gathered architecture ({{ sambaArch }}) on {{ inventory_hostname }}.
-  when: hostArchitecture is defined
-
-- name: Resolve the effective OS family and architecture for dispatch
-  ansible.builtin.set_fact:
-    sambaOsFamily: "{{ hostOperatingSystem | default(ansible_facts.os_family) }}"
-    sambaEffectiveArch: "{{ hostArchitecture | default(sambaArch) }}"
+- name: Gather the target platform facts after resolving the SSH route
+  ansible.builtin.setup:
+    gather_subset:
+      - min
 
 - name: Fail this operation when the host platform is unsupported
   ansible.builtin.fail:
     msg: >-
-      The samba role cannot {{ sambaOperation }} Samba on
-      {{ sambaOsFamily }} / {{ sambaEffectiveArch }} ({{ inventory_hostname }}).
+      The samba role cannot run {{ sambaOperations }} on
+      {{ ansible_facts.os_family }} / {{ ansible_facts.architecture }}
+      ({{ inventory_hostname }}).
       Supported combinations: {{ sambaSupportMatrix }}.
   when: >-
-    sambaOsFamily not in sambaSupportMatrix
-    or sambaEffectiveArch not in sambaSupportMatrix[sambaOsFamily]
+    ansible_facts.os_family not in sambaSupportMatrix
+    or ansible_facts.architecture
+    not in sambaSupportMatrix[ansible_facts.os_family]
 
-- name: Run the requested Samba operation
+- name: Run the explicitly requested Samba operations
   ansible.builtin.include_tasks: "{{ sambaOperation }}.yml"
+  loop: "{{ sambaOperations }}"
+  loop_control:
+    loop_var: sambaOperation

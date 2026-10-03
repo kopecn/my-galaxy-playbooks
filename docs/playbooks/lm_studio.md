@@ -5,20 +5,20 @@ its Homebrew cask. See [`roles/lm_studio`](../../roles/lm_studio) and the
 [Playbook Layering spec](../../.claude/specs/architecture/playbook-layering.md)
 for the layering this role follows.
 
-One thin playbook per operation, all dispatching into the same role via
-`lmStudioOperation`:
+The single thin playbook `playbooks/lm_studio.yml` accepts an ordered, non-empty
+`lmStudioOperations` array at runtime and dispatches each operation in order:
 
-| Playbook | Operation |
+| Operation | Result |
 | --- | --- |
-| `playbooks/lm_studio_install.yml` | `install` |
-| `playbooks/lm_studio_diagnose.yml` | `diagnose` — print the installed cask version |
-| `playbooks/lm_studio_uninstall.yml` | `uninstall` |
+| `install` | Install the LM Studio cask |
+| `diagnose` | Print the installed cask version |
+| `uninstall` | Uninstall the LM Studio cask |
 
 ## Supported hosts
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `aarch64` |
+| Darwin | `x86_64`, `arm64` |
 
 Install channel: the Homebrew cask `lm-studio` on Darwin. LM Studio is macOS-only
 in this repo; a non-Darwin host fails the operation with a clear error, and other
@@ -28,8 +28,8 @@ hosts and playbooks continue.
 
 | Variable | Where set | Purpose |
 | --- | --- | --- |
+| `lmStudioOperations` | Required `-e` argument; empty role default | Ordered, non-empty array containing `diagnose`, `install`, and/or `uninstall`. |
 | `lmStudioPort` | Role default (`roles/lm_studio/defaults/main.yml`), overridden by downstream inventory or `-e` | TCP port the LM Studio server listens on. Defaults to `1234`. Recorded for documentation; the role does not open it (see below). |
-| `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 
@@ -45,16 +45,32 @@ configure serving by hand.
 ## Usage
 
 ```bash
-ansible-playbook playbooks/lm_studio_install.yml \
-  -i '<host-or-ip>,' -e onePasswordVault=Personal-Automation
+ansible-playbook playbooks/lm_studio.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"lmStudioOperations":["install"]}'
 ```
 
-Swap `lm_studio_install.yml` for `lm_studio_diagnose.yml` or
-`lm_studio_uninstall.yml` to run the other operations.
+Diagnose the installed cask:
+
+```bash
+ansible-playbook playbooks/lm_studio.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"lmStudioOperations":["diagnose"]}'
+```
+
+Uninstall the cask:
+
+```bash
+ansible-playbook playbooks/lm_studio.yml -i '<host-or-ip>,' \
+  -e onePasswordVault=Personal-Automation \
+  -e '{"lmStudioOperations":["uninstall"]}'
+```
+
+Multiple values run in order, for example
+`-e '{"lmStudioOperations":["install","diagnose"]}'`.
 
 ## Verification
 
-This role has no Molecule scenario: it is macOS-only, and the Docker driver has no
-macOS image. Verify manually on a Darwin host — run `lm_studio_install.yml`,
-confirm `lm_studio_diagnose.yml` reports a cask version, then
-`lm_studio_uninstall.yml` removes it.
+This role has no Molecule scenario: it is macOS-only, and the Docker driver has
+no macOS image. Verify manually on a Darwin host by running `install`,
+`diagnose`, and `uninstall` through `playbooks/lm_studio.yml`.

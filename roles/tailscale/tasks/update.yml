@@ -4,10 +4,10 @@
 
 - name: Update Tailscale on macOS
   ansible.builtin.include_tasks: update-Darwin.yml
-  when: tailscaleOsFamily == 'Darwin'
+  when: ansible_facts.os_family == 'Darwin'
 
 - name: Update Tailscale on Debian-family Linux
   ansible.builtin.include_tasks: update-Debian.yml
   when:
-    - tailscaleOsFamily == 'Debian'
+    - ansible_facts.os_family == 'Debian'
     - not ansible_check_mode

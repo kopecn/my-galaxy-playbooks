@@ -1,0 +1,3 @@
+---
+# Ordered operations requested by the invoking ansible-playbook command.
+claudeOperations: []

@@ -63,7 +63,9 @@ The same role loads the Login item's password into `ansible_password` and
 The shared `onepassword` query executor reads its service-account token from
 `opServiceAccountTokenFullPath`, which defaults
 to `~/.config/op/op-service-account-token`. The lookup is protected by
-`no_log`.
+`no_log`. If a query fails, the role reports only the unresolved logical field
+name (`ansible_user`, `ansible_password`, or `ansible_private_key`); secret
+references and values remain redacted.
 
 ## SSH isolation
 

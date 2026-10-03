@@ -31,6 +31,16 @@ def test_role_never_logs_secrets_or_reimplements_the_wrapper():
     assert "with-op" not in tasks
 
 
+def test_query_failures_report_only_logical_field_names():
+    """A failed op read is actionable without exposing references or values."""
+    tasks = (ROLE / "tasks" / "read_queries.yml").read_text()
+
+    assert "failed_when: false" in tasks
+    assert "opQueryFailures" in tasks
+    assert "map(attribute='item.key')" in tasks
+    assert "Secret references and values remain redacted." in tasks
+
+
 def test_role_default_request_map_is_empty():
     defaults = yaml.safe_load((ROLE / "defaults" / "main.yml").read_text())
 

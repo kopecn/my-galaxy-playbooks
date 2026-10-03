@@ -23,7 +23,7 @@ validates every value before running the requested operations in array order.
 
 | OS family | Architectures |
 | --- | --- |
-| Darwin | `x86_64`, `aarch64` |
+| Darwin | `x86_64`, `arm64` |
 | Debian | `x86_64`, `aarch64`, `armv7l` |
 
 Install channel per OS family: Homebrew formula on Darwin, the official
@@ -40,7 +40,6 @@ continue.
 | `tailscaleAuthKey` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the super agent; never read from target inventory. |
 | `tailscaleSSH` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | Enable Tailscale SSH (the `--ssh` flag) on `up`. Defaults to `false`. |
 | `tailscaleVersion` | `group_vars`/`host_vars` or `-e` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS. |
-| `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
 
 Full descriptions: [`.schema/ansible-vars.schema.json`](../../.schema/ansible-vars.schema.json).
 

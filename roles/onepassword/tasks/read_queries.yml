@@ -17,8 +17,31 @@
     label: "{{ item.key }}"
   register: opQueryResults
   changed_when: false
+  failed_when: false
   check_mode: false
   no_log: true
+
+- name: Record only the names of unresolved 1Password fields
+  ansible.builtin.set_fact:
+    opQueryFailures: >-
+      {{
+        opQueryResults.results
+        | rejectattr('rc', 'equalto', 0)
+        | map(attribute='item.key')
+        | list
+      }}
+  no_log: true
+
+- name: Fail clearly when 1Password fields cannot be resolved
+  ansible.builtin.assert:
+    that:
+      - opQueryFailures | length == 0
+    fail_msg: >-
+      1Password could not resolve these requested fields:
+      {{ opQueryFailures | join(', ') }}. Confirm that the service account can
+      access vault {{ onePasswordVault }} and that each expected item and field
+      exists. Secret references and values remain redacted.
+    quiet: true
 
 - name: Populate facts from the requested 1Password queries
   ansible.builtin.set_fact:
