@@ -79,9 +79,12 @@ or disk.
 username and password it was built with, then generate and install a key:
 
 ```bash
-ansible-playbook playbooks/provision-installSSHKey.yml -i '<host-or-ip>,' \
-  -e sshProvisioningUsername=<user> -e sshProvisioningPassword=<password> \
-  [-e sshFileName=<name>]
+ansible-playbook \
+    playbooks/provision-installSSHKey.yml \
+    -i '<host-or-ip>,' \
+    -e sshProvisioningUsername=<user> \
+    -e sshProvisioningPassword=<password> \
+    [-e sshFileName=<name>]
 ```
 
 `sshFileName` (default `common-ssh-key`) sets the keypair basename. When that
@@ -102,7 +105,8 @@ disable password and keyboard-interactive authentication, validate the complete
 SSH daemon configuration, reload it, and verify the effective settings:
 
 ```bash
-ansible-playbook playbooks/provision-validate-and-secureSSH.yml \
+ansible-playbook \
+    playbooks/provision-validate-and-secureSSH.yml \
     -i '<host-or-ip>,' \
     -e sshProvisioningUsername=<user> \
     -e sshProvisioningPassword=<password> \
@@ -126,3 +130,14 @@ The lock-down block is placed first in `/etc/ssh/sshd_config` because OpenSSH
 uses the first value it encounters for these settings. If configuration
 validation or reload fails, the previous SSH daemon configuration is restored
 and reloaded.
+
+**Full Playbook**
+
+```bash
+ansible-playbook \
+    -e onePasswordVault=Personal-Automation playbooks/provision-full.yml \
+    -i '<host-or-ip>,' \
+    -e sshProvisioningUsername=<user> \
+    -e sshProvisioningPassword=<password> \
+    [-e sshFileName=<name>]
+```
