@@ -6,16 +6,8 @@
   roles:
     - role: set_facts
     - role: onepassword
-      onePasswordTasks: >-
-        {{
-          ['ssh_user_pass', 'samba']
-          if (
-            sambaOperations is defined
-            and sambaOperations is sequence
-            and sambaOperations is not string
-            and 'install' in sambaOperations
-          )
-          else ['ssh_user_pass']
-        }}
+      onePasswordTasks:
+        - ssh_user_pass
+        - samba
     - role: ssh
     - role: samba

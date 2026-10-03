@@ -6,16 +6,8 @@
   roles:
     - role: set_facts
     - role: onepassword
-      onePasswordTasks: >-
-        {{
-          ['ssh_user_pass', 'tailscale']
-          if (
-            tailscaleOperations is defined
-            and tailscaleOperations is sequence
-            and tailscaleOperations is not string
-            and 'up' in tailscaleOperations
-          )
-          else ['ssh_user_pass']
-        }}
+      onePasswordTasks:
+        - ssh_user_pass
+        - tailscale
     - role: ssh
     - role: tailscale

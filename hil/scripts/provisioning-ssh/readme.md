@@ -8,23 +8,39 @@ Hardware-in-the-loop (HIL) test for SSH provisioning: on a real target host, res
 
 ```mermaid
 flowchart TD
-    A([Start: real target host]) --> B[Copy enable-user-ssh.sh and<br/>reload-user-ssh.sh to the host]
-    B --> C["sudo enable-user-ssh.sh<br/>(re-enable password auth, wipe ~/.ssh)"]
-    C --> D["sudo reload-user-ssh.sh<br/>(reload sshd, show recent logs)"]
-    D --> E[Run ansible-playbook<br/>playbooks/provision-full.yml]
-    E --> F[set_facts role]
-    F --> G[ssh role]
-    G --> H[ssh_provisioning role]
+    start([HIL run begins])
 
-    subgraph OPS[ssh_provisioning operations]
+    subgraph TARGET[On the target host - local sudo]
         direction TB
-        H1[connect] --> H2[install_key]
-        H2 --> H3[validate]
-        H3 --> H4[disable_password]
+        copy[/enable-user-ssh.sh and reload-user-ssh.sh<br/>copied to the host in advance/]
+        enable["sudo enable-user-ssh.sh<br/>remove Ansible lock-down, re-enable<br/>password auth, wipe the user's ~/.ssh"]
+        reload["sudo reload-user-ssh.sh<br/>reload sshd, confirm active, show recent logs"]
+        copy --> enable --> reload
     end
 
-    H --> OPS
-    OPS --> Z([Target provisioned: key-only SSH])
+    subgraph CONTROL[On the Ansible control node - over SSH]
+        direction TB
+        play["play: provision-full.yml<br/>hosts all, gather_facts false"]
+        role_facts[role set_facts]
+        role_ssh[role ssh]
+        role_prov["role ssh_provisioning<br/>sshProvisioningOperations"]
+        play --> role_facts --> role_ssh --> role_prov
+
+        subgraph GATES[ssh_provisioning gates, dispatched in list order]
+            direction TB
+            connect["connect<br/>reach host over password auth"]
+            installkey["install_key<br/>deploy the SSH public key"]
+            validate["validate<br/>confirm key-based login works"]
+            disable["disable_password<br/>lock down to key-only auth"]
+            connect --> installkey --> validate --> disable
+        end
+
+        role_prov --> GATES
+    end
+
+    start --> TARGET
+    reload -. target now accepts password SSH .-> play
+    disable --> done([Target provisioned: key-only SSH])
 ```
 
 ## Prep the target

@@ -75,6 +75,12 @@ qualified hostname; bare single-label names are rejected by the router). The
 provisioning credentials are passed with `no_log` and never written to inventory
 or disk.
 
+If SSH rejects the supplied username or password, the connection gate reports
+that authentication was rejected and identifies the requested username and host.
+The password and raw connection result remain redacted. Transport failures such
+as DNS, network, or SSH-service errors are reported separately so they are not
+misdiagnosed as invalid credentials.
+
 **Gates 1–2 — connect and install the key.** Reach a freshly imaged host with the
 username and password it was built with, then generate and install a key:
 

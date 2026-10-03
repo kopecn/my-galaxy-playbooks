@@ -22,8 +22,36 @@
     ansible_become_password: "{{ sshProvisioningPassword }}"
   no_log: true
 
-- name: Prove the host accepts the provisioning credentials
+- name: Attempt SSH with the provisioning credentials
   ansible.builtin.ping:
+  register: sshProvisioningCredentialCheck
+  failed_when: false
+  ignore_unreachable: true
+  no_log: true
+
+- name: Fail clearly when the provisioning credentials are rejected
+  ansible.builtin.fail:
+    msg: >-
+      SSH authentication was rejected for provisioning user
+      '{{ sshProvisioningUsername }}' on '{{ ansible_host | default(inventory_hostname) }}'.
+      Verify the supplied sshProvisioningUsername and sshProvisioningPassword.
+      The password value remains redacted.
+  when:
+    - sshProvisioningCredentialCheck.ping | default('') != 'pong'
+    - >-
+      'permission denied' in
+      (sshProvisioningCredentialCheck.msg | default('') | lower)
+      or 'authentication failed' in
+      (sshProvisioningCredentialCheck.msg | default('') | lower)
+
+- name: Fail clearly when the provisioning SSH connection cannot be established
+  ansible.builtin.fail:
+    msg: >-
+      Could not establish SSH to provisioning user '{{ sshProvisioningUsername }}'
+      on '{{ ansible_host | default(inventory_hostname) }}'; the supplied credentials
+      were not validated. Verify hostname resolution, network reachability, and the
+      SSH service. Credential values remain redacted.
+  when: sshProvisioningCredentialCheck.ping | default('') != 'pong'
 
 - name: Mark the provisioning connection as validated
   ansible.builtin.set_fact:

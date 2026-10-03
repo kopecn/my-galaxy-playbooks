@@ -3,6 +3,15 @@
 Every remote playbook enters `onepassword`, then `ssh`, before its
 action role. Credential resolution and routing remain separate steps.
 
+## Invocation
+
+in your role/playbook
+```
+
+```
+
+## Workflow
+
 ```mermaid
 flowchart TD
     Start[Playbook starts] --> Credentials[onepassword ssh_user_pass task loads username, password, and key]

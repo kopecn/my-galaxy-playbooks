@@ -55,6 +55,21 @@ def test_private_key_stays_local_and_only_the_public_key_reaches_the_host():
     assert "Remove the temporary keypair directory" in tasks
 
 
+def test_password_authentication_failure_is_reported_without_exposing_secrets():
+    """A rejected bootstrap password produces a specific, redacted failure."""
+    tasks = (ROLE / "tasks" / "connect.yml").read_text()
+
+    assert "register: sshProvisioningCredentialCheck" in tasks
+    assert "ignore_unreachable: true" in tasks
+    assert "'permission denied'" in tasks
+    assert "SSH authentication was rejected" in tasks
+    assert "Verify the supplied sshProvisioningUsername and sshProvisioningPassword" in tasks
+    assert "The password value remains redacted." in tasks
+    assert tasks.index("SSH authentication was rejected") < tasks.index(
+        "Could not establish SSH"
+    )
+
+
 def test_validation_forces_a_fresh_key_only_connection():
     """The validation gate cannot silently fall back to password authentication."""
     tasks = (ROLE / "tasks" / "validate.yml").read_text()
