@@ -28,21 +28,27 @@ def test_every_remote_playbook_runs_credentials_then_router():
             role if isinstance(role, str) else role["role"] for role in play["roles"]
         ]
         assert play["gather_facts"] is False, path.name
-        assert role_names[0] == "onepassword", path.name
-        assert role_names[1] == "ssh", path.name
+        assert role_names[0] == "set_facts", path.name
+
+        if "ssh_provisioning" in role_names:
+            assert role_names == ["set_facts", "ssh", "ssh_provisioning"], path.name
+            assert "onepassword" not in role_names, path.name
+            continue
+
+        assert role_names[1:3] == ["onepassword", "ssh"], path.name
         expected_tasks = ["ssh_user_pass"]
         if path.name == "samba_install.yml":
             expected_tasks.append("samba")
         if path.name == "tailscale_up.yml":
             expected_tasks.append("tailscale")
-        assert play["roles"][0]["onePasswordTasks"] == expected_tasks, path.name
+        assert play["roles"][1]["onePasswordTasks"] == expected_tasks, path.name
 
 
 def test_router_preserves_inline_inventory_and_prioritizes_vpn():
     tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
     assert tasks.index("useVpn | bool") < tasks.index("',' in inventory_file")
-    assert "{{ inventory_hostname }}" in tasks
+    assert "else inventory_hostname" in tasks
     assert "hostName ~ '.local'" in tasks
     assert "vpnHostname ~ '.' ~ vpnDomain" in tasks
 
@@ -57,14 +63,13 @@ def test_router_rejects_ambiguous_bare_inline_targets():
     assert "Inline inventory target" not in resolve_tasks
 
 
-def test_router_ignores_dot_ssh_config_and_control_sockets():
+def test_router_ignores_dot_ssh_config_and_known_hosts():
     tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
     assert "-F /dev/null" in tasks
     assert "UserKnownHostsFile=/dev/null" in tasks
     assert "GlobalKnownHostsFile=/dev/null" in tasks
-    assert "ControlMaster=no" in tasks
-    assert "ControlPath=none" in tasks
+    assert "StrictHostKeyChecking=no" in tasks
 
 
 def test_router_dispatches_ordered_operations_with_resolve_as_default():

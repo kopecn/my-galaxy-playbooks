@@ -1,4 +1,4 @@
-"""Static safety contracts for reusable host SSH provisioning operations."""
+"""Static safety contracts for the hardware-validated SSH provisioning flow."""
 
 import json
 from pathlib import Path
@@ -8,92 +8,85 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-ROLE = REPO_ROOT / "roles" / "provision_host"
-OPERATIONS = (
-    "provision",
-    "ensure_key",
-    "install_key",
-    "disable_password",
-)
+ROLE = REPO_ROOT / "roles" / "ssh_provisioning"
+PLAYBOOK_OPERATIONS = {
+    "provision-full.yml": [
+        "connect",
+        "install_key",
+        "validate",
+        "disable_password",
+    ],
+    "provision-installSSHKey.yml": ["connect", "install_key"],
+    "provision-validate-and-secureSSH.yml": ["validate", "disable_password"],
+}
 
 
-@pytest.mark.parametrize("operation", OPERATIONS)
-def test_operation_has_a_thin_reusable_playbook(operation):
-    """The full flow and every reusable phase remain thin role entry points."""
-    suffix = "" if operation == "provision" else f"_{operation}"
+@pytest.mark.parametrize(("playbook_name", "operations"), PLAYBOOK_OPERATIONS.items())
+def test_provisioning_playbooks_use_the_ordered_role_interface(
+    playbook_name, operations
+):
+    """Each validated provisioning entry point remains a thin role pipeline."""
     playbook = yaml.safe_load(
-        (REPO_ROOT / "playbooks" / f"provision_host_ssh{suffix}.yml").read_text()
+        (REPO_ROOT / "playbooks" / playbook_name).read_text()
     )
 
     assert len(playbook) == 1
-    assert playbook[0]["serial"] == 1
+    assert playbook[0]["gather_facts"] is False
     assert playbook[0]["roles"] == [
-        {
-            "role": "onepassword",
-            "onePasswordTasks": ["ssh_user_pass"],
-        },
+        {"role": "set_facts"},
         {"role": "ssh"},
         {
-            "role": "provision_host",
-            "provisionHostSshOperation": operation,
-        }
+            "role": "ssh_provisioning",
+            "sshProvisioningOperations": operations,
+        },
     ]
 
 
-def test_private_key_is_created_in_onepassword_and_not_on_the_host():
-    """1Password creates the key; only the public half reaches authorized_keys."""
-    ensure_tasks = (ROLE / "tasks" / "ensure_key.yml").read_text()
-    install_tasks = (ROLE / "tasks" / "install_key.yml").read_text()
+def test_private_key_stays_local_and_only_the_public_key_reaches_the_host():
+    """Generated key material is local; authorized_keys receives only the public key."""
+    tasks = (ROLE / "tasks" / "install_key.yml").read_text()
 
-    assert "--category=SSH Key" in ensure_tasks
-    assert "--ssh-generate-key=" in ensure_tasks
-    assert "ansible.posix.authorized_key" in install_tasks
-    assert "/public key" in install_tasks
-    assert "/private key" not in install_tasks
-    assert "exclusive: false" in install_tasks
-
-
-def test_provisioning_reuses_the_shared_ssh_validator():
-    """Provisioning consumes the SSH capability instead of duplicating it."""
-    tasks = (ROLE / "tasks" / "validate_host_ssh_key.yml").read_text()
-
-    assert "ansible.builtin.include_role" in tasks
-    assert "name: ssh" in tasks
-    assert 'sshHost: "{{ provisionHostSshHost }}"' in tasks
-    assert 'sshKeyItemName: "{{ provisionHostSshItemName }}"' in tasks
+    assert "delegate_to: localhost" in tasks
+    assert "ssh-keygen" in tasks
+    assert "ansible.posix.authorized_key" in tasks
+    assert "sshExistingPublicKey.stdout" in tasks
+    assert "sshFileName ~ '.pub'" in tasks
+    assert 'mode: "0600"' in tasks
+    assert "Remove the temporary keypair directory" in tasks
 
 
-def test_password_disable_revalidates_and_rolls_back_on_failure():
-    """The standalone destructive phase has its own gate and recovery path."""
-    disable_tasks = (ROLE / "tasks" / "disable_password.yml").read_text()
-    harden_tasks = (ROLE / "tasks" / "harden_sshd.yml").read_text()
+def test_validation_forces_a_fresh_key_only_connection():
+    """The validation gate cannot silently fall back to password authentication."""
+    tasks = (ROLE / "tasks" / "validate.yml").read_text()
 
-    assert disable_tasks.index("validate_host_ssh_key.yml") < disable_tasks.index("harden_sshd.yml")
-    assert "PasswordAuthentication no" in harden_tasks
-    assert "KbdInteractiveAuthentication no" in harden_tasks
-    assert "/usr/sbin/sshd\n          - -t" in harden_tasks
-    assert "Revalidate a fresh key-only session after SSH reload" in harden_tasks
-    assert "rescue:" in harden_tasks
-    assert "Restore the previous SSH daemon drop-in" in harden_tasks
+    assert "PreferredAuthentications=publickey" in tasks
+    assert "IdentitiesOnly=yes" in tasks
+    assert "PasswordAuthentication=no" in tasks
+    assert "BatchMode=yes" in tasks
+    assert "Validate that the installed key authenticates" in tasks
+    assert "sshProvisioningKeyValidated: true" in tasks
+
+
+def test_password_disable_is_gated_and_rolls_back_on_failure():
+    """Lock-down requires validation and restores sshd_config after any failure."""
+    tasks = (ROLE / "tasks" / "disable_password.yml").read_text()
+
+    assert tasks.index("sshProvisioningKeyValidated") < tasks.index(
+        "PasswordAuthentication no"
+    )
+    assert "KbdInteractiveAuthentication no" in tasks
+    assert "validate: /usr/sbin/sshd -t -f %s" in tasks
+    assert "Read the effective SSH daemon configuration" in tasks
+    assert "rescue:" in tasks
+    assert "Restore the previous SSH daemon configuration" in tasks
+    assert "Reload the restored SSH daemon configuration" in tasks
 
 
 def test_all_defaulted_variables_are_in_the_companion_schema():
     """Every public role default remains discoverable in inventory tooling."""
     defaults = yaml.safe_load((ROLE / "defaults" / "main.yml").read_text())
     schema = json.loads(
-        (
-            REPO_ROOT
-            / ".schema"
-            / "groups"
-            / "provisionhostssh-schema.json"
-        ).read_text()
-    )
-    root_schema = json.loads(
-        (REPO_ROOT / ".schema" / "ansible-vars.schema.json").read_text()
+        (REPO_ROOT / ".schema" / "groups" / "sshprovisioning-schema.json").read_text()
     )
 
-    role_variables = {key for key in defaults if key.startswith("provisionHostSsh")}
-    assert role_variables <= set(schema["properties"])
-    assert {
-        "$ref": "groups/provisionhostssh-schema.json"
-    } in root_schema["allOf"]
+    assert set(defaults) <= set(schema["properties"])

@@ -23,7 +23,7 @@ def test_samba_secrets_resolve_through_the_onepassword_role():
     )
 
     assert "ansible.builtin.include_role" not in tasks
-    assert playbook[0]["roles"][0]["onePasswordTasks"] == [
+    assert playbook[0]["roles"][1]["onePasswordTasks"] == [
         "ssh_user_pass",
         "samba",
     ]

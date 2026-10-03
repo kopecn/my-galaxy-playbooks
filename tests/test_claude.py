@@ -19,6 +19,7 @@ def test_claude_operation_has_thin_playbook(operation):
 
     assert len(playbook) == 1
     assert playbook[0]["roles"] == [
+        {"role": "set_facts"},
         {
             "role": "onepassword",
             "onePasswordTasks": ["ssh_user_pass"],
@@ -27,7 +28,7 @@ def test_claude_operation_has_thin_playbook(operation):
         {
             "role": "claude",
             "claudeOperation": operation,
-        }
+        },
     ]
 
 

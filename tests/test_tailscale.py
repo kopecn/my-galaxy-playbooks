@@ -34,6 +34,7 @@ def test_tailscale_operation_has_thin_playbook(operation):
         onepassword_tasks.append("tailscale")
 
     assert playbook[0]["roles"] == [
+        {"role": "set_facts"},
         {
             "role": "onepassword",
             "onePasswordTasks": onepassword_tasks,
@@ -75,15 +76,16 @@ def test_tailscale_auth_key_is_super_agent_managed():
 
     assert "tailscaleAuthKeyReference" not in tasks
     assert "ansible.builtin.include_role" not in tasks
-    assert playbook[0]["roles"][0]["onePasswordTasks"] == [
+    assert playbook[0]["roles"][1]["onePasswordTasks"] == [
         "ssh_user_pass",
         "tailscale",
     ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults
     assert "{{ tailscaleAuthKey }}" in credential_defaults
+    assert "tailscaleAuthKey" in role_defaults
+    assert "onePasswordVault:" in credential_defaults
     for variable in ("onePasswordVault", "tailscaleAuthKey"):
-        assert variable in role_defaults
         assert variable in schema
 
 

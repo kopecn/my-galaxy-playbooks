@@ -19,6 +19,7 @@ def test_lm_studio_operation_has_thin_playbook(operation):
     assert len(playbook) == 1
     assert playbook[0]["gather_facts"] is False
     assert playbook[0]["roles"] == [
+        {"role": "set_facts"},
         {
             "role": "onepassword",
             "onePasswordTasks": ["ssh_user_pass"],
