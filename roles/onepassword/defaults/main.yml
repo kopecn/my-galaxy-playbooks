@@ -13,11 +13,7 @@ onePasswordVault: Personal-Automation
 sshKeyPrefix: sshkey
 sshLoginPrefix: user
 
-onePasswordTailscaleAPIKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
-onePasswordTokenPath: .config/op/op-service-account-token
-onePasswordTokenFile: "{{ superAgentHomeDir }}/{{ onePasswordTokenPath }}"
-
-op_token_file: "{{ onePasswordTokenFile }}"
+op_token_file: "{{ opServiceAccountTokenFullPath }}"
 
 onePasswordSshUserPassQueries:
   ansible_user: >-
@@ -41,4 +37,4 @@ onePasswordSambaQueries:
 
 onePasswordTailscaleQueries:
   tailscaleAuthKey: >-
-    op://{{ onePasswordVault }}/{{ onePasswordTailscaleAPIKey }}/credential
+    op://{{ onePasswordVault }}/{{ tailscaleAuthKey }}/credential

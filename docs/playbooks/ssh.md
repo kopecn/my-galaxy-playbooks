@@ -61,7 +61,7 @@ The same role loads the Login item's password into `ansible_password` and
 `onePasswordSshUserPassQueries`.
 
 The shared `onepassword` query executor reads its service-account token from
-`onePasswordTokenFile`, which defaults
+`opServiceAccountTokenFullPath`, which defaults
 to `~/.config/op/op-service-account-token`. The lookup is protected by
 `no_log`.
 

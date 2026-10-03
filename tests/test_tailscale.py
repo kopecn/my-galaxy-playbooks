@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OPERATIONS = ("diagnose", "down", "install", "status", "uninstall", "up", "update")
 
@@ -43,14 +42,14 @@ def test_tailscale_operation_has_thin_playbook(operation):
         {
             "role": "tailscale",
             "tailscaleOperation": operation,
-        }
+        },
     ]
 
 
 @pytest.mark.parametrize(
     "variable",
     (
-        "onePasswordTailscaleAPIKey",
+        "tailscaleAuthKey",
         "onePasswordVault",
         "tailscaleVersion",
     ),
@@ -82,8 +81,8 @@ def test_tailscale_auth_key_is_super_agent_managed():
     ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults
-    assert "{{ onePasswordTailscaleAPIKey }}" in credential_defaults
-    for variable in ("onePasswordVault", "onePasswordTailscaleAPIKey"):
+    assert "{{ tailscaleAuthKey }}" in credential_defaults
+    for variable in ("onePasswordVault", "tailscaleAuthKey"):
         assert variable in role_defaults
         assert variable in schema
 

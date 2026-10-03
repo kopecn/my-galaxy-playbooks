@@ -46,9 +46,9 @@
   ansible.builtin.assert:
     that:
       - onePasswordVault | length > 0
-      - onePasswordTailscaleAPIKey | length > 0
+      - tailscaleAuthKey | length > 0
     fail_msg: >-
-      Set onePasswordVault and onePasswordTailscaleAPIKey via the role defaults
+      Set onePasswordVault and tailscaleAuthKey via the role defaults
       or the downstream inventory so the auth key can be read on the super agent.
   when:
     - tailscaleNeedsUp

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import yaml
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ROLE = REPO_ROOT / "roles" / "onepassword"
 
@@ -16,9 +15,12 @@ def test_role_resolves_secret_maps_and_exact_queries():
     assert "op_queries" in tasks
     assert "op\n      - read" in tasks
     assert "op_token_file" in defaults
-    assert ".config/op/op-service-account-token" == defaults["onePasswordTokenPath"]
-    assert "superAgentHomeDir" in defaults["onePasswordTokenFile"]
-    assert "onePasswordTokenPath" in defaults["onePasswordTokenFile"]
+    assert (
+        ".config/op/op-service-account-token"
+        == defaults["opServiceAccountTokenHomePath"]
+    )
+    assert "superAgentHomeDir" in defaults["opServiceAccountTokenFullPath"]
+    assert "opServiceAccountTokenHomePath" in defaults["opServiceAccountTokenFullPath"]
     assert "lookup('ansible.builtin.file', op_token_file)" in tasks
 
 

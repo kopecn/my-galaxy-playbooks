@@ -1,2 +1,5 @@
 ---
 superAgentHomeDir: "{{ lookup('ansible.builtin.env', 'HOME') }}"
+opServiceAccountTokenHomePath: .config/op/op-service-account-token
+opServiceAccountTokenFullPath: "{{ superAgentHomeDir }}/{{ opServiceAccountTokenHomePath }}"
+tailscaleAuthKey: AuthKey, Tailscale Auth Key - Ansible Provisioning

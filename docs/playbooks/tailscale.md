@@ -35,7 +35,7 @@ the operation with a clear error; other hosts and playbooks continue.
 | Variable | Where set | Purpose |
 | --- | --- | --- |
 | `onePasswordVault` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the super agent; never read from target inventory. |
-| `onePasswordTailscaleAPIKey` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the super agent; never read from target inventory. |
+| `tailscaleAuthKey` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the super agent; never read from target inventory. |
 | `tailscaleSSH` | Role default (`roles/tailscale/defaults/main.yml`), overridden by downstream inventory or `-e` | Enable Tailscale SSH (the `--ssh` flag) on `up`. Defaults to `true`; set `false` to bring the node up without Tailscale SSH. |
 | `tailscaleVersion` | `group_vars`/`host_vars` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS — `update` rejects a pin there. |
 | `hostOperatingSystem`, `hostArchitecture` | `host_vars` | Optional declared OS/arch; validated against gathered facts before dispatch. |
@@ -54,7 +54,7 @@ downstream inventory, or `-e` at run time:
 
 ```yaml
 onePasswordVault: your-vault-name
-onePasswordTailscaleAPIKey: your-item-name
+tailscaleAuthKey: your-item-name
 ```
 
 The key itself is passed
