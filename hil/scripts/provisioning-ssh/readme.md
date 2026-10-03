@@ -1,8 +1,8 @@
-# E2E HIL Testing for Provisioning
+# E2E HIL Instructions for Provisioning Test
 
 ## Scope
 
-Hardware-in-the-loop (HIL) test for SSH provisioning: on a real target host, reset SSH back to password authentication and wipe the user's existing SSH material, then run the full provisioning playbook end-to-end to verify it connects over password auth, installs the key, validates it, and disables password login.
+Hardware-in-the-loop (HIL) test for the SSH provisioning role. The prep scripts return a real target host to a clean pre-provisioning state (password auth on, user's `~/.ssh` empty), then `provision-full.yml` exercises the full key-handoff on that live host: connect over password auth, install the key, validate key-based login, and disable password auth.
 
 ## Workflow
 
@@ -43,16 +43,19 @@ flowchart TD
     disable --> done([Target provisioned: key-only SSH])
 ```
 
-## Prep the target
+## Instructions
+
+### Prep the target
 
 Both `enable-user-ssh.sh` and `reload-user-ssh.sh` should have been copied to the host in advance.
 
 run:
+
 ```
 sudo enable-user-ssh.sh; sudo reload-user-ssh.sh
 ```
 
-## Run script
+### Run script
 
 ```bash
 ansible-playbook \

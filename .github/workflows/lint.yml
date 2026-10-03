@@ -5,7 +5,6 @@ name: lint
   push:
     branches: [main]
   pull_request:
-
 jobs:
   lint:
     name: yamllint + ansible-lint + syntax

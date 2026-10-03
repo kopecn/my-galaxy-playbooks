@@ -5,9 +5,12 @@ action role. Credential resolution and routing remain separate steps.
 
 ## Invocation
 
-in your role/playbook
+in your role/playbook include:
 ```
-
+  roles:
+    ...
+    - role: ssh
+    ...
 ```
 
 ## Workflow
