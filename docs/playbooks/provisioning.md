@@ -135,7 +135,8 @@ and reloaded.
 
 ```bash
 ansible-playbook \
-    -e onePasswordVault=Personal-Automation playbooks/provision-full.yml \
+    playbooks/provision-full.yml \
+    -e onePasswordVault=Personal-Automation \
     -i '<host-or-ip>,' \
     -e sshProvisioningUsername=<user> \
     -e sshProvisioningPassword=<password> \
