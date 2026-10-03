@@ -3,5 +3,7 @@
 # is no implicit operation; callers must explicitly choose at least one.
 tailscaleOperations: []
 
-tailscaleAuthKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
+# 1Password item ID. The item title contains a comma, which is invalid in an
+# op:// secret reference; IDs are stable and avoid title parsing entirely.
+tailscaleAuthKeyItem: wbmap6g7gepfdvctflyawboc3e
 tailscaleSSH: false

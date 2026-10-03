@@ -65,7 +65,7 @@ def test_tailscale_role_validates_and_loops_over_operation_array():
 @pytest.mark.parametrize(
     "variable",
     (
-        "tailscaleAuthKey",
+        "tailscaleAuthKeyItem",
         "tailscaleOperations",
         "onePasswordVault",
         "tailscaleVersion",
@@ -97,10 +97,12 @@ def test_tailscale_auth_key_is_super_agent_managed():
     ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults
-    assert "{{ tailscaleAuthKey }}" in credential_defaults
-    assert "tailscaleAuthKey" in role_defaults
+    assert "{{ tailscaleAuthKeyItem }}" in credential_defaults
+    assert "tailscaleAuthKeyItem" in role_defaults
+    assert "," not in role_defaults["tailscaleAuthKeyItem"]
+    assert "tailscaleAuthKey" not in role_defaults
     assert "onePasswordVault:" in credential_defaults
-    for variable in ("onePasswordVault", "tailscaleAuthKey"):
+    for variable in ("onePasswordVault", "tailscaleAuthKeyItem"):
         assert variable in schema
 
 

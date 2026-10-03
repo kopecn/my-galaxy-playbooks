@@ -35,4 +35,4 @@ onePasswordSambaQueries:
 
 onePasswordTailscaleQueries:
   tailscaleAuthKey: >-
-    op://{{ onePasswordVault }}/{{ tailscaleAuthKey }}/credential
+    op://{{ onePasswordVault }}/{{ tailscaleAuthKeyItem }}/credential

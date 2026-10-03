@@ -37,7 +37,7 @@ continue.
 | --- | --- | --- |
 | `tailscaleOperations` | Required `-e` argument; empty role default | Ordered, non-empty array of operations. Valid values are listed above. |
 | `onePasswordVault` | `roles/onepassword/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password vault containing the Tailscale provisioning item. Resolved on the super agent; never read from target inventory. |
-| `tailscaleAuthKey` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password item containing the Tailscale auth key. Resolved on the super agent; never read from target inventory. |
+| `tailscaleAuthKeyItem` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | 1Password item ID containing the Tailscale auth key. IDs avoid invalid title characters such as commas in `op://` references. The resolved `tailscaleAuthKey` exists only in memory on the super agent. |
 | `tailscaleSSH` | `roles/tailscale/defaults/main.yml`, overridden by downstream inventory or `-e` | Enable Tailscale SSH (the `--ssh` flag) on `up`. Defaults to `false`. |
 | `tailscaleVersion` | `group_vars`/`host_vars` or `-e` | Optional version pin for `update` on Debian (`>= 1.36.0`). Omit for latest. Pinning is unsupported on macOS. |
 
@@ -69,7 +69,10 @@ ansible-playbook playbooks/tailscale.yml -i '<host-or-ip>,' -b \
 For `up`, the playbook adds the `tailscale` query to the shared `onepassword`
 role. The auth key passes directly from the super agent's `op` CLI to
 `tailscale up` over stdin and is never written to inventory or disk. A
-`--check` dry-run does not query the key.
+`--check` dry-run does not query the key. If the item title differs from the
+role default, pass the non-secret item ID separately, for example
+`-e tailscaleAuthKeyItem='your-item-id'`; `tailscaleAuthKey` is reserved for the
+resolved in-memory secret and is not a user input.
 
 Disconnect the host:
 
