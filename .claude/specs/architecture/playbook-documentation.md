@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-10-01
-semver: 0.0.3
+last_updated: 2026-10-03
+semver: 0.1.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -29,7 +29,7 @@ Every toolset SHALL have:
 - A page at `docs/playbooks/<toolset>.md`.
 - A pointer to that page in the **Playbook groupings** list of
   [`readme.md`](../../../readme.md), naming the toolset and its playbook path
-  (e.g. `playbooks/<toolset>_*.yml`).
+  (e.g. `playbooks/<toolset>.yml` for an application installer).
 
 The page and the pointer SHALL be created or updated in the same change that
 adds or alters the toolset's playbooks, role, or variables. A toolset whose
@@ -42,8 +42,10 @@ role source:
 
 - A title and a one- or two-line summary of what the toolset does, with links to
   its role (`roles/<toolset>`) and to [`playbook-layering.md`](playbook-layering.md).
-- When the toolset exposes more than one operation, a table mapping each thin
-  playbook to its operation.
+- When the toolset exposes more than one operation, a table listing each
+  operation and its result. For an application installer, the page SHALL state
+  that its one `playbooks/<toolset>.yml` entry point accepts the ordered
+  `<toolset>Operations` runtime array.
 - **Supported hosts** — the role's `(operating system × architecture)` matrix,
   and how unsupported hosts fail.
 - **Variables** — a table of the toolset's variables giving, for each, where it
@@ -62,10 +64,9 @@ role source:
 
 [`docs/playbooks/tailscale.md`](../../../docs/playbooks/tailscale.md) is the
 canonical template for a complete toolset page. A new or updated page SHALL follow
-its structure and depth — in particular its per-operation playbook table and its
-**Usage** section, which gives one happy-path command per operation. Match that
-page's level of detail unless the toolset genuinely has fewer operations or
-variables.
+its structure and depth — in particular its operation table and its **Usage**
+section, which gives one happy-path command per operation. Match that page's
+level of detail unless the toolset genuinely has fewer operations or variables.
 
 ## Compliance Criteria
 

@@ -4,4 +4,5 @@
   become: true
   roles:
     - role: tailscale
-      tailscaleOperation: install
+      tailscaleOperations:
+        - install

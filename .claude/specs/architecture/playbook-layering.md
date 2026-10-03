@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-10-02
-semver: 0.4.0
+last_updated: 2026-10-03
+semver: 0.4.1
 author: Nicholas Bergantz
 scope: project
 ---
@@ -136,11 +136,11 @@ SHALL use list-based task dispatch:
 - The list variable and its allowed operation names SHALL be documented in the
   role's companion variable schema and toolset documentation.
 
-This pattern is for composing operations in one role invocation. A role whose
-operations are mutually exclusive SHALL keep a singular `<role>Operation`
-selector and direct include; application installer roles follow the stricter
-dispatch contract in
-[`application-installer-roles.md`](application-installer-roles.md).
+Application installer roles use this ordered-list pattern and expose it through
+one runtime-parameterized playbook, following the stricter contract in
+[`application-installer-roles.md`](application-installer-roles.md). A role whose
+operations are genuinely mutually exclusive MAY keep a singular
+`<role>Operation` selector and direct include.
 
 ## Layer 3 — Playbooks
 

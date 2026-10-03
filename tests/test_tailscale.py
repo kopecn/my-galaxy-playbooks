@@ -22,35 +22,51 @@ def _documented_variables():
     return properties
 
 
-@pytest.mark.parametrize("operation", OPERATIONS)
-def test_tailscale_operation_has_thin_playbook(operation):
-    """Each public operation delegates to the Tailscale role."""
-    playbook_path = REPO_ROOT / "playbooks" / f"tailscale_{operation}.yml"
+def test_tailscale_has_one_operation_driven_playbook():
+    """One public playbook delegates an ordered operation list to the role."""
+    playbook_path = REPO_ROOT / "playbooks" / "tailscale.yml"
     playbook = yaml.safe_load(playbook_path.read_text())
 
     assert len(playbook) == 1
-    onepassword_tasks = ["ssh_user_pass"]
-    if operation == "up":
-        onepassword_tasks.append("tailscale")
-
-    assert playbook[0]["roles"] == [
-        {"role": "set_facts"},
-        {
-            "role": "onepassword",
-            "onePasswordTasks": onepassword_tasks,
-        },
-        {"role": "ssh"},
-        {
-            "role": "tailscale",
-            "tailscaleOperation": operation,
-        },
+    assert playbook[0]["serial"] == 1
+    roles = playbook[0]["roles"]
+    assert [role["role"] for role in roles] == [
+        "set_facts",
+        "onepassword",
+        "ssh",
+        "tailscale",
     ]
+    assert "tailscaleOperations" in roles[1]["onePasswordTasks"]
+    assert "'up' in tailscaleOperations" in roles[1]["onePasswordTasks"]
+    assert set((REPO_ROOT / "playbooks").glob("tailscale_*.yml")) == set()
+
+
+def test_tailscale_role_validates_and_loops_over_operation_array():
+    """The public array is validated against the enum and dispatched in order."""
+    tasks = (REPO_ROOT / "roles" / "tailscale" / "tasks" / "main.yml").read_text()
+    defaults = yaml.safe_load(
+        (REPO_ROOT / "roles" / "tailscale" / "defaults" / "main.yml").read_text()
+    )
+    variables = yaml.safe_load(
+        (REPO_ROOT / "roles" / "tailscale" / "vars" / "main.yml").read_text()
+    )
+
+    assert defaults["tailscaleOperations"] == []
+    assert variables["tailscaleSupportedOperations"] == list(OPERATIONS)
+    assert "tailscaleOperations is sequence" in tasks
+    assert "tailscaleOperations is not string" in tasks
+    assert "tailscaleOperations | length > 0" in tasks
+    assert "difference(tailscaleSupportedOperations)" in tasks
+    assert 'include_tasks: "{{ tailscaleOperation }}.yml"' in tasks
+    assert 'loop: "{{ tailscaleOperations }}"' in tasks
+    assert "loop_var: tailscaleOperation" in tasks
 
 
 @pytest.mark.parametrize(
     "variable",
     (
         "tailscaleAuthKey",
+        "tailscaleOperations",
         "onePasswordVault",
         "tailscaleVersion",
     ),
@@ -71,14 +87,13 @@ def test_tailscale_auth_key_is_super_agent_managed():
     ).read_text()
     schema = _documented_variables()
     playbook = yaml.safe_load(
-        (REPO_ROOT / "playbooks" / "tailscale_up.yml").read_text()
+        (REPO_ROOT / "playbooks" / "tailscale.yml").read_text()
     )
 
     assert "tailscaleAuthKeyReference" not in tasks
     assert "ansible.builtin.include_role" not in tasks
-    assert playbook[0]["roles"][1]["onePasswordTasks"] == [
-        "ssh_user_pass",
-        "tailscale",
+    assert "['ssh_user_pass', 'tailscale']" in playbook[0]["roles"][1][
+        "onePasswordTasks"
     ]
     assert "with-op" not in tasks
     assert "{{ onePasswordVault }}" in credential_defaults

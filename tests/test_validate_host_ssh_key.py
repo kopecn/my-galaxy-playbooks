@@ -39,9 +39,11 @@ def test_every_remote_playbook_runs_credentials_then_router():
         expected_tasks = ["ssh_user_pass"]
         if path.name == "samba_install.yml":
             expected_tasks.append("samba")
-        if path.name == "tailscale_up.yml":
-            expected_tasks.append("tailscale")
-        assert play["roles"][1]["onePasswordTasks"] == expected_tasks, path.name
+        onepassword_tasks = play["roles"][1]["onePasswordTasks"]
+        if path.name == "tailscale.yml":
+            assert "'up' in tailscaleOperations" in onepassword_tasks, path.name
+        else:
+            assert onepassword_tasks == expected_tasks, path.name
 
 
 def test_router_preserves_inline_inventory_and_prioritizes_vpn():

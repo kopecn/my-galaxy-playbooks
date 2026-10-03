@@ -71,10 +71,11 @@ git-ignored `.env` (copy from `.env.example`).
 
 e.g.
 ```bash
-ansible-playbook playbooks/tailscale_install.yml \
+ansible-playbook playbooks/tailscale.yml \
   -i 'host-computer-name,' \
   -b \
-  -e onePasswordVault=Personal-Automation
+  -e onePasswordVault=Personal-Automation \
+  -e '{"tailscaleOperations":["install"]}'
 ```
 
 ## Documentation
@@ -90,7 +91,7 @@ Each toolset this repo automates has its own notes under `docs/playbooks/`:
 supported hosts, variables, and example usage.
 
 - [VS Code](docs/playbooks/vscode.md) — `playbooks/vscode.yml`
-- [Tailscale](docs/playbooks/tailscale.md) — `playbooks/tailscale_*.yml`
+- [Tailscale](docs/playbooks/tailscale.md) — `playbooks/tailscale.yml`
 - [Samba](docs/playbooks/samba.md) — `playbooks/samba_*.yml`
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude_*.yml`
 - [Ollama](docs/playbooks/ollama.md) — `playbooks/ollama_*.yml`

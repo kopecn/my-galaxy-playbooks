@@ -1,0 +1,21 @@
+---
+- name: Run Tailscale operations
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: set_facts
+    - role: onepassword
+      onePasswordTasks: >-
+        {{
+          ['ssh_user_pass', 'tailscale']
+          if (
+            tailscaleOperations is defined
+            and tailscaleOperations is sequence
+            and tailscaleOperations is not string
+            and 'up' in tailscaleOperations
+          )
+          else ['ssh_user_pass']
+        }}
+    - role: ssh
+    - role: tailscale

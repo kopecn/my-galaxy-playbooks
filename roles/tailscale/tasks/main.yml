@@ -1,11 +1,18 @@
 ---
-- name: Validate the requested Tailscale operation
+- name: Validate the requested Tailscale operations
   ansible.builtin.assert:
     that:
-      - tailscaleOperation is defined
-      - tailscaleOperation in tailscaleSupportedOperations
+      - tailscaleOperations is sequence
+      - tailscaleOperations is not string
+      - tailscaleOperations | length > 0
+      - >-
+        tailscaleOperations
+        | difference(tailscaleSupportedOperations)
+        | length == 0
     fail_msg: >-
-      tailscaleOperation must be one of {{ tailscaleSupportedOperations }}.
+      Declare tailscaleOperations as a non-empty list containing only
+      {{ tailscaleSupportedOperations }}.
+    quiet: true
 
 - name: Normalize the gathered architecture to its canonical name
   ansible.builtin.set_fact:
@@ -37,12 +44,15 @@
 - name: Fail this operation when the host platform is unsupported
   ansible.builtin.fail:
     msg: >-
-      The tailscale role cannot {{ tailscaleOperation }} Tailscale on
+      The tailscale role cannot run {{ tailscaleOperations }} on
       {{ tailscaleOsFamily }} / {{ tailscaleEffectiveArch }} ({{ inventory_hostname }}).
       Supported combinations: {{ tailscaleSupportMatrix }}.
   when: >-
     tailscaleOsFamily not in tailscaleSupportMatrix
     or tailscaleEffectiveArch not in tailscaleSupportMatrix[tailscaleOsFamily]
 
-- name: Run the requested Tailscale operation
+- name: Run the explicitly requested Tailscale operations
   ansible.builtin.include_tasks: "{{ tailscaleOperation }}.yml"
+  loop: "{{ tailscaleOperations }}"
+  loop_control:
+    loop_var: tailscaleOperation

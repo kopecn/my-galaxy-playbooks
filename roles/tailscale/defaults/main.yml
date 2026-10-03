@@ -1,3 +1,7 @@
 ---
+# Ordered operations requested by the invoking ansible-playbook command. There
+# is no implicit operation; callers must explicitly choose at least one.
+tailscaleOperations: []
+
 tailscaleAuthKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
 tailscaleSSH: false

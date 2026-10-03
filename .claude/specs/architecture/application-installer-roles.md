@@ -1,6 +1,6 @@
 ---
-last_updated: 2026-10-01
-semver: 0.1.0
+last_updated: 2026-10-03
+semver: 0.2.0
 author: Nicholas Bergantz
 scope: project
 ---
@@ -24,22 +24,24 @@ on a piece of software on a target host.
 
 ## Operations
 
-An application installer SHALL be a single role that dispatches on one
-`<tool>Operation` variable and SHALL support exactly these three operations:
+An application installer SHALL be a single role that dispatches an ordered
+`<tool>Operations` array. It SHALL support at least these three operations:
 
 - `install`
 - `uninstall`
 - `diagnose`
 
-The operations SHALL be declared in `roles/<tool>/vars/main.yml` as
-`<tool>SupportedOperations`. Operations beyond these three SHALL NOT be added
-without extending this spec.
+The complete operation enum SHALL be declared in
+`roles/<tool>/vars/main.yml` as `<tool>SupportedOperations`. Tool-specific
+operations beyond the common three are permitted when their task files, schema,
+documentation, and tests are shipped together.
 
 ## Dispatch
 
 `roles/<tool>/tasks/main.yml` SHALL, in order:
 
-1. Assert `<tool>Operation` is defined and in `<tool>SupportedOperations`.
+1. Assert `<tool>Operations` is a non-empty sequence, is not a string, and its
+   difference from `<tool>SupportedOperations` is empty.
 2. Normalize the gathered architecture (`arm64` → `aarch64`) into `<tool>Arch`.
 3. When `hostOperatingSystem` / `hostArchitecture` are declared, assert each
    matches the gathered facts.
@@ -47,7 +49,9 @@ without extending this spec.
    the gathered facts.
 5. Fail non-fatally (`ansible.builtin.fail`) with a clear message naming the host
    when the `(OS family × architecture)` pair is not in `<tool>SupportMatrix`.
-6. `include_tasks: "{{ <tool>Operation }}.yml"`.
+6. Loop over `<tool>Operations` with
+   `include_tasks: "{{ <tool>Operation }}.yml"`, preserving caller order and
+   setting `loop_control.loop_var: <tool>Operation`.
 
 `<tool>SupportMatrix` (OS family → supported architectures) SHALL live in
 `roles/<tool>/vars/main.yml`.
@@ -80,15 +84,24 @@ ports on Linux (UFW when present) and no-ops on macOS.
 
 ## Playbooks
 
-Each operation SHALL have a thin playbook `playbooks/<tool>_<operation>.yml` with
-`hosts: all` and `gather_facts: false`, chaining the roles `onepassword`
-(`onePasswordTasks: [ssh_user_pass]`) → `ssh` → `<tool>` with the operation passed
-inline as `<tool>Operation`. `diagnose` and `uninstall` playbooks SHALL set
-`serial: 1`. Playbooks SHALL carry no play-level `become` or `tags`.
+Each application installer SHALL expose one thin playbook
+`playbooks/<tool>.yml` with `hosts: all`, `gather_facts: false`, and `serial: 1`.
+It SHALL chain `onepassword` (`onePasswordTasks: [ssh_user_pass]`) → `ssh` →
+`<tool>`. The caller SHALL supply `<tool>Operations` as an array at
+`ansible-playbook` runtime; the playbook SHALL NOT hard-code an operation.
+
+When only some operations need another credential query, the playbook MAY
+derive additional `onePasswordTasks` from a type-safe inspection of the
+operation array. The role remains responsible for authoritative array and enum
+validation. Installer playbooks SHALL carry no play-level `become` or `tags`.
 
 ## Variables, schema, and docs
 
-- User-overridable variables SHALL live in `roles/<tool>/defaults/main.yml`, be
+- `<tool>Operations` SHALL have an empty-list default in
+  `roles/<tool>/defaults/main.yml`, forcing the runtime caller to choose at
+  least one operation, and SHALL be documented as a non-empty enum array in the
+  tool's schema group.
+- Other user-overridable variables SHALL live in `roles/<tool>/defaults/main.yml`, be
   flat camelCase prefixed with the group token (`<tool>Port`), and be registered
   in `.schema/groups/<tool>-schema.json` with a `$ref` added to the `allOf` array
   in `.schema/ansible-vars.schema.json`. A role that ships only `vars/`
