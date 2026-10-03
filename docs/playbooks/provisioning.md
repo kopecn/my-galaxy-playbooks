@@ -102,13 +102,26 @@ disable password and keyboard-interactive authentication, validate the complete
 SSH daemon configuration, reload it, and verify the effective settings:
 
 ```bash
-ansible-playbook playbooks/provision-validate-and-secureSSH.yml -i '<host-or-ip>,' \
-  -e sshProvisioningUsername=<user> [-e sshFileName=<name>] [-K]
+ansible-playbook playbooks/provision-validate-and-secureSSH.yml \
+    -i '<host-or-ip>,' \
+    -e sshProvisioningUsername=<user> \
+    -e sshProvisioningPassword=<password> \
+    [-e sshFileName=<name>]
 ```
 
 Use the same `sshFileName` you installed with (default `common-ssh-key`). No
-SSH password is used for authentication. The remote account must be root, have
-passwordless `sudo`, or be supplied a privilege-escalation password with `-K`.
+SSH password is used for authentication: the installed private key is the only
+permitted SSH authentication method. For this playbook,
+`sshProvisioningPassword` is assigned to `ansible_become_password` and used only
+for `sudo` while securing the SSH daemon. It is required when the remote account
+uses password-protected `sudo`; omit it only when the account is root or has
+passwordless `sudo`.
+
+Supply `sshProvisioningPassword` again even if it was passed to the install-key
+playbook. Extra variables do not persist between separate `ansible-playbook`
+commands. This provisioning workflow does not query 1Password, so setting
+`onePasswordVault` does not provide the privilege-escalation password.
+
 The lock-down block is placed first in `/etc/ssh/sshd_config` because OpenSSH
 uses the first value it encounters for these settings. If configuration
 validation or reload fails, the previous SSH daemon configuration is restored

@@ -1,5 +1,5 @@
 ---
-- name: Provision validate and secure SSH
+- name: Provision install SSH key
   hosts: all
   gather_facts: false
   roles:
@@ -7,5 +7,7 @@
     - role: ssh
     - role: ssh_provisioning
       sshProvisioningOperations:
+        - connect
+        - install_key
         - validate
         - disable_password

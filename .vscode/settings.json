@@ -23,5 +23,6 @@
   "ansible.validation.lint.enabled": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "ansible.validation.lint.autoFixOnSave": true
+  "ansible.validation.lint.autoFixOnSave": true,
+  "makefile.configureOnOpen": false
 }
