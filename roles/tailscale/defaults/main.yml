@@ -1,9 +1,3 @@
 ---
-# Lowest-precedence, user-overridable variables. Non-secret 1Password
-# coordinates; the actual credential is resolved from the vault at run time.
-# Override per environment in the downstream inventory group_vars.
-onePasswordVault: Personal-Automation
 tailscaleAuthKey: AuthKey, Tailscale Auth Key - Ansible Provisioning
-
-# Enable Tailscale SSH (the `--ssh` flag) when bringing the node up.
 tailscaleSSH: false

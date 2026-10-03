@@ -10,10 +10,8 @@ onePasswordChoices:
 op_queries: {}
 
 onePasswordVault: Personal-Automation
-sshKeyPrefix: sshkey
-sshLoginPrefix: user
-
-op_token_file: "{{ opServiceAccountTokenFullPath }}"
+opServiceAccountTokenHomePath: .config/op/op-service-account-token
+opServiceAccountTokenFullPath: "{{ superAgentHomeDir }}/{{ opServiceAccountTokenHomePath }}"
 
 onePasswordSshUserPassQueries:
   ansible_user: >-

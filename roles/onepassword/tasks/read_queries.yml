@@ -11,7 +11,7 @@
     ansible_become: false
   environment:
     OP_SERVICE_ACCOUNT_TOKEN: >-
-      {{ lookup('ansible.builtin.file', op_token_file) | trim }}
+      {{ lookup('ansible.builtin.file', opServiceAccountTokenFullPath) | trim }}
   loop: "{{ op_queries | dict2items }}"
   loop_control:
     label: "{{ item.key }}"

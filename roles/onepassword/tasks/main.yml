@@ -14,7 +14,7 @@
         if not opCliAvailable
         else
         "No usable 1Password service-account token at "
-        ~ op_token_file
+        ~ opServiceAccountTokenFullPath
         ~ " on the super agent. Write the service-account token to that file "
         ~ "before running."
       }}
@@ -30,11 +30,11 @@
       }}
     opTokenUsable: >-
       {{
-        op_token_file is ansible.builtin.file
+        opServiceAccountTokenFullPath is ansible.builtin.file
         and (
           lookup(
             'ansible.builtin.file',
-            op_token_file,
+            opServiceAccountTokenFullPath,
             errors='ignore'
           ) | default('', true) | trim | length > 0
         )
