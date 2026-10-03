@@ -3,8 +3,9 @@
   hosts: all
   gather_facts: false
   roles:
+    - role: set_facts
     - role: ssh
     - role: ssh_provisioning
       sshProvisioningOperations:
         - validate
-        - disable_password
+        # - disable_password

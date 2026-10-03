@@ -1,4 +1,43 @@
 ---
+# - name: Resolve the super agent's home directory once
+#   ansible.builtin.set_fact:
+#     superAgentHomeDir: "{{ lookup('ansible.builtin.env', 'HOME') }}"
+#   delegate_to: localhost
+#   become: false
+#   vars:
+#     ansible_become: false
+#   run_once: true
+
+- name: Ensure the 1Password CLI is available on the super agent
+  ansible.builtin.command: op --version
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+
+- name: Confirm the 1Password service-account token exists on the super agent
+  ansible.builtin.stat:
+    path: "{{ op_token_file }}"
+  delegate_to: localhost
+  become: false
+  vars:
+    ansible_become: false
+  check_mode: false
+  changed_when: false
+  register: opTokenFileStat
+
+- name: Fail clearly when the service-account token is missing or empty
+  ansible.builtin.assert:
+    that:
+      - opTokenFileStat.stat.exists
+      - (opTokenFileStat.stat.size | default(0)) > 0
+    fail_msg: >-
+      No usable 1Password service-account token at {{ op_token_file }} on the
+      super agent. Write the service-account token to that file before running.
+    quiet: true
+
 - name: Validate the requested 1Password tasks
   ansible.builtin.assert:
     that:
@@ -9,15 +48,7 @@
     fail_msg: >-
       onePasswordTasks must be a non-empty list containing only valid operations:
       {{ sshOperationChoices | join(', ') }}.
-
-- name: Resolve the super agent's home directory once
-  ansible.builtin.set_fact:
-    superAgentHomeDir: "{{ lookup('ansible.builtin.env', 'HOME') }}"
-  delegate_to: localhost
-  become: false
-  vars:
-    ansible_become: false
-  run_once: true
+    quiet: true
 
 - name: Run the explicitly requested 1Password tasks
   ansible.builtin.include_tasks: "{{ onePasswordTask }}.yml"

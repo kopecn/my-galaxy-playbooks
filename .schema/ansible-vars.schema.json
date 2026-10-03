@@ -4,22 +4,14 @@
   "description": "Root schema for host_vars, group_vars, and role defaults in this inventory. Provides hover documentation for all project variables. Variables are flat and camelCase, named <group><parameter> per the Playbook Layering spec; each group's variables live in a companion file under groups/ and are composed here via allOf. Ungrouped standalone variables (echo, env) are defined directly in this root.",
   "type": "object",
   "additionalProperties": true,
-  "$defs": {
+  "properties": {
     "echo_phrase": {
       "type": "string",
       "description": "Phrase the echo role prints on the super agent and target to validate downstream Galaxy variable overrides. Role default in roles/echo/defaults/main.yml, overridden per host/group in a downstream inventory or with -e echo_phrase=...."
     },
-    "env": {
+    "superAgentHomeDir": {
       "type": "string",
-      "description": "Environment label for the host's inventory (e.g. production, staging, molecule)."
-    }
-  },
-  "properties": {
-    "echo_phrase": {
-      "$ref": "#/$defs/echo_phrase"
-    },
-    "env": {
-      "$ref": "#/$defs/env"
+      "description": "Convenience for accessing home directory of agent running the playbook"
     }
   },
   "allOf": [

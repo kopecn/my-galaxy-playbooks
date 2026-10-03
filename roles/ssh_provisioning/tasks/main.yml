@@ -16,6 +16,7 @@
     fail_msg: >-
       Declare sshProvisioningOperations as a non-empty list containing only
       {{ sshProvisioningSupportedOperations }}.
+    quiet: true
 
 - name: Initialize the SSH provisioning safety gates
   ansible.builtin.set_fact:

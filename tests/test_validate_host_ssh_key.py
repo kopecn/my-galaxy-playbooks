@@ -48,12 +48,13 @@ def test_router_preserves_inline_inventory_and_prioritizes_vpn():
 
 
 def test_router_rejects_ambiguous_bare_inline_targets():
-    tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
+    main_tasks = (SSH_ROLE / "tasks" / "main.yml").read_text()
+    resolve_tasks = (SSH_ROLE / "tasks" / "resolve.yml").read_text()
 
-    assert "Reject ambiguous bare inline SSH targets" in tasks
-    assert "or '.' in inventory_hostname" in tasks
-    assert "or ':' in inventory_hostname" in tasks
-    assert "Inline inventory target" in tasks
+    assert "or '.' in inventory_hostname" in main_tasks
+    assert "or ':' in inventory_hostname" in main_tasks
+    assert "Inline inventory target" in main_tasks
+    assert "Inline inventory target" not in resolve_tasks
 
 
 def test_router_ignores_dot_ssh_config_and_control_sockets():

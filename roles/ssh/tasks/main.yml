@@ -1,14 +1,27 @@
 ---
-- name: Validate the requested SSH operations
+- name: Validate the requested SSH operations and target
   ansible.builtin.assert:
     that:
+      - >-
+        ',' not in (inventory_file | default('', true))
+        or '.' in inventory_hostname
+        or ':' in inventory_hostname
       - sshOperations is sequence
       - sshOperations is not string
       - sshOperations | length > 0
       - sshOperations | difference(sshOperationChoices) | length == 0
     fail_msg: >-
-      sshOperations must be a non-empty list containing only valid operations:
-      {{ sshOperationChoices | join(', ') }}.
+      {{
+        "Inline inventory target '" ~ inventory_hostname ~ "' is ambiguous. Supply "
+        ~ "an IPv4 address, IPv6 address, .local hostname, VPN hostname, or other "
+        ~ "fully qualified DNS hostname."
+        if ',' in (inventory_file | default('', true))
+        and '.' not in inventory_hostname
+        and ':' not in inventory_hostname
+        else "sshOperations must be a non-empty list containing only valid operations: "
+        ~ (sshOperationChoices | join(', ')) ~ "."
+      }}
+    quiet: true
 
 - name: Run the explicitly requested SSH operations
   ansible.builtin.include_tasks: "{{ sshOperation }}.yml"

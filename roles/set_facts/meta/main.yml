@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: setfacts
+  author: nbergantz
+  description: Resolve common facts.
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+dependencies: []

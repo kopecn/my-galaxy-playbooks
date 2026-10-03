@@ -6,6 +6,7 @@
   serial: "20%"
 
   roles:
+    - role: set_facts
     - role: onepassword
       onePasswordTasks:
         - ssh_user_pass
