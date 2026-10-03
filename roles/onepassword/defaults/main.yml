@@ -1,5 +1,12 @@
 ---
-onePasswordTasks: []
+onePasswordTasks:
+  - ssh_user_pass
+
+onePasswordChoices:
+  - ssh_user_pass
+  - samba
+  - tailscale
+
 onePasswordVault: Personal-Automation
 sshKeyPrefix: sshkey
 sshLoginPrefix: user
