@@ -7,26 +7,27 @@ document_type: readme
 
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file tells Claude Code (claude.ai/code) how to work with the code in this
+repository.
 
 ## Overview
 
-Ansible automation repo for provisioning dev and production machines: playbooks,
-first-party roles, Molecule role tests, and CI
-(lint + molecule via GitHub Actions).
+This is an Ansible repository that sets up dev and production machines. It
+contains the playbooks, the first-party roles, the Molecule role tests, and the
+CI (lint and Molecule through GitHub Actions).
 
 ## Specs
 
-- [Playbook Layering](specs/architecture/playbook-layering.md) — mandatory
-  three-layer organization (playbooks declare intent → roles implement per
-  OS × arch → global config supplies data) for authoring and deploying playbooks.
-- [Playbook Documentation](specs/architecture/playbook-documentation.md) — every
-  toolset must have a `docs/playbooks/<toolset>.md` page and a `readme.md`
-  pointer, updated in the same change that alters the toolset.
+- [Playbook Layering](specs/architecture/playbook-layering.md) — the mandatory
+  three-layer structure for playbooks: the playbooks declare what to do → the
+  roles do the work for each OS and arch → the global config gives the data.
+- [Playbook Documentation](specs/architecture/playbook-documentation.md) — each
+  toolset must have a `docs/playbooks/<toolset>.md` file and a `readme.md`
+  pointer. Change them in the same change that changes the toolset.
 - [Application Installer Roles](specs/architecture/application-installer-roles.md) —
-  the minimal template an application installer follows: `install`/`uninstall`/
-  `diagnose` dispatch, per-OS branching, firewall via the shared `firewall` role,
-  thin playbooks, schema, docs, and Molecule tests.
+  the minimum template for an application installer: `install`/`uninstall`/
+  `diagnose` operations, per-OS tasks, the firewall through the `firewall` role,
+  small playbooks, schema, docs, and Molecule tests.
 
 ## Commands
 
@@ -42,10 +43,11 @@ make test-molecule-<role>  # molecule test for a single role, e.g. test-molecule
 make open-github # open the repo's GitHub remote in the browser
 ```
 
-`INVENTORY`, `PLAYBOOK`, `LIMIT`, `TAGS` are overridable on the CLI
-(`make check LIMIT=local PLAYBOOK=playbooks/vscode.yml`) or via a git-ignored
-`.env` (copy from `.env.example`); CLI wins over `.env` wins over the Makefile
-defaults (`tests/inventory/hosts.ini`, `playbooks/ping.yml`).
+You can override `INVENTORY`, `PLAYBOOK`, `LIMIT`, and `TAGS` on the CLI
+(`make check LIMIT=local PLAYBOOK=playbooks/vscode.yml`), or in a git-ignored
+`.env` file (copy it from `.env.example`). The CLI wins over `.env`, and `.env`
+wins over the Makefile defaults (`tests/inventory/hosts.ini`,
+`playbooks/ping.yml`).
 
 ### Running a single Molecule scenario
 
@@ -57,11 +59,11 @@ molecule login    -s default   # shell into the test instance
 molecule destroy  -s default   # tear it down
 ```
 
-`MOLECULE_GLOBAL_CONFIG` (shared driver/verifier config in
-`.config/molecule/config.yml`) is exported automatically by the Makefile; when
-running `molecule` directly, `export MOLECULE_GLOBAL_CONFIG=$PWD/.config/molecule/config.yml`
-first. Full details, including how to add a new scenario, are in
-[docs/testing.md](../docs/testing.md).
+The Makefile exports `MOLECULE_GLOBAL_CONFIG` for you (the driver and verifier
+config in `.config/molecule/config.yml`). When you run `molecule` directly, do
+this `export` first: `export MOLECULE_GLOBAL_CONFIG=$PWD/.config/molecule/config.yml`.
+[docs/testing.md](../docs/testing.md) gives the full details and shows how to
+add a new scenario.
 
 ### Running a single pytest test
 
@@ -71,55 +73,67 @@ pytest tests/test_tailscale.py::test_tailscale_status_prints_diagnostics -v
 
 ## Architecture
 
-- `playbooks/` — thin entry points (`ping.yml`, `vscode.yml`, per-toolset install/uninstall). All
-  logic lives in roles; playbooks just select which roles run against which
-  hosts.
-- `roles/<name>/{defaults,tasks,handlers,meta}` — first-party roles. Roles that
-  branch on OS split tasks per-family (see `roles/vscode/tasks/{main,Darwin,Debian}.yml`,
-  dispatched from `main.yml` on `ansible_facts.os_family`).
-  `roles/<name>/molecule/<scenario>/` holds that role's Molecule test scenario
-  (`prepare.yml` → `converge.yml` → `verify.yml`); see
-  [docs/testing.md](../docs/testing.md) for the full test-first workflow.
-- `galaxy_roles/` — Galaxy-installed roles/collections, git-ignored, populated
-  by `make bootstrap` from `requirements.yml`.
-- This repo is the `bergantz_galaxy.home` collection and ships **no** environment
-  inventory. Real host data (per-environment `group_vars`, per-host `host_vars`)
-  lives in the downstream consumer repo that installs the collection; role
-  `defaults/` are the self-contained, lowest-precedence fallbacks the downstream
-  inventory overrides. `tests/inventory/hosts.ini` is the only inventory here — a
-  single `localhost` loopback for local dev/testing (`make check/run/ping/
-  syntax-check`), not shipped host data.
-- CI (`.github/workflows/lint.yml`, `molecule.yml`) runs `make bootstrap` then
-  `make test` / `make test-molecule-<role>` per role — the same targets used
-  locally, so a green `make test-all` locally should stay green in CI. Adding a
-  Molecule scenario requires adding its target to both the Makefile matrix and
-  the `molecule.yml` workflow matrix (see [docs/testing.md](../docs/testing.md)).
+- `playbooks/` — the small entry points (`ping.yml`, `vscode.yml`, per-toolset
+  install/uninstall). The roles contain all the tasks. The playbooks only select
+  which roles operate on which hosts.
+- `roles/<name>/{defaults,tasks,handlers,meta}` — the first-party roles. A role
+  that changes with the OS divides its tasks per family (see
+  `roles/vscode/tasks/{main,Darwin,Debian}.yml`; `main.yml` sends to them on
+  `ansible_facts.os_family`). `roles/<name>/molecule/<scenario>/` holds that
+  role's Molecule test scenario (`prepare.yml` → `converge.yml` → `verify.yml`).
+  [docs/testing.md](../docs/testing.md) gives the full test-first workflow.
+- `galaxy_roles/` — the Galaxy-installed roles and collections. They are
+  git-ignored. `make bootstrap` fills them from `requirements.yml`.
+- This repository is the `bergantz_galaxy.home` collection. It ships **no**
+  environment inventory. The host data (the per-environment `group_vars` and the
+  per-host `host_vars`) is in the consumer repository that installs the
+  collection. The role `defaults/` are the lowest-precedence default values that
+  the consumer inventory overrides. `tests/inventory/hosts.ini` is the only
+  inventory here: one `localhost` loopback for local dev and test
+  (`make check/run/ping/syntax-check`). It is not shipped host data.
+- The CI (`.github/workflows/lint.yml`, `molecule.yml`) does `make bootstrap`,
+  then `make test` and `make test-molecule-<role>` for each role. These are the
+  same targets that you use locally, so a green `make test-all` locally stays
+  green in CI. To add a Molecule scenario, add its target to both the Makefile
+  matrix and the `molecule.yml` workflow matrix (see
+  [docs/testing.md](../docs/testing.md)).
 
 ## Critical Rules
 
-### Verify against the Ansible docs — never assume
+### Check against the Ansible documentation — do not assume
 
-Every decision about Ansible usage — module names, parameters and their defaults, return values, plugin behavior, variable precedence, idempotency, and `become`/`delegate_to` semantics — must be grounded in the official Ansible documentation (https://docs.ansible.com/ansible/latest/) for the version this repo targets, not in memory, inference, or how an adjacent task happens to look. When the docs are silent or ambiguous, say so and confirm the intended behavior before acting — do not close the gap with an assumption. Cite the specific module or doc page a non-obvious decision rests on.
+Ground each decision about Ansible use in the official Ansible documentation
+(https://docs.ansible.com/ansible/latest/) for the version that this repository
+uses. This includes module names, parameters and their default values, return
+values, how a plugin operates, variable precedence, idempotency, and the
+`become` and `delegate_to` semantics. Do not use your memory or an adjacent task
+as the source. Do not use what you only think is correct. When the documentation
+does not show what occurs, or it is not clear, tell the user. Make sure of the
+correct behavior before you continue. Do not fill the clearance yourself. For a
+decision that is not clear, give the module or the Ansible documentation page
+for it.
 
-### Ansible hosts are long-lived production systems
+### Ansible hosts stay live for a long time
 
-Every task that runs modifies real system state that persists across all
-subsequent runs. There is no kill-and-restart. A bad change compounds through
-every future playbook run. Never experiment with module parameters or patterns
-— verify first. Before suggesting any change, think through what happens if it
-fails mid-run on a live host.
+Each task that operates changes the system state. That change continues through
+all future runs. There is no kill-and-restart. A bad change stays in all future
+playbook runs. Do not do test changes to module parameters to find what occurs;
+check the documentation first. Before you give a change, think about what occurs
+if the task stops in the middle of a run on a live host.
 
 ### Home directory paths
 
-Use `{{ login_user_home }}` for user home paths. This fact is captured once in
-`prefetch_credentials.yml` with `become: false` so it resolves to the login
-user's home on any OS (macOS `/Users/…`, Linux `/home/…`).
+Use `{{ login_user_home }}` for user home paths. `prefetch_credentials.yml`
+sets this fact one time with `become: false`, so it gives the login user's home
+on each OS (macOS `/Users/…`, Linux `/home/…`).
 
-Do **not** use `{{ ansible_user_dir }}` or `{{ ansible_env.HOME }}` directly —
-when `ansible_become: true` is active (set in group_vars), both resolve to
-`/root/`. Do **not** hardcode `/home/{{ ansible_user }}`.
+Do **not** use `{{ ansible_user_dir }}` or `{{ ansible_env.HOME }}` directly.
+When `ansible_become: true` is active (set in group_vars), both give `/root/`.
+Do **not** hardcode `/home/{{ ansible_user }}`.
 
 
 ### delegate_to: localhost and become
 
-When a task uses `delegate_to: localhost`, the host-level `ansible_become: true` (from group_vars) overrides task-level `become: false`. Always add `vars: ansible_become: false` alongside `become: false` on delegated tasks.
+When a task uses `delegate_to: localhost`, the host-level `ansible_become: true`
+(from group_vars) overrides the task-level `become: false`. Always add
+`vars: ansible_become: false` with `become: false` on a delegated task.
