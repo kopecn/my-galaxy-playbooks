@@ -84,7 +84,7 @@ is not a user-configurable variable.
 | Variable | Type | Source | Default / required | Purpose |
 | --- | --- | --- | --- | --- |
 | `tailscaleOperations` | `array[enum]`: `diagnose`, `down`, `install`, `status`, `uninstall`, `up`, `update` | Runtime `-e` | Required; role default is `[]` | Ordered operations to execute. |
-| `tailscaleAuthKeyItem` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Non-secret item ID. The public playbook resolves its auth key for every normal invocation; `up` consumes it. |
+| `tailscaleAuthKeyItem` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Non-secret item name (no comma). The public playbook resolves its auth key for every normal invocation; `up` consumes it. |
 | `tailscaleSSH` | `bool` | Role default, `group_vars`, `host_vars`, or runtime `-e` | `false` | Enables Tailscale SSH during `up`. |
 | `tailscaleVersion` | version `string` | `group_vars`, `host_vars`, or runtime `-e` | Omitted means latest | Debian update pin; at least `1.36.0`; pinning is rejected on Darwin. |
 | `onePasswordVault` | `string` | Role default, inventory, or runtime `-e` | Configured default is redacted | Vault coordinate used on the control node. |

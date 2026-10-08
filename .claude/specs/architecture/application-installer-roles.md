@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-10-03
-semver: 0.3.0
+last_updated: 2026-10-08
+semver: 0.4.0
 author: Nicholas Bergantz
+document_type: specification
 scope: project
 ---
 
@@ -114,6 +115,22 @@ validation. Installer playbooks SHALL carry no play-level `become` or `tags`.
   (operations + support matrix, no overridable defaults) needs no schema group.
 - Each toolset SHALL ship `docs/playbooks/<tool>.md` and a `readme.md` pointer per
   [`playbook-documentation.md`](playbook-documentation.md).
+
+## 1Password item coordinates
+
+A **1Password item coordinate** is any variable whose value becomes the item
+segment of an `op://<vault>/<item>/<field>` secret reference resolved by the
+`onepassword` role (for example `tailscaleAuthKeyItem`, `sambaPasswordOpItem`).
+
+- A 1Password item coordinate SHALL be a human-readable item name. It SHALL NOT
+  be an item ID (a 1Password UUID). Semantic names keep programmatically created
+  items human-readable and consistent; a smart name is a feature of the tool.
+- A 1Password item name SHALL NOT contain a comma. A comma is invalid in an
+  `op://` secret reference, so a comma in the name breaks resolution.
+- The schema `$def` description for each 1Password item coordinate SHALL state
+  the no-comma rule.
+- The role default for each 1Password item coordinate SHALL comply with the two
+  rules above, or SHALL be an empty string when the caller must supply the name.
 
 ## Tests
 

@@ -2,6 +2,7 @@
 last_updated: 2026-10-03
 semver: 0.2.0
 author: Nicholas Bergantz
+document_type: specification
 scope: project
 ---
 

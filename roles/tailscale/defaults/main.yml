@@ -3,7 +3,8 @@
 # is no implicit operation; callers must explicitly choose at least one.
 tailscaleOperations: []
 
-# 1Password item ID. The item title contains a comma, which is invalid in an
-# op:// secret reference; IDs are stable and avoid title parsing entirely.
-tailscaleAuthKeyItem: wbmap6g7gepfdvctflyawboc3e
+# 1Password item name. The name must contain no comma: commas are invalid in an
+# op:// secret reference. Semantic names keep programmatically created items
+# human-readable and consistent.
+tailscaleAuthKeyItem: "AuthKey-Tailscale Auth Key-Ansible Provisioning"
 tailscaleSSH: false
