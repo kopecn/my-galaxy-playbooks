@@ -1,0 +1,11 @@
+---
+# Lowest-precedence, user-overridable variables (the global-config data layer).
+# Supply the real values in the downstream consumer's inventory
+# (group_vars/host_vars) or pass them at run time with -e.
+
+# Ordered operations requested by the invoking ansible-playbook command.
+swiftlyOperations: []
+
+# Pinned Swift toolchain version Swiftly installs and selects (swiftly install
+# --use). Override to move the pin.
+swiftlySwiftVersion: "6.3.3"

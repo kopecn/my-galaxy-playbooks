@@ -1,0 +1,12 @@
+---
+- name: Run Swiftly operations
+  hosts: all
+  gather_facts: false
+  serial: 1
+  roles:
+    - role: set_facts
+    - role: onepassword
+      onePasswordTasks:
+        - ssh_user_pass
+    - role: ssh
+    - role: swiftly

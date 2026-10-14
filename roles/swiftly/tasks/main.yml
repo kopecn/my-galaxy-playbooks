@@ -1,0 +1,42 @@
+---
+# Cross-platform Swiftly + Swift toolchain install, dispatched on the host's OS
+# family and architecture. See
+# .claude/specs/architecture/playbook-layering.md.
+
+- name: Validate the requested Swiftly operations
+  ansible.builtin.assert:
+    that:
+      - swiftlyOperations is sequence
+      - swiftlyOperations is not string
+      - swiftlyOperations | length > 0
+      - >-
+        swiftlyOperations
+        | difference(swiftlySupportedOperations)
+        | length == 0
+    fail_msg: >-
+      Declare swiftlyOperations as a non-empty list containing only
+      {{ swiftlySupportedOperations }}.
+    quiet: true
+
+- name: Gather the target platform facts after resolving the SSH route
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+
+- name: Fail this operation when the host OS family and architecture are unsupported
+  ansible.builtin.fail:
+    msg: >-
+      The swiftly role cannot run {{ swiftlyOperations }} on
+      {{ ansible_facts.os_family }} / {{ ansible_facts.architecture }}
+      ({{ inventory_hostname }}).
+      Supported combinations: {{ swiftlySupportMatrix }}.
+  when: >-
+    ansible_facts.os_family not in swiftlySupportMatrix
+    or ansible_facts.architecture
+    not in swiftlySupportMatrix[ansible_facts.os_family]
+
+- name: Run the explicitly requested Swiftly operations
+  ansible.builtin.include_tasks: "{{ swiftlyOperation }}.yml"
+  loop: "{{ swiftlyOperations }}"
+  loop_control:
+    loop_var: swiftlyOperation

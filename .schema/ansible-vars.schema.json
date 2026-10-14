@@ -44,6 +44,9 @@
     },
     {
       "$ref": "groups/lm_studio-schema.json"
+    },
+    {
+      "$ref": "groups/swiftly-schema.json"
     }
   ]
 }

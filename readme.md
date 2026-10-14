@@ -97,6 +97,7 @@ supported hosts, variables, and example usage.
 - [Claude CLI](docs/playbooks/claude.md) — `playbooks/claude.yml`
 - [Ollama](docs/playbooks/ollama.md) — `playbooks/ollama.yml`
 - [LM Studio](docs/playbooks/lm_studio.md) — `playbooks/lm_studio.yml`
+- [Swiftly](docs/playbooks/swiftly.md) — `playbooks/swiftly.yml`
 - [Echo](docs/playbooks/echo.md) — `playbooks/echo.yml` (variable-override validation)
 - [SSH](docs/playbooks/ssh.md) — shared validation and SSH capability grouping
   - [Provisioning](docs/playbooks/provisioning.md) — `playbooks/provision-full.yml`,

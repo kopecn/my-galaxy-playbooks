@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Swiftly Variables",
+  "description": "Swiftly group: Swift toolchain provisioning parameters. Variable names are camelCase and prefixed with the group token 'swiftly'.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "swiftlyOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": ["install"]
+      },
+      "description": "Ordered, non-empty list of Swiftly operations to run. The currently supported operation is install; supply it at ansible-playbook runtime with -e."
+    },
+    "swiftlySwiftVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "default": "6.3.3",
+      "description": "Pinned Swift toolchain version Swiftly installs and selects (swiftly install --use). Accepts a full version (6.3.3) or a minor version (6.3). Role default in roles/swiftly/defaults/main.yml; override per host/group in a downstream inventory or with -e swiftlySwiftVersion=...."
+    }
+  },
+  "properties": {
+    "swiftlyOperations": {
+      "$ref": "#/$defs/swiftlyOperations"
+    },
+    "swiftlySwiftVersion": {
+      "$ref": "#/$defs/swiftlySwiftVersion"
+    }
+  }
+}

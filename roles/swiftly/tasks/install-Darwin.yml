@@ -1,0 +1,33 @@
+---
+# Homebrew must never run as root — override any inherited become: true.
+- name: Ensure Homebrew is available
+  ansible.builtin.command: brew --version
+  changed_when: false
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Ensure Swiftly is present (Homebrew)
+  community.general.homebrew:
+    name: swiftly
+    state: present
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Initialize Swiftly for the login user
+  ansible.builtin.command:
+    cmd: swiftly init --assume-yes --skip-install --quiet-shell-followup
+    creates: "{{ swiftlyUserHome }}/.swiftly/config.json"
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Install and select the pinned Swift toolchain
+  ansible.builtin.command:
+    cmd: swiftly install --use {{ swiftlySwiftVersion }} --assume-yes
+  become: false
+  vars:
+    ansible_become: false
+  register: swiftlyInstall
+  changed_when: "'already installed' not in (swiftlyInstall.stdout | lower)"

@@ -1,0 +1,16 @@
+---
+# Role constants — not meant to be overridden by inventory.
+swiftlySupportedOperations:
+  - install
+
+# Supported (OS family × canonical architecture) matrix for this role.
+# Values match ansible_facts.os_family and ansible_facts.architecture exactly.
+# The architecture also names the Linux Swiftly archive
+# (swiftly-<architecture>.tar.gz).
+swiftlySupportMatrix:
+  Darwin:
+    - x86_64
+    - arm64
+  Debian:
+    - x86_64
+    - aarch64

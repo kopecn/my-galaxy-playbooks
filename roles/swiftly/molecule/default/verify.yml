@@ -1,0 +1,31 @@
+---
+# Assertions describing the behavior the role must produce.
+# One concept per assert block; pure Ansible facts, no external mocks.
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Confirm the Swiftly environment file exists
+      ansible.builtin.shell: 'test -f "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"'
+      changed_when: false
+
+    - name: Query the Swift version through the Swiftly environment
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+          hash -r
+          swift --version
+        executable: /bin/bash
+      changed_when: false
+      register: swiftlyVersionOutput
+
+    - name: Swift reports the pinned 6.3 toolchain
+      ansible.builtin.assert:
+        that:
+          - swiftlyVersionOutput.stdout_lines | length > 0
+          - "'6.3' in swiftlyVersionOutput.stdout"
+        fail_msg: >-
+          swift --version did not report the pinned 6.3 toolchain:
+          {{ swiftlyVersionOutput.stdout }}
+        success_msg: "{{ swiftlyVersionOutput.stdout_lines | first }}"

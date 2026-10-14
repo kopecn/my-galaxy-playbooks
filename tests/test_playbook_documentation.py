@@ -16,6 +16,7 @@ DOMAIN_ROLES = {
     "provisioning.md": ("ssh_provisioning",),
     "samba.md": ("samba",),
     "ssh.md": ("ssh",),
+    "swiftly.md": ("swiftly",),
     "tailscale.md": ("tailscale",),
     "vscode.md": ("vscode",),
 }

@@ -18,6 +18,7 @@ jobs:
           - test-molecule-claude
           - test-molecule-ollama
           - test-molecule-samba
+          - test-molecule-swiftly
           - test-molecule-tailscale
           - test-molecule-vscode
     steps:

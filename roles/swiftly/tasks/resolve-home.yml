@@ -1,0 +1,16 @@
+---
+# Resolve the login user's home without become, so Swiftly installs to and is
+# queried from the real user's home — not /root, which host-level ansible_become
+# would otherwise select. Swiftly is a per-user toolchain manager. Kept
+# role-local rather than depending on a repo-wide login_user_home fact.
+- name: Resolve the login user's home directory
+  ansible.builtin.shell: printf '%s' "$HOME"
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  register: swiftlyHomeProbe
+
+- name: Record the Swiftly install prefix
+  ansible.builtin.set_fact:
+    swiftlyUserHome: "{{ swiftlyHomeProbe.stdout }}"

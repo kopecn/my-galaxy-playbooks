@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: swiftly
+  author: nbergantz
+  description: >-
+    Install Swiftly on Darwin (Homebrew) or Debian (official download) and
+    install plus select a pinned Swift toolchain (swiftlySwiftVersion).
+  license: MIT
+  min_ansible_version: "2.16"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - development
+    - swift
+    - swiftly
+dependencies: []

@@ -1,0 +1,30 @@
+---
+# Swiftly adds its toolchain to PATH only through the shell env file. Source it
+# from both the macOS (~/.swiftly) and Linux (~/.local/share/swiftly) locations
+# so the check works on either platform without a login shell.
+- name: Query the Swift version through the Swiftly environment
+  ansible.builtin.shell:
+    cmd: |
+      set -euo pipefail
+      if [ -f "$HOME/.swiftly/env.sh" ]; then . "$HOME/.swiftly/env.sh"; fi
+      if [ -f "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh" ]; then
+        . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+      fi
+      hash -r
+      swift --version
+    executable: /bin/bash
+  become: false
+  vars:
+    ansible_become: false
+  changed_when: false
+  register: swiftlyVersionOutput
+
+- name: Confirm swift reports the pinned toolchain version
+  ansible.builtin.assert:
+    that:
+      - swiftlyVersionOutput.stdout | length > 0
+      - swiftlySwiftVersion in swiftlyVersionOutput.stdout
+    fail_msg: >-
+      swift --version did not report the pinned {{ swiftlySwiftVersion }}
+      toolchain: {{ swiftlyVersionOutput.stdout }}
+    success_msg: "{{ swiftlyVersionOutput.stdout_lines | first }}"

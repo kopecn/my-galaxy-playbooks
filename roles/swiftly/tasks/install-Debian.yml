@@ -1,0 +1,62 @@
+---
+- name: Ensure the Swiftly bootstrap prerequisites are present
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - tar
+    state: present
+  become: true
+
+- name: Create the Swiftly bootstrap directory
+  ansible.builtin.file:
+    path: "{{ swiftlyUserHome }}/.swiftly-bootstrap"
+    state: directory
+    mode: "0755"
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Download the Swiftly bootstrap archive
+  ansible.builtin.get_url:
+    url: >-
+      https://download.swift.org/swiftly/linux/swiftly-{{ ansible_facts.architecture }}.tar.gz
+    dest: "{{ swiftlyUserHome }}/.swiftly-bootstrap/swiftly-{{ ansible_facts.architecture }}.tar.gz"
+    mode: "0644"
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Extract the Swiftly bootstrap archive
+  ansible.builtin.unarchive:
+    src: "{{ swiftlyUserHome }}/.swiftly-bootstrap/swiftly-{{ ansible_facts.architecture }}.tar.gz"
+    dest: "{{ swiftlyUserHome }}/.swiftly-bootstrap"
+    remote_src: true
+    creates: "{{ swiftlyUserHome }}/.swiftly-bootstrap/swiftly"
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Initialize Swiftly for the login user
+  ansible.builtin.command:
+    cmd: ./swiftly init --assume-yes --skip-install --quiet-shell-followup
+    chdir: "{{ swiftlyUserHome }}/.swiftly-bootstrap"
+    creates: "{{ swiftlyUserHome }}/.local/share/swiftly/env.sh"
+  become: false
+  vars:
+    ansible_become: false
+
+- name: Install and select the pinned Swift toolchain
+  ansible.builtin.shell:
+    cmd: |
+      set -euo pipefail
+      . "${SWIFTLY_HOME_DIR:-$HOME/.local/share/swiftly}/env.sh"
+      hash -r
+      swiftly install --use {{ swiftlySwiftVersion }} --assume-yes
+    executable: /bin/bash
+  become: false
+  vars:
+    ansible_become: false
+  register: swiftlyInstall
+  changed_when: "'already installed' not in (swiftlyInstall.stdout | lower)"

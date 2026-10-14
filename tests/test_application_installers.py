@@ -17,6 +17,7 @@ INSTALLERS = {
     ),
     "ollama": ("ollama", "ollama", ("diagnose", "install", "uninstall")),
     "samba": ("samba", "samba", ("diagnose", "install", "uninstall")),
+    "swiftly": ("swiftly", "swiftly", ("install",)),
     "tailscale": (
         "tailscale",
         "tailscale",

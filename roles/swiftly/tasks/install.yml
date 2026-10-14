@@ -1,0 +1,14 @@
+---
+- name: Resolve the login user's home directory
+  ansible.builtin.include_tasks: resolve-home.yml
+
+- name: Install Swiftly and the pinned toolchain on macOS
+  ansible.builtin.include_tasks: install-Darwin.yml
+  when: ansible_facts.os_family == 'Darwin'
+
+- name: Install Swiftly and the pinned toolchain on Debian
+  ansible.builtin.include_tasks: install-Debian.yml
+  when: ansible_facts.os_family == 'Debian'
+
+- name: Validate the Swift toolchain
+  ansible.builtin.include_tasks: validate.yml
